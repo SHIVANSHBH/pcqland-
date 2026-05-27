@@ -16,6 +16,7 @@ CREATE TABLE users (
     email_verified_at TIMESTAMP NULL,
     phone_verified_at TIMESTAMP NULL,
     remember_token VARCHAR(100) NULL,
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
