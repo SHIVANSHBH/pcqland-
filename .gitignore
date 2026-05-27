@@ -17,3 +17,18 @@ pcd_*.html
 pcdeals_*.html
 pcdeals_frontend_full_report.md
 software_key_ecommerce_architecture.md
+
+# InsForge & AI agent skills
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf
