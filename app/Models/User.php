@@ -23,6 +23,7 @@ class User extends Authenticatable
         'pincode',
         'cashback_wallet_balance',
         'prepaid_wallet_balance',
+        'is_admin',
     ];
 
     protected $hidden = [
@@ -32,5 +33,6 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_admin' => 'boolean',
     ];
 }

@@ -1,10 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'License Keys - PCQLand')
 
 @section('content')
 <div class="container">
-    <h1>License Keys</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>License Keys</h1>
+        <a href="{{ route('admin.license-keys.audit-log') }}" class="btn btn-outline-secondary">Audit Log</a>
+    </div>
 
     <form method="POST" action="{{ route('admin.license-keys.import') }}" enctype="multipart/form-data">
         @csrf

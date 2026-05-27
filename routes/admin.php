@@ -3,10 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LicenseKeyController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PriceSlabController;
 use App\Http\Controllers\Admin\ProductController;
 
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
@@ -22,6 +23,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/products/{product}/price-slabs/{slab}/edit', [PriceSlabController::class, 'edit'])->name('price-slabs.edit');
     Route::put('/products/{product}/price-slabs/{slab}', [PriceSlabController::class, 'update'])->name('price-slabs.update');
     Route::delete('/products/{product}/price-slabs/{slab}', [PriceSlabController::class, 'destroy'])->name('price-slabs.destroy');
+
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
 
     Route::get('/license-keys', [LicenseKeyController::class, 'index'])->name('license-keys.index');
     Route::post('/license-keys/import', [LicenseKeyController::class, 'import'])->name('license-keys.import');

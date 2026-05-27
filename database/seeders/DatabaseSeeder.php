@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductPriceSlab;
 use App\Models\Review;
+use App\Models\User;
 
 class DatabaseSeeder extends Seeder
 {
@@ -202,6 +204,14 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+
+        User::firstOrCreate([
+            'email' => 'admin@pcqland.test',
+        ], [
+            'name' => 'PCQLand Admin',
+            'password' => Hash::make('Admin@123'),
+            'is_admin' => true,
+        ]);
 
         // Sample reviews
         $reviews = [

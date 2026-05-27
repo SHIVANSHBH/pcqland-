@@ -41,7 +41,7 @@
         </section>
 
         <div class="catalog-grid">
-            @foreach($categories->take(6) as $category)
+            @foreach($categories as $category)
                 <a class="catalog-item" href="{{ route('shop.index', ['category' => $category->slug]) }}">
                     <span class="left">
                         @if($category->icon_path)
