@@ -1,0 +1,10 @@
+/.env
+/vendor
+/node_modules
+/.git
+/.insforge
+/database/database.sqlite
+/storage/logs/*
+!storage/logs/.gitkeep
+*.html
+composer.phar
