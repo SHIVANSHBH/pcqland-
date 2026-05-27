@@ -1,8 +1,7 @@
 FROM php:8.3-fpm-alpine
 
-RUN apk add --no-cache nginx supervisor curl postgresql-dev \
-    && docker-php-ext-install pdo_pgsql pgsql \
-    && docker-php-ext-install mbstring fileinfo
+RUN apk add --no-cache nginx supervisor curl postgresql-dev oniguruma-dev \
+    && docker-php-ext-install pdo_pgsql pgsql mbstring fileinfo
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
