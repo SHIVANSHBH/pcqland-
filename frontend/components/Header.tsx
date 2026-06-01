@@ -66,15 +66,21 @@ export default function Header() {
     const token = localStorage.getItem('token');
     if (token) {
       setIsLoggedIn(true);
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      setUserName(user.name || '');
+      try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        setUserName(user.name || '');
+      } catch {}
     }
     api.get('/admin/settings').then(s => { if (s.logo) setLogo(s.logo); }).catch(() => {});
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    setCartCount(cart.reduce((sum: number, i: any) => sum + (i.quantity || 1), 0));
+    try {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      setCartCount((Array.isArray(cart) ? cart : []).reduce((sum: number, i: any) => sum + (i.quantity || 1), 0));
+    } catch {}
     const handleCart = () => {
-      const c = JSON.parse(localStorage.getItem('cart') || '[]');
-      setCartCount(c.reduce((sum: number, i: any) => sum + (i.quantity || 1), 0));
+      try {
+        const c = JSON.parse(localStorage.getItem('cart') || '[]');
+        setCartCount((Array.isArray(c) ? c : []).reduce((sum: number, i: any) => sum + (i.quantity || 1), 0));
+      } catch {}
     };
     window.addEventListener('storage', handleCart);
     return () => window.removeEventListener('storage', handleCart);

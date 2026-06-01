@@ -162,7 +162,8 @@ async function populateDocs(docs, field, selectStr) {
 
   if (ids.length === 0) return docs;
 
-  const refStore = getStore(field === 'user' ? 'User' : field === 'product' || field === 'category' || field === 'subcategory' ? capitalizeFirst(field) : field);
+  const nameMap = { user: 'User', product: 'Product', category: 'Category', subcategory: 'Category' };
+  const refStore = getStore(nameMap[field] || capitalizeFirst(field));
   const allRefs = await refStore.find({});
   const refMap = {};
   for (const r of allRefs) {
@@ -209,18 +210,40 @@ function applyUpdate(doc, update) {
       for (const [k, v] of Object.entries(data)) {
         if (doc[k]) doc[k] = doc[k].filter(item => item !== v);
       }
+    } else {
+      for (const [k, v] of Object.entries(data)) {
+        doc[k] = v;
+      }
     }
   }
   doc.updatedAt = new Date().toISOString();
   return doc;
 }
 
-function createModel(name) {
+function createModel(name, schema = null) {
   const store = getStore(name);
+
+  function sanitize(data) {
+    if (!schema || !schema.allowedFields) return data;
+    const clean = {};
+    for (const field of schema.allowedFields) {
+      if (data[field] !== undefined) clean[field] = data[field];
+    }
+    for (const [field, val] of Object.entries(schema.defaults || {})) {
+      if (clean[field] === undefined) clean[field] = val;
+    }
+    for (const field of schema.required || []) {
+      if (clean[field] === undefined || clean[field] === '') {
+        throw new Error(`${field} is required`);
+      }
+    }
+    return clean;
+  }
 
   const model = {
     _store: store,
     _name: name,
+    _schema: schema,
 
     find: (query = {}) => {
       return new QueryBuilder(store, processQuery(query));
@@ -239,7 +262,14 @@ function createModel(name) {
     findByIdAndUpdate: async (id, update, options = {}) => {
       const doc = await store.findOne({ _id: id });
       if (!doc) return null;
-      const updated = applyUpdate(doc, update.$set ? update : { $set: update });
+      let updateData = update;
+      if (update.$set) {
+        const clean = sanitize(update.$set);
+        updateData = { $set: clean };
+      } else if (!update.$inc && !update.$push && !update.$pull) {
+        updateData = { $set: sanitize(update) };
+      }
+      const updated = applyUpdate(doc, updateData);
       await store.update({ _id: id }, updated);
       if (options.new !== false) return updated;
       return null;
@@ -251,9 +281,9 @@ function createModel(name) {
         if (options.upsert) {
           const insertData = {};
           if (update.$set) {
-            Object.assign(insertData, update.$set);
+            Object.assign(insertData, sanitize(update.$set));
           } else {
-            Object.assign(insertData, update);
+            Object.assign(insertData, sanitize(update));
           }
           Object.assign(insertData, processQuery(query));
           insertData._id = generateId();
@@ -264,7 +294,13 @@ function createModel(name) {
         }
         return null;
       }
-      const updated = applyUpdate(doc, update.$set ? update : { $set: update });
+      let updateData = update;
+      if (update.$set) {
+        updateData = { $set: sanitize(update.$set) };
+      } else if (!update.$inc && !update.$push && !update.$pull) {
+        updateData = { $set: sanitize(update) };
+      }
+      const updated = applyUpdate(doc, updateData);
       await store.update({ _id: doc._id }, updated);
       return options.new !== false ? updated : null;
     },
@@ -284,7 +320,8 @@ function createModel(name) {
     insertMany: async (docs) => {
       const inserted = [];
       for (const d of docs) {
-        const doc = { ...d, _id: d._id || generateId(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+        const clean = sanitize(d);
+        const doc = { ...clean, _id: d._id || generateId(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
         inserted.push(await store.insert(doc));
       }
       return inserted;
@@ -301,7 +338,7 @@ function createModel(name) {
     updateMany: async (query, update) => {
       const docs = await store.find(processQuery(query));
       for (const doc of docs) {
-        const updated = applyUpdate(doc, { $set: update.$set || update });
+        const updated = applyUpdate(doc, update);
         await store.update({ _id: doc._id }, updated);
       }
       return docs.length;
@@ -385,7 +422,8 @@ function createModel(name) {
     },
 
     create: async (data) => {
-      const doc = { ...data, _id: generateId(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      const clean = sanitize(data);
+      const doc = { ...clean, _id: generateId(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
       if (doc.email) doc.email = doc.email.toLowerCase();
       return store.insert(doc);
     },
@@ -394,4 +432,8 @@ function createModel(name) {
   return model;
 }
 
-module.exports = { createModel, getStore };
+function clearStores() {
+  stores = {};
+}
+
+module.exports = { createModel, getStore, clearStores };

@@ -3,19 +3,29 @@ const fs = require('fs');
 const os = require('os');
 
 describe('dev-store Model', () => {
-  const { createModel } = require('../config/dev-store');
+  const { createModel, clearStores } = require('../config/dev-store');
   const testDir = path.join(os.tmpdir(), 'pcdeals-test-' + Date.now());
 
   beforeAll(() => {
+    clearStores();
     process.env.DB_PATH = testDir;
   });
 
-  afterAll(() => {
-    fs.rmSync(testDir, { recursive: true, force: true });
+  beforeEach(() => {
+    clearStores();
+    try { fs.rmSync(testDir, { recursive: true, force: true }); } catch {}
+    fs.mkdirSync(testDir, { recursive: true });
   });
 
+  afterAll(() => {
+    clearStores();
+    try { fs.rmSync(testDir, { recursive: true, force: true }); } catch {}
+  });
+
+  let counter = 0;
+
   test('creates and finds a document', async () => {
-    const Model = createModel('Test');
+    const Model = createModel('T' + (counter++));
     const doc = await Model.create({ name: 'hello', price: 100 });
 
     expect(doc._id).toBeDefined();
@@ -26,7 +36,7 @@ describe('dev-store Model', () => {
   });
 
   test('findOne returns first match', async () => {
-    const Model = createModel('TestFind');
+    const Model = createModel('T' + (counter++));
     await Model.create({ role: 'user', email: 'a@test.com' });
     await Model.create({ role: 'admin', email: 'b@test.com' });
 
@@ -35,7 +45,7 @@ describe('dev-store Model', () => {
   });
 
   test('find returns QueryBuilder with exec', async () => {
-    const Model = createModel('TestQuery');
+    const Model = createModel('T' + (counter++));
     await Model.create({ name: 'x', price: 10 });
     await Model.create({ name: 'y', price: 20 });
     await Model.create({ name: 'z', price: 30 });
@@ -45,7 +55,7 @@ describe('dev-store Model', () => {
   });
 
   test('findByIdAndUpdate modifies document', async () => {
-    const Model = createModel('TestUpdate');
+    const Model = createModel('T' + (counter++));
     const doc = await Model.create({ status: 'pending' });
 
     await Model.findByIdAndUpdate(doc._id, { status: 'paid' });
@@ -54,7 +64,7 @@ describe('dev-store Model', () => {
   });
 
   test('findByIdAndDelete removes document', async () => {
-    const Model = createModel('TestDelete');
+    const Model = createModel('T' + (counter++));
     const doc = await Model.create({ name: 'delete-me' });
 
     await Model.findByIdAndDelete(doc._id);

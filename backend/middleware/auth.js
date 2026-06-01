@@ -11,11 +11,16 @@ function sanitize(user) {
 
 const auth = async (req, res, next) => {
   try {
+    let token;
     const header = req.headers.authorization;
-    if (!header || !header.startsWith('Bearer ')) {
+    if (header && header.startsWith('Bearer ')) {
+      token = header.split(' ')[1];
+    } else if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+    if (!token) {
       return res.status(401).json({ success: false, message: 'No token provided' });
     }
-    const token = header.split(' ')[1];
 
     const blacklisted = await Token.findOne({ token, type: 'blacklist' });
     if (blacklisted) {

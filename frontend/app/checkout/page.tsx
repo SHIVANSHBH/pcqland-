@@ -31,25 +31,28 @@ export default function CheckoutPage() {
     const itemsParam = searchParams.get('items');
 
     if (productParam && qtyParam) {
-      const saved = localStorage.getItem('cart');
-      const existingCart = saved ? JSON.parse(saved) : [];
-      const existing = existingCart.find((i: any) => i.slug === productParam);
-      if (existing) {
-        setCartItems([{ ...existing, quantity: parseInt(qtyParam) || 1 }]);
-      } else {
-        setCartItems([{ slug: productParam, quantity: parseInt(qtyParam) || 1 }]);
-      }
+      try {
+        const saved = localStorage.getItem('cart');
+        const existingCart = saved ? JSON.parse(saved) : [];
+        if (Array.isArray(existingCart)) {
+          const existing = existingCart.find((i: any) => i.slug === productParam);
+          if (existing) {
+            setCartItems([{ ...existing, quantity: parseInt(qtyParam) || 1 }]);
+          } else {
+            setCartItems([{ slug: productParam, quantity: parseInt(qtyParam) || 1 }]);
+          }
+        }
+      } catch {}
     } else if (itemsParam) {
       try {
         const parsed = JSON.parse(decodeURIComponent(itemsParam));
         setCartItems(parsed.map((i: any) => ({ slug: i.slug, name: i.name, price: i.price, quantity: i.qty })));
-      } catch {
+      } catch {}
+    } else {
+      try {
         const saved = localStorage.getItem('cart');
         if (saved) setCartItems(JSON.parse(saved));
-      }
-    } else {
-      const saved = localStorage.getItem('cart');
-      if (saved) setCartItems(JSON.parse(saved));
+      } catch {}
     }
   }, [searchParams]);
 

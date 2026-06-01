@@ -95,6 +95,9 @@ router.post('/verify', auth, async (req, res) => {
     }
     const order = await Order.findOne({ razorpayOrderId });
     if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (order.user !== req.user._id) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
 
     order.razorpayPaymentId = razorpayPaymentId;
 

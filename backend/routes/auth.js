@@ -51,6 +51,20 @@ router.post('/register', async (req, res) => {
       console.log(`Verification code for ${email}: ${verificationCode}`);
     }
 
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000,
+      path: '/',
+    };
+    res.cookie('token', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/api/auth/refresh-token',
+    });
+
     success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Registration successful. Please verify your email.', 201);
   } catch (err) {
     error(res, err.message);
@@ -127,6 +141,20 @@ router.post('/login', async (req, res) => {
     const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' });
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000,
+      path: '/',
+    };
+    res.cookie('token', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/api/auth/refresh-token',
+    });
 
     success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Login successful');
   } catch (err) {

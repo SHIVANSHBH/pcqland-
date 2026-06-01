@@ -30,6 +30,13 @@ const assignKeys = async (order) => {
 const processOrderDelivery = async (order) => {
   try {
     const user = await User.findById(order.user);
+    if (!user) {
+      console.error(`User not found for order ${order.orderId}, user ID: ${order.user}`);
+      order.orderStatus = 'processing';
+      order.paymentStatus = 'paid';
+      await Order._store.update({ _id: order._id }, order);
+      throw new Error(`User not found for delivery`);
+    }
     const items = await assignKeys(order);
 
     order.items = items;

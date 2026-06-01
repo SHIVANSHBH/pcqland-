@@ -17,8 +17,10 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const data = await api.post('/auth/register', form);
-      localStorage.setItem('token', data.token);
+      const res = await api.post('/auth/register', form);
+      const data = res.data;
+      localStorage.setItem('token', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
       localStorage.setItem('user', JSON.stringify(data.user));
       toast.success('Registration successful!');
       router.push('/');

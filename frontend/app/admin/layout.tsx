@@ -23,21 +23,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-    if (!token || !user) {
+    if (!token) {
       router.push('/login');
       return;
     }
-    try {
-      const parsed = JSON.parse(user);
-      if (parsed.role !== 'admin') {
-        router.push('/');
-        return;
-      }
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/dashboard`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((res) => {
+      if (!res.ok) throw new Error('Unauthorized');
       setAuthorized(true);
-    } catch {
+    }).catch(() => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       router.push('/login');
-    }
+    });
   }, [router]);
 
   if (!authorized) {

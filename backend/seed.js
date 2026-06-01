@@ -8,10 +8,10 @@ const bcrypt = require('bcryptjs');
 async function seed() {
   await connectDB();
 
-  // Clear existing data
+  // Clear existing data (skip User to preserve registered users)
   await Category._store.remove({}, { multi: true });
   await Product._store.remove({}, { multi: true });
-  await User._store.remove({}, { multi: true });
+  // await User._store.remove({}, { multi: true });
 
   // Create categories
   const cats = await Category.insertMany([

@@ -95,7 +95,9 @@ export default function ProductPage({ params }: PageProps) {
   }, [slug]);
 
   function addToCart() {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    let cart = [];
+    try { cart = JSON.parse(localStorage.getItem('cart') || '[]'); } catch {}
+    if (!Array.isArray(cart)) cart = [];
     const existing = cart.findIndex((i: any) => i.slug === slug);
     if (existing >= 0) {
       cart[existing].quantity += quantity;
@@ -186,7 +188,7 @@ export default function ProductPage({ params }: PageProps) {
           </div>
 
           <div className="flex items-center gap-3 mb-6">
-            <Link href={`/checkout?product=${slug}&qty=${quantity}`} onClick={() => { const cart = JSON.parse(localStorage.getItem('cart') || '[]'); const existing = cart.findIndex((i: any) => i.slug === slug); if (existing >= 0) { cart[existing].quantity = quantity; } else { cart.push({ slug, name: product?.name || slug, price: product?.price || 0, quantity }); } localStorage.setItem('cart', JSON.stringify(cart)); }} className="btn-primary flex-1">
+            <Link href={`/checkout?product=${slug}&qty=${quantity}`} onClick={() => { let cart = []; try { cart = JSON.parse(localStorage.getItem('cart') || '[]'); } catch {} if (!Array.isArray(cart)) cart = []; const existing = cart.findIndex((i: any) => i.slug === slug); if (existing >= 0) { cart[existing].quantity = quantity; } else { cart.push({ slug, name: product?.name || slug, price: product?.price || 0, quantity }); } localStorage.setItem('cart', JSON.stringify(cart)); }} className="btn-primary flex-1">
               <Zap className="w-4 h-4" /> Buy Now
             </Link>
             <button onClick={addToCart} className="btn-outline flex-1">

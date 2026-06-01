@@ -30,6 +30,9 @@ const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
+    if (req.path === '/inventory/upload') {
+      return cb(null, /csv/.test(file.mimetype) || file.originalname.endsWith('.csv'));
+    }
     const allowed = /jpeg|jpg|png|gif|webp|svg|ico/;
     const ext = allowed.test(file.originalname.toLowerCase().split('.').pop());
     const mime = allowed.test(file.mimetype);
@@ -51,6 +54,8 @@ router.post('/login', async (req, res) => {
     const Token = require('../models/Token');
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
+    const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 15 * 60 * 1000, path: '/' };
+    res.cookie('token', accessToken, cookieOptions);
     res.json({ success: true, message: 'Login successful', data: { accessToken, refreshToken, user: sanitize(user) } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

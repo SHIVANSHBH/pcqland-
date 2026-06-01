@@ -9,8 +9,12 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState<any[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('cart');
-    if (saved) setCartItems(JSON.parse(saved));
+    try {
+      const saved = localStorage.getItem('cart');
+      if (saved) setCartItems(JSON.parse(saved));
+    } catch {
+      localStorage.removeItem('cart');
+    }
   }, []);
 
   const updateQty = (slug: string, delta: number) => {

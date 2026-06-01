@@ -8,7 +8,10 @@ router.get('/', async (req, res) => {
     const { category, search, featured } = req.query;
     const filter = { isActive: true };
     if (category) filter.category = category;
-    if (search) filter.name = { $regex: search, $options: 'i' };
+    if (search) {
+      const sanitized = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 100);
+      filter.name = { $regex: sanitized, $options: 'i' };
+    }
     if (featured === 'true') filter.isFeatured = true;
     const products = await Product.find(filter).populate('category', 'name slug');
     res.json(products);
