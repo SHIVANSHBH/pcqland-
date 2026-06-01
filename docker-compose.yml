@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    env_file: ./backend/.env
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/uploads:/app/uploads
+      - ./backend/invoices:/app/invoices
+    restart: unless-stopped
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm run build && npm start"
+    ports:
+      - "3000:3000"
+    env_file: ./frontend/.env
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+    restart: unless-stopped
