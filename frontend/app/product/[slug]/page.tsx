@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
+import Image from 'next/image';
 import { Shield, Zap, FileText, CheckCircle, ShoppingCart, ChevronRight, Minus, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -354,7 +355,7 @@ export default function ProductPage({ params }: PageProps) {
         <div className="bg-white border border-pcd-border rounded-2xl p-8 flex items-center justify-center">
           <div className="text-center">
             {product.images?.[0] ? (
-              <img src={product.images[0]} alt={product.name} className="w-48 h-48 object-contain mx-auto mb-4" />
+              <Image src={product.images[0]} alt={product.name} width={192} height={192} className="w-48 h-48 object-contain mx-auto mb-4" />
             ) : (
               <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-4xl mx-auto mb-4">
                 {product.name.charAt(0)}

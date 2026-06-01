@@ -7,27 +7,54 @@ const { generateInvoice } = require('./invoice');
 const path = require('path');
 const fs = require('fs');
 
-const assignKeys = async (order) => {
+let deliveryQueue = [];
+let processingDelivery = false;
+
+function enqueueDelivery(order) {
+  return new Promise((resolve, reject) => {
+    deliveryQueue.push({ order, resolve, reject });
+    if (!processingDelivery) processNextDelivery();
+  });
+}
+
+async function processNextDelivery() {
+  if (deliveryQueue.length === 0) {
+    processingDelivery = false;
+    return;
+  }
+  processingDelivery = true;
+  const { order, resolve, reject } = deliveryQueue.shift();
+  try {
+    const result = await processOrderDeliveryInternal(order);
+    resolve(result);
+  } catch (err) {
+    reject(err);
+  } finally {
+    processNextDelivery();
+  }
+}
+
+const assignKeysAtomic = async (order) => {
   const items = [];
   for (const item of order.items) {
-    const keys = await Inventory.find({ product: item.product, isUsed: false }).limit(item.quantity).exec();
-    if (!Array.isArray(keys)) {
-      throw new Error(`Insufficient keys for ${item.productName}`);
+    const assigned = [];
+    for (let i = 0; i < item.quantity; i++) {
+      const key = await Inventory.findOneAndUpdate(
+        { product: item.product, isUsed: false },
+        { isUsed: true, order: order._id, usedAt: new Date().toISOString() },
+        { new: true }
+      );
+      if (!key) {
+        throw new Error(`Insufficient keys for ${item.productName}`);
+      }
+      assigned.push(key.key);
     }
-    if (keys.length < item.quantity) {
-      throw new Error(`Insufficient keys for ${item.productName}`);
-    }
-    const keyStrings = keys.map(k => k.key);
-    await Inventory.updateMany(
-      { _id: { $in: keys.map(k => k._id) } },
-      { isUsed: true, order: order._id, usedAt: new Date().toISOString() }
-    );
-    items.push({ ...item, keys: keyStrings });
+    items.push({ ...item, keys: assigned });
   }
   return items;
 };
 
-const processOrderDelivery = async (order) => {
+const processOrderDeliveryInternal = async (order) => {
   try {
     const user = await User.findById(order.user);
     if (!user) {
@@ -37,7 +64,7 @@ const processOrderDelivery = async (order) => {
       await Order._store.update({ _id: order._id }, order);
       throw new Error(`User not found for delivery`);
     }
-    const items = await assignKeys(order);
+    const items = await assignKeysAtomic(order);
 
     order.items = items;
     order.orderStatus = 'completed';
@@ -108,5 +135,7 @@ const processOrderDelivery = async (order) => {
     throw error;
   }
 };
+
+const processOrderDelivery = (order) => enqueueDelivery(order);
 
 module.exports = { processOrderDelivery };

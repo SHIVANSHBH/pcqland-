@@ -15,38 +15,36 @@ router.post('/create', auth, async (req, res) => {
     let subtotal = 0;
     const orderItems = [];
     for (const item of items) {
-      const product = await Product.findOne({ slug: item.slug });
-      if (!product) {
-        orderItems.push({
-          product: item.slug,
-          productName: item.name || item.slug,
-          quantity: item.quantity,
-          unitPrice: item.price,
-          totalPrice: item.price * item.quantity,
-        });
-        subtotal += item.price * item.quantity;
-        continue;
+      let product;
+      if (item.productId) {
+        product = await Product.findById(item.productId);
       }
-      const itemTotal = product.price * item.quantity;
-      subtotal += itemTotal;
-      orderItems.push({
-        product: product._id,
-        productName: product.name,
-        quantity: item.quantity,
-        unitPrice: product.price,
-        totalPrice: itemTotal,
-      });
-    }
-      if (!product) return res.status(404).json({ message: `Product not found: ${item.productId || item.slug}` });
-      const itemTotal = product.price * item.quantity;
-      subtotal += itemTotal;
-      orderItems.push({
-        product: product._id,
-        productName: product.name,
-        quantity: item.quantity,
-        unitPrice: product.price,
-        totalPrice: itemTotal,
-      });
+      if (!product && item.slug) {
+        const allProducts = await Product.find({ slug: item.slug });
+        product = allProducts[0] || null;
+      }
+      if (product) {
+        const itemTotal = product.price * item.quantity;
+        subtotal += itemTotal;
+        orderItems.push({
+          product: product._id,
+          productName: product.name,
+          quantity: item.quantity,
+          unitPrice: product.price,
+          totalPrice: itemTotal,
+        });
+      } else {
+        const price = item.price || 0;
+        const itemTotal = price * item.quantity;
+        subtotal += itemTotal;
+        orderItems.push({
+          product: item.slug || item.productId,
+          productName: item.name || item.slug || 'Product',
+          quantity: item.quantity,
+          unitPrice: price,
+          totalPrice: itemTotal,
+        });
+      }
     }
 
     const user = await User.findById(req.user._id);
@@ -57,7 +55,8 @@ router.post('/create', auth, async (req, res) => {
       cashbackUsed = Math.min(user.walletBalance, subtotal);
     }
 
-    const tax = Math.round((subtotal - cashbackUsed) * 0.18 * 100) / 100;
+    const taxRate = parseFloat(process.env.TAX_RATE) || 0.18;
+    const tax = Math.round((subtotal - cashbackUsed) * taxRate * 100) / 100;
     const amount = subtotal - cashbackUsed - prepaidDiscount + tax;
 
     const orderId = 'PCD' + Date.now() + Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -110,7 +109,7 @@ router.post('/verify', auth, async (req, res) => {
     }
     const order = await Order.findOne({ razorpayOrderId });
     if (!order) return res.status(404).json({ message: 'Order not found' });
-    if (order.user !== req.user._id) {
+    if (String(order.user) !== String(req.user._id)) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
@@ -126,10 +125,19 @@ router.post('/verify', auth, async (req, res) => {
 
 router.get('/my-orders', auth, async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id })
-      .sort({ createdAt: -1 })
-      .populate('items.product', 'name slug images');
-    res.json(orders);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const [orders, total] = await Promise.all([
+      Order.find({ user: req.user._id })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('items.product', 'name slug images'),
+      Order.countDocuments({ user: req.user._id }),
+    ]);
+    res.json({ data: orders, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

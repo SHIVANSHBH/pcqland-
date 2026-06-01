@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import Image from 'next/image';
 import { Search, User, ShoppingCart, Menu, X, ChevronDown, Phone, Headphones } from 'lucide-react';
 
 const brandIcons: Record<string, string> = {
@@ -63,14 +64,12 @@ export default function Header() {
   }
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-      try {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        setUserName(user.name || '');
-      } catch {}
-    }
+    api.get('/auth/me').then(d => {
+      if (d && d.data) {
+        setIsLoggedIn(true);
+        setUserName(d.data.name || '');
+      }
+    }).catch(() => setIsLoggedIn(false));
     api.get('/admin/settings').then(s => { if (s.logo) setLogo(s.logo); }).catch(() => {});
     try {
       const cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -86,9 +85,8 @@ export default function Header() {
     return () => window.removeEventListener('storage', handleCart);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const handleLogout = async () => {
+    try { await api.post('/auth/logout', {}); } catch {}
     setIsLoggedIn(false);
     window.location.href = '/';
   };
@@ -114,7 +112,11 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <div className="flex items-center gap-2">
-              <img src={logo || '/assets/1565303531.shree hira computer Logo for WebSite.png'} alt="PC Deals India" className="h-10 w-auto" />
+              {logo ? (
+                <Image src={logo} alt="PC Deals India" width={180} height={40} className="h-10 w-auto" unoptimized />
+              ) : (
+                <Image src="/assets/1565303531.shree hira computer Logo for WebSite.png" alt="PC Deals India" width={180} height={40} className="h-10 w-auto" />
+              )}
               <div className="hidden md:block">
                 <h1 className="text-sm font-extrabold text-pcd-text leading-tight">PC Deals India</h1>
                 <p className="text-[10px] text-pcd-muted">Genuine Software Keys</p>
@@ -156,12 +158,12 @@ export default function Header() {
 
             {isLoggedIn ? (
               <div className="relative group">
-                <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-pcd-text hover:text-primary transition-colors">
+                <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-pcd-text hover:text-primary transition-colors" aria-haspopup="true" aria-expanded="false">
                   <User className="w-5 h-5" />
                   <span className="hidden md:inline">{userName || 'Account'}</span>
                   <ChevronDown className="w-3 h-3" />
                 </button>
-                <div className="absolute top-full right-0 mt-1 bg-white border border-pcd-border rounded-xl shadow-lg z-50 min-w-[200px] hidden group-hover:block">
+                <div className="absolute top-full right-0 mt-1 bg-white border border-pcd-border rounded-xl shadow-lg z-50 min-w-[200px] hidden group-hover:block group-focus-within:block">
                   <Link href="/account" className="block px-4 py-2.5 text-sm text-pcd-text hover:bg-blue-50 hover:text-primary">My Account</Link>
                   <Link href="/account/orders" className="block px-4 py-2.5 text-sm text-pcd-text hover:bg-blue-50 hover:text-primary">My Orders</Link>
                   <Link href="/account/wallet" className="block px-4 py-2.5 text-sm text-pcd-text hover:bg-blue-50 hover:text-primary">Wallet</Link>
@@ -196,7 +198,7 @@ export default function Header() {
               <div key={cat.slug} className={`category-flyout${cat.children ? ' has-submenu' : ''}`}>
                 <Link href={`/category/${cat.slug}`} className="category-link">
                   <span className="category-link-main">
-                    <img src={cat.icon} alt="" className="w-6 h-6 object-contain" />
+                    <Image src={cat.icon} alt="" width={24} height={24} className="w-6 h-6 object-contain" />
                     <span>{cat.name}</span>
                   </span>
                   {cat.children && <ChevronDown className="w-3 h-3 category-link-arrow" />}
@@ -242,7 +244,7 @@ export default function Header() {
               </Link>
               {categories.map((cat) => (
                 <Link key={cat.slug} href={`/category/${cat.slug}`} className="flex items-center gap-3 py-2.5 text-sm font-medium text-pcd-text border-t border-pcd-border/50">
-                  <img src={cat.icon} alt="" className="w-6 h-6 object-contain" />
+                  <Image src={cat.icon} alt="" width={24} height={24} className="w-6 h-6 object-contain" />
                   {cat.name}
                 </Link>
               ))}

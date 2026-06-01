@@ -36,7 +36,8 @@ export default function CartPage() {
   };
 
   const subtotal = cartItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
-  const tax = Math.round(subtotal * 0.18 * 100) / 100;
+  const taxRate = parseFloat(process.env.NEXT_PUBLIC_TAX_RATE || '0.18');
+  const tax = Math.round(subtotal * taxRate * 100) / 100;
   const total = subtotal + tax;
 
   return (
@@ -85,7 +86,7 @@ export default function CartPage() {
                 <span>{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between text-pcd-muted">
-                <span>GST (18%)</span>
+                <span>GST ({Math.round(taxRate * 100)}%)</span>
                 <span>{formatPrice(tax)}</span>
               </div>
               <hr className="border-pcd-border" />

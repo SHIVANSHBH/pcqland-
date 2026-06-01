@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 import { Lock, ChevronRight, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 declare global {
   interface Window {
@@ -92,39 +93,26 @@ export default function CheckoutPage() {
     });
   };
 
+  const taxRate = parseFloat(process.env.NEXT_PUBLIC_TAX_RATE || '0.18');
   const subtotal = cartItems.reduce((sum: number, item: any) => sum + (item.price || 0) * item.quantity, 0);
-  const tax = Math.round(subtotal * 0.18 * 100) / 100;
+  const tax = Math.round(subtotal * taxRate * 100) / 100;
   const total = subtotal + tax;
 
   const handleRazorpayPayment = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          items: cartItems.map((i: any) => ({
-            productId: i._id,
-            slug: i.slug,
-            quantity: i.quantity,
-          })),
-          customerInfo: form,
-          paymentMethod: 'razorpay',
-        }),
+      const data = await api.post('/orders/create', {
+        items: cartItems.map((i: any) => ({
+          productId: i._id,
+          slug: i.slug,
+          quantity: i.quantity,
+        })),
+        customerInfo: form,
+        paymentMethod: 'razorpay',
       });
 
-      const data = await res.json();
       if (!data.razorpayOrder) {
-        alert(data.message || 'Failed to create order');
+        toast.error(data.message || 'Failed to create order');
         setLoading(false);
         return;
       }
@@ -137,9 +125,8 @@ export default function CheckoutPage() {
       } else {
         openRazorpay(data.razorpayOrder);
       }
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert('Something went wrong. Please try again.');
+    } catch (error: any) {
+      toast.error(error.message || 'Something went wrong. Please try again.');
       setLoading(false);
     }
   };
@@ -261,7 +248,7 @@ export default function CheckoutPage() {
               <span className="font-semibold">{formatPrice(subtotal)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-pcd-muted">GST (18%)</span>
+              <span className="text-pcd-muted">GST ({Math.round(taxRate * 100)}%)</span>
               <span className="font-semibold">{formatPrice(tax)}</span>
             </div>
             <hr className="border-pcd-border" />

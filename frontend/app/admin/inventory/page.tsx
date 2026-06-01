@@ -36,10 +36,9 @@ export default function AdminInventory() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('productId', selectedProduct);
-      const token = localStorage.getItem('token');
       const res = await fetch(`${UPLOAD_BASE}/api/admin/inventory/upload`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
         body: formData,
       });
       const data = await res.json();

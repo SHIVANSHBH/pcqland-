@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { FileText, Plus, Edit2, Trash2, Image, X, Check } from 'lucide-react';
+import { FileText, Plus, Edit2, Trash2, X, Check, Image as ImageIcon } from 'lucide-react';
+import NextImage from 'next/image';
 import toast from 'react-hot-toast';
 
 const tabs = [
@@ -167,13 +168,13 @@ export default function AdminCMS() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-gray-800">Banners</h3>
             <button onClick={() => { setEditItem({ title: '', subtitle: '', image: '', link: '', isActive: true, displayOrder: 0 }); setShowModal(true); }} className="flex items-center gap-1.5 text-sm text-primary font-semibold hover:underline">
-              <Image className="w-4 h-4" /> Add Banner
+              <Plus className="w-4 h-4" /> Add Banner
             </button>
           </div>
           {banners.map((b: any) => (
             <div key={b._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2">
               <div className="flex items-center gap-3">
-                {b.image && <img src={b.image} className="w-16 h-10 rounded object-cover" />}
+                {b.image && <NextImage src={b.image} alt="" width={64} height={40} className="w-16 h-10 rounded object-cover" unoptimized />}
                 <div>
                   <p className="text-sm font-semibold text-gray-800">{b.title}</p>
                   <p className="text-xs text-gray-400">{b.subtitle}</p>

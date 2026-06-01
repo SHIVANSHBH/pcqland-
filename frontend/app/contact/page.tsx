@@ -55,7 +55,7 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <a href="https://wa.me/919728622667?text=Hi%2C%20I%20need%20help%20with%20PC%20Deals%20India." target="_blank" rel="noopener" className="btn-whatsapp w-full">
+          <a href="https://wa.me/919728622667?text=Hi%2C%20I%20need%20help%20with%20PC%20Deals%20India." target="_blank" rel="noopener noreferrer" className="btn-whatsapp w-full">
             <MessageCircle className="w-5 h-5" />
             Chat on WhatsApp
           </a>

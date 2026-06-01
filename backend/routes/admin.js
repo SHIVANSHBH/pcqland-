@@ -16,6 +16,7 @@ const Banner = require('../models/Banner');
 const USP = require('../models/USP');
 const Setting = require('../models/Setting');
 const { processOrderDelivery } = require('../utils/delivery');
+const cache = require('../utils/cache');
 
 const router = express.Router();
 
@@ -91,8 +92,14 @@ router.get('/dashboard', adminAuth, async (req, res) => {
 
 // Products
 router.get('/products', adminAuth, async (req, res) => {
-  const products = await Product.find().populate('category', 'name slug').sort({ createdAt: -1 });
-  res.json(products);
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+  const skip = (page - 1) * limit;
+  const [products, total] = await Promise.all([
+    Product.find().populate('category', 'name slug').sort({ createdAt: -1 }).skip(skip).limit(limit),
+    Product.countDocuments(),
+  ]);
+  res.json({ products, total, page, pages: Math.ceil(total / limit) });
 });
 
 router.post('/products', adminAuth, async (req, res) => {
@@ -318,17 +325,21 @@ router.delete('/usps/:id', adminAuth, async (req, res) => {
   res.json({ success: true });
 });
 
-// Settings
-router.get('/settings', adminAuth, async (req, res) => {
+// Settings (public read for frontend display, cached 5 min)
+router.get('/settings', async (req, res) => {
+  const cached = cache.get('settings');
+  if (cached) return res.json(cached);
   const settings = await Setting.find();
   const obj = {};
   settings.forEach(s => { obj[s.key] = s.value; });
+  cache.set('settings', obj, 300000);
   res.json(obj);
 });
 
 router.put('/settings', adminAuth, async (req, res) => {
   const { key, value } = req.body;
   await Setting.findOneAndUpdate({ key }, { value }, { upsert: true });
+  cache.del('settings');
   res.json({ success: true });
 });
 

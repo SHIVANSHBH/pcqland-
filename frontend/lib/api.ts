@@ -1,21 +1,35 @@
 const API_BASE: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+function getCsrfToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 interface FetchOptions extends RequestInit {
   headers?: Record<string, string>;
 }
 
 async function fetchAPI(endpoint: string, options: FetchOptions = {}): Promise<any> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
+
+  const csrf = getCsrfToken();
+  if (csrf && /^(post|put|patch|delete)$/i.test(options.method || 'get')) {
+    headers['x-csrf-token'] = csrf;
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5000);
   try {
-    const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers, signal: controller.signal });
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+      credentials: 'include',
+    });
     if (!res.ok) {
       const error = await res.json().catch(() => ({ message: 'Request failed' }));
       throw new Error(error.message || 'Request failed');

@@ -3,20 +3,28 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { User, Package, Wallet, Download, Key, LogOut, ChevronRight } from 'lucide-react';
+import { api } from '@/lib/api';
+import { User, Package, Wallet, Download, Key, LogOut, ChevronRight, Loader2 } from 'lucide-react';
 
 export default function AccountPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (stored) {
-      setUser(JSON.parse(stored));
-    } else {
-      router.push('/login');
-    }
+    api.get('/auth/me').then(d => {
+      if (d && d.data) setUser(d.data);
+      else router.push('/login');
+    }).catch(() => router.push('/login')).finally(() => setLoading(false));
   }, [router]);
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+      </div>
+    );
+  }
 
   if (!user) return null;
 
@@ -72,7 +80,7 @@ export default function AccountPage() {
 
       {/* Logout */}
       <button
-        onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('user'); router.push('/login'); }}
+        onClick={async () => { try { await api.post('/auth/logout', {}); } catch {} finally { router.push('/login'); } }}
         className="mt-6 flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-colors"
       >
         <LogOut className="w-4 h-4" />

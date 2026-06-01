@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
+import Image from 'next/image';
 import { Search as SearchIcon } from 'lucide-react';
 
 const brandIcons: Record<string, string> = {
@@ -129,7 +130,7 @@ function SearchResults() {
           return (
             <Link key={product.slug} href={`/product/${product.slug}`} className="product-card group">
               <div className="relative bg-gradient-to-br from-blue-50 to-white p-6 flex items-center justify-center h-48">
-                <img src={brandIcons[product.catSlug]} alt={product.name} className="w-20 h-20 object-contain group-hover:scale-110 transition-transform" />
+                <Image src={brandIcons[product.catSlug]} alt={product.name} width={80} height={80} className="w-20 h-20 object-contain group-hover:scale-110 transition-transform" />
                 {discount > 0 && (
                   <span className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-lg">
                     {discount}% OFF

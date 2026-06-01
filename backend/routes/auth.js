@@ -4,22 +4,36 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Token = require('../models/Token');
 const { auth, sanitize, generateRefreshToken, generateCode } = require('../middleware/auth');
+const { validate, z } = require('../middleware/validate');
 const { success, error } = require('../utils/response');
 const { sendGenericEmail } = require('../utils/email');
 const { verificationEmail, passwordResetEmail } = require('../utils/templates');
 
 const router = express.Router();
 
-router.post('/register', async (req, res) => {
+const registerSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100),
+  email: z.string().email('Invalid email'),
+  phone: z.string().min(10, 'Invalid phone').max(15),
+  password: z.string().min(6, 'Password must be at least 6 characters').max(128),
+});
+
+const loginSchema = z.object({
+  email: z.string().email('Invalid email').optional(),
+  phone: z.string().min(10).max(15).optional(),
+  password: z.string().min(1, 'Password is required'),
+}).refine(d => d.email || d.phone, { message: 'Email or phone is required' });
+
+const emailSchema = z.object({ email: z.string().email('Invalid email') });
+const codeSchema = z.object({ email: z.string().email('Invalid email'), code: z.string().length(6, 'Code must be 6 digits') });
+const resetPasswordSchema = z.object({ email: z.string().email('Invalid email'), code: z.string().length(6), password: z.string().min(6).max(128) });
+const changePasswordSchema = z.object({ currentPassword: z.string().min(1), newPassword: z.string().min(6).max(128) });
+const phoneSchema = z.object({ phone: z.string().min(10).max(15) });
+const otpSchema = z.object({ phone: z.string().min(10).max(15), otp: z.string().length(6) });
+
+router.post('/register', validate(registerSchema), async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
-
-    if (!name || !email || !phone || !password) {
-      return error(res, 'Name, email, phone, and password are required', 400);
-    }
-    if (password.length < 6) {
-      return error(res, 'Password must be at least 6 characters', 400);
-    }
 
     const exists = await User.findOne({ $or: [{ email: email.toLowerCase() }, { phone }] });
     if (exists) {
@@ -71,10 +85,9 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/verify-email', async (req, res) => {
+router.post('/verify-email', validate(codeSchema), async (req, res) => {
   try {
     const { email, code } = req.body;
-    if (!email || !code) return error(res, 'Email and code are required', 400);
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return error(res, 'User not found', 404);
@@ -89,10 +102,9 @@ router.post('/verify-email', async (req, res) => {
   }
 });
 
-router.post('/resend-verification', async (req, res) => {
+router.post('/resend-verification', validate(emailSchema), async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) return error(res, 'Email is required', 400);
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return error(res, 'User not found', 404);
@@ -114,13 +126,9 @@ router.post('/resend-verification', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, phone, password } = req.body;
-
-    if ((!email && !phone) || !password) {
-      return error(res, 'Email/phone and password are required', 400);
-    }
 
     const user = await User.findOne({
       $or: [
@@ -129,12 +137,9 @@ router.post('/login', async (req, res) => {
       ],
     });
 
-    if (!user) {
-      return error(res, 'Invalid credentials', 401);
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    const dummyHash = '$2a$10$' + 'x'.repeat(53);
+    const isMatch = user ? await bcrypt.compare(password, user.password) : await bcrypt.compare(password, dummyHash);
+    if (!user || !isMatch) {
       return error(res, 'Invalid credentials', 401);
     }
 
@@ -205,22 +210,22 @@ router.post('/logout', auth, async (req, res) => {
   }
 });
 
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', validate(emailSchema), async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) return error(res, 'Email is required', 400);
-
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) return success(res, null, 'If the email exists, a reset code has been sent');
+    const normalizedEmail = email.toLowerCase();
 
     const resetCode = generateCode();
     const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
-    await User.findByIdAndUpdate(user._id, { resetCode, resetCodeExpiry: codeExpiry.toISOString() });
 
-    if (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'smtp.gmail.com') {
-      sendGenericEmail({ to: user.email, ...passwordResetEmail(user.name, resetCode) }).catch(() => {});
-    } else {
-      console.log(`Password reset code for ${email}: ${resetCode}`);
+    const user = await User.findOne({ email: normalizedEmail });
+    if (user) {
+      await User.findByIdAndUpdate(user._id, { resetCode, resetCodeExpiry: codeExpiry.toISOString() });
+      if (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'smtp.gmail.com') {
+        sendGenericEmail({ to: user.email, ...passwordResetEmail(user.name, resetCode) }).catch(() => {});
+      } else {
+        console.log(`Password reset code for ${email}: ${resetCode}`);
+      }
     }
 
     success(res, null, 'If the email exists, a reset code has been sent');
@@ -229,11 +234,9 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', validate(resetPasswordSchema), async (req, res) => {
   try {
     const { email, code, password } = req.body;
-    if (!email || !code || !password) return error(res, 'Email, code, and new password are required', 400);
-    if (password.length < 6) return error(res, 'Password must be at least 6 characters', 400);
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return error(res, 'Invalid request', 400);
@@ -251,11 +254,9 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-router.post('/change-password', auth, async (req, res) => {
+router.post('/change-password', auth, validate(changePasswordSchema), async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    if (!currentPassword || !newPassword) return error(res, 'Current and new password are required', 400);
-    if (newPassword.length < 6) return error(res, 'New password must be at least 6 characters', 400);
 
     const user = await User.findById(req.user._id);
     const isMatch = await bcrypt.compare(currentPassword, user.password);
@@ -272,10 +273,9 @@ router.post('/change-password', auth, async (req, res) => {
   }
 });
 
-router.post('/send-otp', async (req, res) => {
+router.post('/send-otp', validate(phoneSchema), async (req, res) => {
   try {
     const { phone } = req.body;
-    if (!phone) return error(res, 'Phone number is required', 400);
 
     const otp = generateCode();
     const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
@@ -308,10 +308,9 @@ router.post('/send-otp', async (req, res) => {
   }
 });
 
-router.post('/verify-otp', async (req, res) => {
+router.post('/verify-otp', validate(otpSchema), async (req, res) => {
   try {
     const { phone, otp } = req.body;
-    if (!phone || !otp) return error(res, 'Phone and OTP are required', 400);
 
     let user = await User.findOne({ phone });
     if (user) {

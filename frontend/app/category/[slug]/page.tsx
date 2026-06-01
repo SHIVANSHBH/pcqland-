@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 import { Search } from 'lucide-react';
+import { ProductGridSkeleton } from '@/components/ui/Skeleton';
 
 const brandIcons: Record<string, string> = {
   'special-combo-offer': '/assets/1776830587.MS win.png',
@@ -174,7 +176,9 @@ export default function CategoryPage({ params }: PageProps) {
         />
       </div>
 
-      {filtered.length === 0 ? (
+      {apiProducts === null && fallbackProducts[slug] === undefined ? (
+        <ProductGridSkeleton count={8} />
+      ) : filtered.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-pcd-muted">No products found in this category.</p>
         </div>
@@ -185,7 +189,7 @@ export default function CategoryPage({ params }: PageProps) {
             return (
               <Link key={product.slug} href={`/product/${product.slug}`} className="product-card group">
                 <div className="relative bg-gradient-to-br from-blue-50 to-white p-6 flex items-center justify-center h-48">
-                  <img src={product.image || brandIcons[slug]} alt={product.name} className="w-20 h-20 object-contain group-hover:scale-110 transition-transform" />
+                  <Image src={product.image || brandIcons[slug]} alt={product.name} width={80} height={80} className="w-20 h-20 object-contain group-hover:scale-110 transition-transform" />
                   {discount > 0 && (
                     <span className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-lg">
                       {discount}% OFF

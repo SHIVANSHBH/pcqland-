@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Package, LayoutGrid, Box, ShoppingCart, Users, FileText, Settings, LogOut, Menu, X, ChevronDown, TrendingUp, DollarSign, Key, Wallet } from 'lucide-react';
+import { LayoutDashboard, Package, LayoutGrid, Box, ShoppingCart, Users, FileText, Settings, LogOut, Menu, X } from 'lucide-react';
+import { api } from '@/lib/api';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
@@ -22,19 +23,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/dashboard`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then((res) => {
-      if (!res.ok) throw new Error('Unauthorized');
-      setAuthorized(true);
+    api.get('/admin/dashboard').then((res) => {
+      if (res) setAuthorized(true);
     }).catch(() => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
       router.push('/login');
     });
   }, [router]);
@@ -47,9 +38,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const handleLogout = async () => {
+    try { await api.post('/auth/logout', {}); } catch {}
     router.push('/login');
   };
 

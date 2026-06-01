@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
@@ -122,7 +121,8 @@
   @apply absolute top-full left-0 mt-1 bg-white border border-pcd-border rounded-xl shadow-xl z-50 min-w-[320px] p-4 hidden;
 }
 
-.category-flyout:hover .category-submenu {
+.category-flyout:hover .category-submenu,
+.category-flyout:focus-within .category-submenu {
   @apply block;
 }
 
@@ -416,4 +416,29 @@
 
 .btn-whatsapp {
   @apply bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-emerald-600 transition-colors inline-flex items-center justify-center gap-2;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  z-index: 1000;
+  padding: 8px 16px;
+  background: #2563eb;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+}
+.skip-link:focus {
+  top: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

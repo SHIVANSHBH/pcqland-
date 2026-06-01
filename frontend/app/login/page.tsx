@@ -19,9 +19,6 @@ export default function LoginPage() {
     try {
       const res = await api.post('/auth/login', form);
       const data = res.data;
-      localStorage.setItem('token', data.accessToken);
-      if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
       toast.success('Login successful!');
       if (data.user.role === 'admin') {
         router.push('/admin');

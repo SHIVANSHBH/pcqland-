@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import Image from 'next/image';
 import { Settings, Save, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiBase from '@/lib/api';
@@ -37,10 +38,9 @@ export default function AdminSettings() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const token = localStorage.getItem('token');
       const res = await fetch(`${UPLOAD_BASE}/api/admin/upload`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
         body: formData,
       });
       const data = await res.json();
@@ -70,7 +70,7 @@ export default function AdminSettings() {
           <div className="flex items-center gap-4">
             {form.logo && (
               <div className="w-20 h-20 rounded-xl border border-gray-200 overflow-hidden flex-shrink-0">
-                <img src={form.logo} alt="Logo" className="w-full h-full object-contain" />
+                <Image src={form.logo} alt="Logo" width={80} height={80} className="w-full h-full object-contain" />
               </div>
             )}
             <div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Search, Shield, Percent, Box, Zap, FileText, Lock, Quote, Headphones, LifeBuoy, MessageCircle, Star, ChevronDown, ChevronUp } from 'lucide-react';
 
 const categories = [
@@ -126,7 +127,7 @@ export default function HomePage() {
                 key={i}
                 className={`absolute inset-0 transition-opacity duration-700 ${i === currentSlide ? 'opacity-100' : 'opacity-0'}`}
               >
-                <img src={slide.image} alt={slide.alt} className="w-full h-full object-cover" />
+                <Image src={slide.image} alt={slide.alt} fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end">
                   <div className="p-8 text-white">
                     <h2 className="text-2xl md:text-4xl font-extrabold mb-2 drop-shadow-lg">
@@ -162,7 +163,7 @@ export default function HomePage() {
               <Link key={cat.slug} href={`/category/${cat.slug}`} className="catalog-item">
                 <span className="left">
                   <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                    <img src={brandIcons[cat.slug]} alt="" className="w-7 h-7 object-contain" />
+                    <Image src={brandIcons[cat.slug]} alt="" width={28} height={28} className="w-7 h-7 object-contain" />
                   </div>
                   <span>
                     <h6>{cat.name}</h6>
@@ -257,7 +258,7 @@ export default function HomePage() {
                 <LifeBuoy className="w-4 h-4" />
                 Contact Support
               </Link>
-              <a href="https://wa.me/919728622667?text=Hi%2C%20I%20need%20help%20with%20PC%20Deals%20India." target="_blank" rel="noopener" className="wa-btn">
+              <a href="https://wa.me/919728622667?text=Hi%2C%20I%20need%20help%20with%20PC%20Deals%20India." target="_blank" rel="noopener noreferrer" className="wa-btn">
                 <MessageCircle className="w-4 h-4" />
                 Chat on WhatsApp
               </a>

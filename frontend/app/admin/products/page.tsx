@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import Image from 'next/image';
 import { Package, Plus, Edit2, Trash2, Search, X, Check, Upload, Image as ImageIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import apiBase from '@/lib/api';
+import { TableSkeleton } from '@/components/ui/Skeleton';
 const UPLOAD_BASE = (apiBase as string).replace(/\/api$/, '');
 
 interface Product {
@@ -46,7 +48,7 @@ export default function AdminProducts() {
         api.get('/admin/products'),
         api.get('/admin/categories'),
       ]);
-      setProducts(prods);
+      setProducts(prods.products || prods);
       setCategories(cats);
     } catch (e: any) { toast.error(e.message || 'Failed to load data'); } finally { setLoading(false); }
   }
@@ -75,10 +77,9 @@ export default function AdminProducts() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const token = localStorage.getItem('token');
       const res = await fetch(`${UPLOAD_BASE}/api/admin/upload`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
         body: formData,
       });
       const data = await res.json();
@@ -173,7 +174,7 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((prod) => (
+              {loading ? <TableSkeleton rows={5} cols={6} /> : filtered.map((prod) => (
                 <tr key={prod._id} className="border-b border-gray-50 hover:bg-gray-50">
                   <td className="py-3 font-semibold text-gray-800">{prod.name}</td>
                   <td className="py-3 text-gray-500">{getCategoryName(prod.category)}</td>
@@ -257,7 +258,7 @@ export default function AdminProducts() {
                 <div className="flex flex-wrap gap-2 mb-2">
                   {form.images.map((url: string, i: number) => (
                     <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200">
-                      <img src={url} className="w-full h-full object-cover" />
+                      <Image src={url} alt="" fill className="object-cover" />
                       <button onClick={() => removeImage(i)} className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white rounded-bl-lg flex items-center justify-center"><X className="w-3 h-3" /></button>
                     </div>
                   ))}
@@ -305,8 +306,8 @@ export default function AdminProducts() {
             <div className="grid grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto">
               {assetFiles.map((file) => (
                 <button key={file} onClick={() => { setForm({ ...form, images: [...form.images, `/assets/${file}`] }); setShowAssetPicker(false); }}
-                  className="aspect-square rounded-lg border border-gray-200 overflow-hidden hover:border-primary hover:shadow-md transition-all p-1">
-                  <img src={`/assets/${file}`} alt={file} className="w-full h-full object-contain" />
+                  className="relative aspect-square rounded-lg border border-gray-200 overflow-hidden hover:border-primary hover:shadow-md transition-all p-1">
+                  <Image src={`/assets/${file}`} alt={file} fill className="object-contain" />
                 </button>
               ))}
             </div>

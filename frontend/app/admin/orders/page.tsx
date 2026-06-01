@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { ShoppingCart, Search, RefreshCw, RotateCcw } from 'lucide-react';
+import { TableSkeleton } from '@/components/ui/Skeleton';
 import toast from 'react-hot-toast';
 
 export default function AdminOrders() {
@@ -76,7 +77,7 @@ export default function AdminOrders() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((order: any) => (
+              {loading ? <TableSkeleton rows={5} cols={7} /> : filtered.map((order: any) => (
                 <tr key={order._id} className="border-b border-gray-50 hover:bg-gray-50">
                   <td className="py-3 font-mono text-xs text-gray-600">{(order.orderId || order._id || '').toString().slice(-14)}</td>
                   <td className="py-3 font-medium text-gray-800">{order.user?.name || order.email || 'N/A'}</td>
