@@ -20,7 +20,7 @@ export default function LoginPage() {
       const res = await api.post('/auth/login', form);
       const data = res.data;
       localStorage.setItem('token', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
+      if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
       localStorage.setItem('user', JSON.stringify(data.user));
       toast.success('Login successful!');
       if (data.user.role === 'admin') {

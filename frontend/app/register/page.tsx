@@ -9,18 +9,22 @@ import { UserPlus, Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const passwordMatch = form.password === form.confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await api.post('/auth/register', form);
+      if (!passwordMatch) { toast.error('Passwords do not match'); setLoading(false); return; }
+      const { confirmPassword, ...registerData } = form;
+      const res = await api.post('/auth/register', registerData);
       const data = res.data;
       localStorage.setItem('token', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
+      if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
       localStorage.setItem('user', JSON.stringify(data.user));
       toast.success('Registration successful!');
       router.push('/');
@@ -65,7 +69,14 @@ export default function RegisterPage() {
                 </button>
               </div>
             </div>
-            <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-50">
+            <div>
+              <label className="block text-xs font-medium text-pcd-muted mb-1">Confirm Password</label>
+              <div className="relative">
+                <input type={showPassword ? 'text' : 'password'} value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} className="w-full px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors pr-10" placeholder="Re-enter password" required minLength={6} />
+              </div>
+              {!passwordMatch && form.confirmPassword && <p className="text-xs text-red-500 mt-1">Passwords do not match</p>}
+            </div>
+            <button type="submit" disabled={loading || !!(!passwordMatch && form.confirmPassword)} className="btn-primary w-full disabled:opacity-50">
               {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
