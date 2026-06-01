@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<!-- saved from url=(0029)https://www.pcdealsindia.com/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="0lOWV0XLF9qOu3bGfK81N4iVLXAAza1sixM9Whu9">
+    <title>Home</title>
+    <link rel="icon" href="https://www.pcdealsindia.com/public/new/images/favicon2.png" type="image/x-icon">
+    <link rel="shortcut icon" href="https://www.pcdealsindia.com/public/new/images/favicon2.png" type="image/x-icon">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+    <link href="./Home_files/css2" rel="stylesheet">
+    <link href="./Home_files/bootstrap.min.css" rel="stylesheet">
+    <link href="./Home_files/all.min.css" rel="stylesheet">
+    <link href="./Home_files/home-new.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --pcd-dark: #081015;
+            --pcd-deep: #0f1b22;
+            --pcd-green: #95c11f;
+            --pcd-green-dark: #6f9814;
+            --pcd-text: #16212c;
+            --pcd-muted: #6a7380;
+            --pcd-border: #e8edf2;
+            --pcd-card: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Manrope', sans-serif;
+            color: var(--pcd-text);
+            background: linear-gradient(180deg, #f5f7f8 0%, #f2f5f6 100%);
+        }
+
+        /* Key-stock notice (SweetAlert body html from server) */
+        .sweet-alert .pcd-key-stock-body {
+            text-align: left;
+            max-width: 420px;
+            margin: 0 auto;
+            font-size: 15px;
+            line-height: 1.55;
+            color: #1e293b;
+        }
+        .sweet-alert .pcd-key-stock-lead {
+            margin: 0 0 14px;
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 15px;
+        }
+        .sweet-alert .pcd-key-stock-panel {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 8px 12px;
+            padding: 16px 18px;
+            border-radius: 14px;
+            background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 45%, #fff7ed 100%);
+            border: 2px solid #f59e0b;
+            margin-bottom: 14px;
+            box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25), 0 10px 28px rgba(245, 158, 11, 0.18);
+        }
+        .sweet-alert .pcd-key-stock-label {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #b45309;
+            width: 100%;
+        }
+        .sweet-alert .pcd-key-stock-num {
+            font-size: 32px;
+            font-weight: 800;
+            color: #b45309;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+        }
+        .sweet-alert .pcd-key-stock-unit {
+            font-size: 15px;
+            font-weight: 700;
+            color: #92400e;
+        }
+        .sweet-alert .pcd-key-stock-meta {
+            margin: 0 0 10px;
+            font-size: 14px;
+            color: #475569;
+        }
+        .sweet-alert .pcd-key-stock-foot {
+            margin: 0;
+            font-size: 13px;
+            color: #64748b;
+        }
+        .sweet-alert .pcd-key-stock-combo-list {
+            margin: 10px 0 0;
+            padding: 0;
+            color: #334155;
+            font-size: 14px;
+            list-style: none;
+        }
+        .sweet-alert .pcd-key-stock-combo-list li {
+            margin-bottom: 10px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+        }
+        .sweet-alert .pcd-key-stock-line-highlight {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #fef08a 0%, #fde047 100%);
+            border: 1px solid #eab308;
+            font-weight: 800;
+            color: #713f12;
+            font-size: 15px;
+        }
+        .sweet-alert h2.pcd-swal-title {
+            font-size: 22px !important;
+            font-weight: 800 !important;
+            color: #0f172a !important;
+            margin-bottom: 8px !important;
+        }
+        .sweet-alert .confirm {
+            border-radius: 10px !important;
+            font-weight: 700 !important;
+            padding: 10px 28px !important;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25) !important;
+        }
+    </style>
+    <link rel="stylesheet" href="./Home_files/sweetalert.min.css">
+    <style type="text/css"><br>  @keyframes sectionFadeIn {<br>    from {<br>      opacity: 0;<br>      transform: translateY(10px);<br>    }<br>    to {<br>      opacity: 1;<br>      transform: translateY(0);<br>    }<br>  }<br></style></head>
+<body style="">
+    <div class="home-shell py-2 py-md-3">
+    <div class="top-strip">
+        <div class="help">
+            <i class="fa-solid fa-headset"></i>
+            Technical Help? 98445-39000 &nbsp;|&nbsp; Sales: 97286-22667 (Mon - Sat, 11 AM - 7 PM)
+        </div>
+        <div class="benefits">
+                            <span><i class="fa-solid fa-truck-fast"></i> Instant Delivery</span>
+                            <span><i class="fa-regular fa-circle-check"></i> 100% Genuine Keys</span>
+                            <span><i class="fa-solid fa-shield-halved"></i> Secure Payment</span>
+                    </div>
+    </div>
+
+    <div class="main-head">
+        <div class="row g-3 align-items-center">
+            <div class="col-lg-2 col-md-3">
+                <div class="brand-support-row">
+                    <a href="https://www.pcdealsindia.com/">
+                                                    <img class="brand" src="./Home_files/1565303531.shree hira computer Logo for WebSite.png" alt="PC Deals India">
+                                            </a>
+                    <div class="mobile-support-card">
+                        <div class="mobile-support-line">Technical Help? 98445-39000 <br> Sales: 97286-22667</div>
+                        <div class="mobile-support-time">(Mon - Sat, 11 AM - 7 PM)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7 col-md-6">
+                <form class="search-wrap" action="https://www.pcdealsindia.com/shop" method="get">
+                    <div class="cat-picker" id="searchCategoryPicker">
+                        <input type="hidden" name="category" id="searchCategoryValue" value="all">
+                        <button type="button" class="cat-picker-toggle" id="searchCategoryToggle" aria-haspopup="listbox" aria-expanded="false">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span class="cat-current" id="searchCategoryCurrent">All Categories</span>
+                            <i class="fa-solid fa-angle-down chevron"></i>
+                        </button>
+                        <div class="cat-picker-menu" id="searchCategoryMenu" role="listbox">
+                            <button type="button" class="cat-option active" data-value="all">All Categories</button>
+                                                                                            <button type="button" class="cat-option " data-value="special-combo-offer">Super Saver Combo</button>
+                                                                                            <button type="button" class="cat-option " data-value="windows-keys">Windows</button>
+                                                                                            <button type="button" class="cat-option " data-value="microsoft-office-keys">Office</button>
+                                                                                            <button type="button" class="cat-option " data-value="projects">MS Projects</button>
+                                                                                            <button type="button" class="cat-option " data-value="windows-server">Windows Server</button>
+                                                                                            <button type="button" class="cat-option " data-value="microsoft-visio">MS Visio</button>
+                                                                                            <button type="button" class="cat-option " data-value="ms-visual-studio">MS Visual Studio</button>
+                                                                                            <button type="button" class="cat-option " data-value="net-protector-keys">NET PROTECTOR</button>
+                                                                                            <button type="button" class="cat-option " data-value="digital-keys">QUICK HEAL</button>
+                                                                                            <button type="button" class="cat-option " data-value="anti-fraud">Anti Fraud</button>
+                                                                                            <button type="button" class="cat-option " data-value="k7-keys">K7 KEYS</button>
+                                                                                            <button type="button" class="cat-option " data-value="guardian-keys">GUARDIAN</button>
+                                                                                            <button type="button" class="cat-option " data-value="kaspersky-keys">KASPERSKY</button>
+                                                                                            <button type="button" class="cat-option " data-value="eset-keys">ESET</button>
+                                                                                            <button type="button" class="cat-option " data-value="mcafee">Mcafee</button>
+                                                    </div>
+                    </div>
+                    <input class="search-input" type="search" name="search" placeholder="Search for products, software, keys..." value="">
+                    <button class="search-btn" type="submit" aria-label="Search"><i class="fa fa-search" aria-hidden="true"></i></button>
+                </form>
+            </div>
+
+            <div class="col-lg-3 col-md-3">
+                <div class="actions">
+                    <button type="button" class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Open menu" aria-controls="mobileSideMenu" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+
+                    <div class="profile-menu">
+                                                    <a class="profile-btn" href="https://www.pcdealsindia.com/login">
+                                <i class="fa-solid fa-user"></i>
+                                Login / Register
+                            </a>
+                                            </div>
+                </div>
+            </div>
+        </div>
+
+                
+
+        <div class="category-strip " id="categoryStrip"><div class="category-row"><a class="all-btn" href="https://www.pcdealsindia.com/"><i class="fa-solid fa-house me-2"></i>Home</a><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=93&amp;slug=special-combo-offer">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1777111497.MS win.png" alt="Super Saver Combo">
+                                                        <span>Super Saver Combo</span>
+                        </span>
+                                            </a>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=88&amp;slug=windows-keys">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1776830587.MS win.png" alt="Windows">
+                                                        <span>Windows</span>
+                        </span>
+                                            </a>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=89&amp;slug=microsoft-office-keys">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1776830389.microsoft-office-2019.png" alt="Office">
+                                                        <span>Office</span>
+                        </span>
+                                            </a>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=94&amp;slug=projects">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1776831162.ms project.png" alt="MS Projects">
+                                                        <span>MS Projects</span>
+                        </span>
+                                            </a>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=95&amp;slug=windows-server">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1777112945.MS win.png" alt="Windows Server">
+                                                        <span>Windows Server</span>
+                        </span>
+                                            </a>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=102&amp;slug=microsoft-visio">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1776831414.ms visio icon.png" alt="MS Visio">
+                                                        <span>MS Visio</span>
+                        </span>
+                                            </a>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=103&amp;slug=ms-visual-studio">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1776831481.Visual_Studio_Icon_2026.svg.png" alt="MS Visual Studio">
+                                                        <span>MS Visual Studio</span>
+                        </span>
+                                            </a>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=78&amp;slug=net-protector-keys">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1776832684.np av.jpg" alt="NET PROTECTOR">
+                                                        <span>NET PROTECTOR</span>
+                        </span>
+                                            </a>
+                                    </div></div><div class="category-row category-row-center"><div class="category-flyout has-submenu">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=1&amp;slug=digital-keys">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1776831729.Quick Heal Icon.png" alt="QUICK HEAL">
+                                                        <span>QUICK HEAL</span>
+                        </span>
+                                                    <i class="fa-solid fa-angle-down category-link-arrow" aria-hidden="true"></i>
+                                            </a>
+                                            <div class="category-submenu">
+                            <div class="category-submenu-head">
+                                <span class="category-submenu-label">Explore</span>
+                                <a class="category-submenu-title" href="https://www.pcdealsindia.com/subcategory?subcategory_id=1&amp;slug=digital-keys">QUICK HEAL</a>
+                            </div>
+                            <div class="category-submenu-grid">
+                                                                                                                                                <a class="category-submenu-item" href="https://www.pcdealsindia.com/shop?category=quick-heal">
+                                            <span class="category-submenu-dot"></span>
+                                            <span>QUICK HEAL PRO</span>
+                                        </a>
+                                                                                                                                                                                    <a class="category-submenu-item" href="https://www.pcdealsindia.com/shop?category=quick-heal-total-sec">
+                                            <span class="category-submenu-dot"></span>
+                                            <span>QUICK HEAL TOTAL SEC</span>
+                                        </a>
+                                                                                                                                                                                    <a class="category-submenu-item" href="https://www.pcdealsindia.com/shop?category=quick-heal-internet-sec">
+                                            <span class="category-submenu-dot"></span>
+                                            <span>QUICK HEAL INTERNET SEC</span>
+                                        </a>
+                                                                                                                                                                                    <a class="category-submenu-item" href="https://www.pcdealsindia.com/shop?category=quick-heal-server">
+                                            <span class="category-submenu-dot"></span>
+                                            <span>QUICK HEAL SERVER</span>
+                                        </a>
+                                                                                                                                                                                    <a class="category-submenu-item" href="https://www.pcdealsindia.com/shop?category=quick-heal-renewal-keys">
+                                            <span class="category-submenu-dot"></span>
+                                            <span>QUICK HEAL RENEWAL KEYS</span>
+                                        </a>
+                                                                                                </div>
+                        </div>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=105&amp;slug=anti-fraud">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1748147923.1746162050.Anti Fraud.jpg" alt="Anti Fraud">
+                                                        <span>Anti Fraud</span>
+                        </span>
+                                            </a>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=76&amp;slug=k7-keys">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1776757549.k7-removebg-preview.png" alt="K7 KEYS">
+                                                        <span>K7 KEYS</span>
+                        </span>
+                                            </a>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=77&amp;slug=guardian-keys">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1776920398.Guardian new 2.png" alt="GUARDIAN">
+                                                        <span>GUARDIAN</span>
+                        </span>
+                                            </a>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=79&amp;slug=kaspersky-keys">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1776920500.Kaspersky ICON.png" alt="KASPERSKY">
+                                                        <span>KASPERSKY</span>
+                        </span>
+                                            </a>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=81&amp;slug=eset-keys">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1776920604.ESET.jpg" alt="ESET">
+                                                        <span>ESET</span>
+                        </span>
+                                            </a>
+                                    </div><div class="category-flyout ">
+                    <a class="category-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=90&amp;slug=mcafee">
+                        <span class="category-link-main">
+                                                            <img class="category-icon-img me-2" src="./Home_files/1776923944.mcafee icon.png" alt="Mcafee">
+                                                        <span>Mcafee</span>
+                        </span>
+                                            </a>
+                                    </div></div></div>
+    </div>
+
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    <aside class="mobile-side-menu" id="mobileSideMenu" aria-hidden="true">
+        <div class="mobile-side-menu-head">
+            <h5>Menu</h5>
+            <button type="button" class="mobile-side-menu-close" id="mobileMenuClose" aria-label="Close menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="mobile-side-menu-content">
+
+            
+            <div class="mobile-category-list">
+                <h6>Browse Categories</h6>
+                <a href="https://www.pcdealsindia.com/"><i class="fa-solid fa-house"></i>Home</a>
+                                                                                <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=93&amp;slug=special-combo-offer">
+                                                            <img class="category-icon-img" src="./Home_files/1777111497.MS win.png" alt="Super Saver Combo">
+                                                        Super Saver Combo
+                        </a>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=88&amp;slug=windows-keys">
+                                                            <img class="category-icon-img" src="./Home_files/1776830587.MS win.png" alt="Windows">
+                                                        Windows
+                        </a>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=89&amp;slug=microsoft-office-keys">
+                                                            <img class="category-icon-img" src="./Home_files/1776830389.microsoft-office-2019.png" alt="Office">
+                                                        Office
+                        </a>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=94&amp;slug=projects">
+                                                            <img class="category-icon-img" src="./Home_files/1776831162.ms project.png" alt="MS Projects">
+                                                        MS Projects
+                        </a>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=95&amp;slug=windows-server">
+                                                            <img class="category-icon-img" src="./Home_files/1777112945.MS win.png" alt="Windows Server">
+                                                        Windows Server
+                        </a>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=102&amp;slug=microsoft-visio">
+                                                            <img class="category-icon-img" src="./Home_files/1776831414.ms visio icon.png" alt="MS Visio">
+                                                        MS Visio
+                        </a>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=103&amp;slug=ms-visual-studio">
+                                                            <img class="category-icon-img" src="./Home_files/1776831481.Visual_Studio_Icon_2026.svg.png" alt="MS Visual Studio">
+                                                        MS Visual Studio
+                        </a>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=78&amp;slug=net-protector-keys">
+                                                            <img class="category-icon-img" src="./Home_files/1776832684.np av.jpg" alt="NET PROTECTOR">
+                                                        NET PROTECTOR
+                        </a>
+                                                                                                    <div class="mobile-cat-item has-children" style="border-top:1px solid #eef2f6;">
+                            <div class="mobile-cat-head" style="min-height:40px;display:flex;align-items:stretch;">
+                                <a class="mobile-cat-link" href="https://www.pcdealsindia.com/subcategory?subcategory_id=1&amp;slug=digital-keys" style="min-height:40px;padding:0 10px;border-top:0;color:#2f3f4f;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px;flex:1;">
+                                                                            <img class="category-icon-img" src="./Home_files/1776831729.Quick Heal Icon.png" alt="QUICK HEAL">
+                                                                        <span>QUICK HEAL</span>
+                                </a>
+                                <button type="button" class="mobile-cat-toggle" aria-expanded="false" aria-label="Toggle QUICK HEAL sub categories" style="width:38px;min-width:38px;border:0;border-left:1px solid #eef2f6;background:#fff;color:#4f6174;display:inline-flex;align-items:center;justify-content:center;font-size:12px;" onclick="event.preventDefault();event.stopPropagation();var item=this.closest(&#39;.mobile-cat-item&#39;);var list=item?item.querySelector(&#39;.mobile-subcat-list&#39;):null;var icon=this.querySelector(&#39;i&#39;);var open=this.getAttribute(&#39;aria-expanded&#39;)===&#39;true&#39;;this.setAttribute(&#39;aria-expanded&#39;,open?&#39;false&#39;:&#39;true&#39;);if(list){list.style.display=open?&#39;none&#39;:&#39;block&#39;;}if(item){if(open){item.classList.remove(&#39;is-open&#39;);}else{item.classList.add(&#39;is-open&#39;);}}if(icon){icon.style.transform=open?&#39;rotate(0deg)&#39;:&#39;rotate(45deg)&#39;;icon.style.transition=&#39;transform 0.2s ease&#39;;}">
+                                    <i class="fa-solid fa-plus" style="transition:transform 0.2s ease;"></i>
+                                </button>
+                            </div>
+                            <div class="mobile-subcat-list" style="display:none;background:#f8fbff;border-top:1px solid #eef2f6;padding:4px 0;">
+                                                                                                                                                <a href="https://www.pcdealsindia.com/shop?category=quick-heal" style="min-height:34px;padding:0 16px 0 34px;border-top:0;color:#44566d;font-size:12px;font-weight:600;position:relative;display:flex;align-items:center;text-decoration:none;">
+                                            <span style="width:5px;height:5px;border-radius:50%;background:#7eb114;position:absolute;left:20px;top:50%;transform:translateY(-50%);"></span>
+                                            QUICK HEAL PRO
+                                        </a>
+                                                                                                                                                                                    <a href="https://www.pcdealsindia.com/shop?category=quick-heal-total-sec" style="min-height:34px;padding:0 16px 0 34px;border-top:0;color:#44566d;font-size:12px;font-weight:600;position:relative;display:flex;align-items:center;text-decoration:none;">
+                                            <span style="width:5px;height:5px;border-radius:50%;background:#7eb114;position:absolute;left:20px;top:50%;transform:translateY(-50%);"></span>
+                                            QUICK HEAL TOTAL SEC
+                                        </a>
+                                                                                                                                                                                    <a href="https://www.pcdealsindia.com/shop?category=quick-heal-internet-sec" style="min-height:34px;padding:0 16px 0 34px;border-top:0;color:#44566d;font-size:12px;font-weight:600;position:relative;display:flex;align-items:center;text-decoration:none;">
+                                            <span style="width:5px;height:5px;border-radius:50%;background:#7eb114;position:absolute;left:20px;top:50%;transform:translateY(-50%);"></span>
+                                            QUICK HEAL INTERNET SEC
+                                        </a>
+                                                                                                                                                                                    <a href="https://www.pcdealsindia.com/shop?category=quick-heal-server" style="min-height:34px;padding:0 16px 0 34px;border-top:0;color:#44566d;font-size:12px;font-weight:600;position:relative;display:flex;align-items:center;text-decoration:none;">
+                                            <span style="width:5px;height:5px;border-radius:50%;background:#7eb114;position:absolute;left:20px;top:50%;transform:translateY(-50%);"></span>
+                                            QUICK HEAL SERVER
+                                        </a>
+                                                                                                                                                                                    <a href="https://www.pcdealsindia.com/shop?category=quick-heal-renewal-keys" style="min-height:34px;padding:0 16px 0 34px;border-top:0;color:#44566d;font-size:12px;font-weight:600;position:relative;display:flex;align-items:center;text-decoration:none;">
+                                            <span style="width:5px;height:5px;border-radius:50%;background:#7eb114;position:absolute;left:20px;top:50%;transform:translateY(-50%);"></span>
+                                            QUICK HEAL RENEWAL KEYS
+                                        </a>
+                                                                                                </div>
+                        </div>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=105&amp;slug=anti-fraud">
+                                                            <img class="category-icon-img" src="./Home_files/1748147923.1746162050.Anti Fraud.jpg" alt="Anti Fraud">
+                                                        Anti Fraud
+                        </a>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=76&amp;slug=k7-keys">
+                                                            <img class="category-icon-img" src="./Home_files/1776757549.k7-removebg-preview.png" alt="K7 KEYS">
+                                                        K7 KEYS
+                        </a>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=77&amp;slug=guardian-keys">
+                                                            <img class="category-icon-img" src="./Home_files/1776920398.Guardian new 2.png" alt="GUARDIAN">
+                                                        GUARDIAN
+                        </a>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=79&amp;slug=kaspersky-keys">
+                                                            <img class="category-icon-img" src="./Home_files/1776920500.Kaspersky ICON.png" alt="KASPERSKY">
+                                                        KASPERSKY
+                        </a>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=81&amp;slug=eset-keys">
+                                                            <img class="category-icon-img" src="./Home_files/1776920604.ESET.jpg" alt="ESET">
+                                                        ESET
+                        </a>
+                                                                                                    <a href="https://www.pcdealsindia.com/subcategory?subcategory_id=90&amp;slug=mcafee">
+                                                            <img class="category-icon-img" src="./Home_files/1776923944.mcafee icon.png" alt="Mcafee">
+                                                        Mcafee
+                        </a>
+                                                </div>
+        </div>
+    </aside>
+</div>
+    <div class="home-shell pb-2 pb-md-3">
+    
+    <div class="main-head">
+        <section class="hero">
+            <div id="homeHeroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+                                    <div class="carousel-indicators">
+                                                    <button type="button" data-bs-target="#homeHeroCarousel" data-bs-slide-to="0" class="active" aria-label="Slide 1" aria-current="true"></button>
+                                                    <button type="button" data-bs-target="#homeHeroCarousel" data-bs-slide-to="1" class="" aria-label="Slide 2"></button>
+                                                    <button type="button" data-bs-target="#homeHeroCarousel" data-bs-slide-to="2" class="" aria-label="Slide 3"></button>
+                                            </div>
+                
+                <div class="carousel-inner">
+                                            <div class="carousel-item active">
+                            <div class="carousel-link" role="img" aria-label="Smart way">
+                                <img src="./Home_files/1622030789.baner01.jpg" alt="Smart way">
+                            </div>
+                        </div>
+                                            <div class="carousel-item">
+                            <div class="carousel-link" role="img" aria-label="Cash back">
+                                <img src="./Home_files/1622030502.baner02.jpg" alt="Cash back">
+                            </div>
+                        </div>
+                                            <div class="carousel-item">
+                            <div class="carousel-link" role="img" aria-label="Pcdeals">
+                                <img src="./Home_files/1748197776.1714020604.pcdeals-banner-1.jpg" alt="Pcdeals">
+                            </div>
+                        </div>
+                                    </div>
+
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#homeHeroCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                            </div>
+        </section>
+
+        
+        <div class="catalog-grid">
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=93&amp;slug=special-combo-offer">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1777111497.MS win.png" alt="Super Saver Combo">
+                                                <span>
+                            <h6>Super Saver Combo</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=88&amp;slug=windows-keys">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1776830587.MS win.png" alt="Windows">
+                                                <span>
+                            <h6>Windows</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=89&amp;slug=microsoft-office-keys">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1776830389.microsoft-office-2019.png" alt="Office">
+                                                <span>
+                            <h6>Office</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=94&amp;slug=projects">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1776831162.ms project.png" alt="MS Projects">
+                                                <span>
+                            <h6>MS Projects</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=95&amp;slug=windows-server">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1777112945.MS win.png" alt="Windows Server">
+                                                <span>
+                            <h6>Windows Server</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=102&amp;slug=microsoft-visio">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1776831414.ms visio icon.png" alt="MS Visio">
+                                                <span>
+                            <h6>MS Visio</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=103&amp;slug=ms-visual-studio">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1776831481.Visual_Studio_Icon_2026.svg.png" alt="MS Visual Studio">
+                                                <span>
+                            <h6>MS Visual Studio</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=78&amp;slug=net-protector-keys">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1776832684.np av.jpg" alt="NET PROTECTOR">
+                                                <span>
+                            <h6>NET PROTECTOR</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=1&amp;slug=digital-keys">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1776831729.Quick Heal Icon.png" alt="QUICK HEAL">
+                                                <span>
+                            <h6>QUICK HEAL</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=105&amp;slug=anti-fraud">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1748147923.1746162050.Anti Fraud.jpg" alt="Anti Fraud">
+                                                <span>
+                            <h6>Anti Fraud</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=76&amp;slug=k7-keys">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1776757549.k7-removebg-preview.png" alt="K7 KEYS">
+                                                <span>
+                            <h6>K7 KEYS</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=77&amp;slug=guardian-keys">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1776920398.Guardian new 2.png" alt="GUARDIAN">
+                                                <span>
+                            <h6>GUARDIAN</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=79&amp;slug=kaspersky-keys">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1776920500.Kaspersky ICON.png" alt="KASPERSKY">
+                                                <span>
+                            <h6>KASPERSKY</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=81&amp;slug=eset-keys">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1776920604.ESET.jpg" alt="ESET">
+                                                <span>
+                            <h6>ESET</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                                            <a class="catalog-item" href="https://www.pcdealsindia.com/subcategory?subcategory_id=90&amp;slug=mcafee">
+                    <span class="left">
+                                                    <img class="category-icon-img" src="./Home_files/1776923944.mcafee icon.png" alt="Mcafee">
+                                                <span>
+                            <h6>Mcafee</h6>
+                            <p>View All Products</p>
+                        </span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            
+        </div>
+
+        
+        </div>
+
+        <section class="reviews-section" id="homeReviewsSection">
+            <div class="reviews-head">
+                <h3>Customer Reviews / Testimonials</h3>
+            </div>
+
+                            <div class="reviews-frame">
+                    <button class="review-nav prev" type="button" id="reviewPrevBtn" aria-label="Previous reviews">
+                        <i class="fa-solid fa-angle-left"></i>
+                    </button>
+                    <div class="reviews-viewport">
+                        <div class="reviews-track" id="reviewsTrack" style="transform: translateX(-1223px);">
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>superb</h5>
+                                            <p class="name">Anthony Raj</p>
+                                            <p class="meta">Hassan, Karnataka</p>
+                                                                                            <p class="date">May 20, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>VERY GOOD SERVICE AND WONDERFULL PRODCT</h5>
+                                            <p class="name">PARVATESWARARAO</p>
+                                            <p class="meta">PEDDAPURAM, ANDHRA PRADESH</p>
+                                                                                            <p class="date">May 19, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>Very good service.</h5>
+                                            <p class="name">DIGVIJAY SINGH</p>
+                                            <p class="meta">Muzaffarnagar, Uttar Pradesh</p>
+                                                                                            <p class="date">May 18, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>BEST DEAL &amp;  GOOD SUPPORT</h5>
+                                            <p class="name">VYASTI ENTERPRISES</p>
+                                            <p class="meta">Hapur, Uttar Pradesh</p>
+                                                                                            <p class="date">May 18, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>बेस्ट</h5>
+                                            <p class="name">Rahul Mane</p>
+                                            <p class="meta">Karrad, MAHARASHTRA</p>
+                                                                                            <p class="date">May 17, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>veryy good and polite service</h5>
+                                            <p class="name">Surendrasingh</p>
+                                            <p class="meta">Mandya, Karnataka</p>
+                                                                                            <p class="date">May 17, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>Good Service ..</h5>
+                                            <p class="name">Siddharth Khobragade</p>
+                                            <p class="meta">Nagpur, Maharashtra</p>
+                                                                                            <p class="date">May 16, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>suuuuuppper</h5>
+                                            <p class="name">chakravarthi</p>
+                                            <p class="meta">visakhapatnam, ANDHRA PRADESH</p>
+                                                                                            <p class="date">May 15, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>delivered quickly I am satisfied</h5>
+                                            <p class="name">Mridul Chakraborty</p>
+                                            <p class="meta">Agartala, TRIPURA</p>
+                                                                                            <p class="date">May 15, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>bahat hi achha service hai.</h5>
+                                            <p class="name">susanta pradhan</p>
+                                            <p class="meta">berhampur, Orissa</p>
+                                                                                            <p class="date">May 14, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>Best services</h5>
+                                            <p class="name">Hemant</p>
+                                            <p class="meta">Baramati, MAHARASHTRA</p>
+                                                                                            <p class="date">May 13, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>best deal good</h5>
+                                            <p class="name">prakash</p>
+                                            <p class="meta">surat, Gujarat</p>
+                                                                                            <p class="date">May 13, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>good service</h5>
+                                            <p class="name">akash singh</p>
+                                            <p class="meta">jamshedpur, Jharkhand</p>
+                                                                                            <p class="date">May 12, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>Nice product</h5>
+                                            <p class="name">Monu kumar</p>
+                                            <p class="meta">Bijnor, UTTAR PRADESH</p>
+                                                                                            <p class="date">May 9, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>Very Powerful</h5>
+                                            <p class="name">Ankit Bansal</p>
+                                            <p class="meta">Hissar, HARYANA</p>
+                                                                                            <p class="date">May 8, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>nice shopping</h5>
+                                            <p class="name">RANJITH PUNNATH</p>
+                                            <p class="meta">Malapuram, Kerala</p>
+                                                                                            <p class="date">May 7, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>🙏</h5>
+                                            <p class="name">Dinesh kumar</p>
+                                            <p class="meta">New delhi, DELHI</p>
+                                                                                            <p class="date">May 7, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>Hi super fast your website</h5>
+                                            <p class="name">MOHAN KUMAR M</p>
+                                            <p class="meta">ERODE, TAMIL NADU</p>
+                                                                                            <p class="date">May 4, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>Hi superb performence</h5>
+                                            <p class="name">MOHAN KUMAR M</p>
+                                            <p class="meta">ERODE, TAMIL NADU</p>
+                                                                                            <p class="date">May 4, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                                                            <article class="review-card">
+                                    <div class="review-top">
+                                        <i class="fa-solid fa-quote-left quote"></i>
+                                        <span class="stars">★★★★★</span>
+                                    </div>
+                                    <div class="review-body">
+                                        <div class="review-avatar" aria-hidden="true">
+                                            <span class="avatar-orbit"></span>
+                                            <span class="avatar-character">
+                                                <span class="avatar-hair"></span>
+                                                <span class="avatar-face">
+                                                    <span class="avatar-eye left"></span>
+                                                    <span class="avatar-eye right"></span>
+                                                    <span class="avatar-smile"></span>
+                                                </span>
+                                                <span class="avatar-shirt"></span>
+                                            </span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h5>well done</h5>
+                                            <p class="name">Ashish Awasthi</p>
+                                            <p class="meta">Baijnath, Himachal Pradesh</p>
+                                                                                            <p class="date">Apr 30, 2026</p>
+                                                                                    </div>
+                                    </div>
+                                </article>
+                                                    </div>
+                    </div>
+                    <button class="review-nav next" type="button" id="reviewNextBtn" aria-label="Next reviews">
+                        <i class="fa-solid fa-angle-right"></i>
+                    </button>
+                </div>
+                <div class="reviews-dots" id="reviewsDots"><button class=""></button><button class="active"></button><button class=""></button><button class=""></button><button class=""></button><button class=""></button><button class=""></button></div>
+                    </section>
+
+        <section class="info-faq-section">
+            <div class="info-card-grid">
+                                    <div class="info-card">
+                        <div class="info-card-icon" style="background: #edf9e7; color: #72b749;">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h6>Lowest Price Guaranteed</h6>
+                        <p>Guaranteed lowest price across India</p>
+                    </div>
+                                    <div class="info-card">
+                        <div class="info-card-icon" style="background: #eaf3ff; color: #4f89da;">
+                            <i class="fa-solid fa-percent"></i>
+                        </div>
+                        <h6>Cashback &amp; Discounts</h6>
+                        <p>Enjoy 25% (max-500/-) cash back on your first order.<br>
+Enjoy 2% special discount on prepaid card</p>
+                    </div>
+                                    <div class="info-card">
+                        <div class="info-card-icon" style="background: #f1ebff; color: #7a54d8;">
+                            <i class="fa-solid fa-cubes"></i>
+                        </div>
+                        <h6>100+ Antivirus &amp; Microsoft Keys </h6>
+                        <p>More than 100 antivirus &amp; microsoft keys under one roof</p>
+                    </div>
+                                    <div class="info-card">
+                        <div class="info-card-icon" style="background: #fff3df; color: #ffad2f;">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <h6>Instant Delivery</h6>
+                        <p>Key delivery on email and WhatsApp within seconds</p>
+                    </div>
+                                    <div class="info-card">
+                        <div class="info-card-icon" style="background: #e7fbff; color: #36b9d8;">
+                            <i class="fa-solid fa-file-invoice"></i>
+                        </div>
+                        <h6>GST Invoice</h6>
+                        <p>Receive your GST Invoice and Claim Input Tax Credit </p>
+                    </div>
+                                    <div class="info-card">
+                        <div class="info-card-icon" style="background: #eaf1ff; color: #3a7be0;">
+                            <i class="fa-solid fa-shield"></i>
+                        </div>
+                        <h6>Secure Payment</h6>
+                        <p>100% secure and encrypted payment gateway</p>
+                    </div>
+                            </div>
+
+            <div class="faq-shell">
+                <div class="faq-support">
+                    <div class="faq-support-icon">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <h5>Still have questions?</h5>
+                    <p>Our support team is here to help you with delivery, invoice, wallet and product-related questions.</p>
+                    <a class="support-btn" href="https://www.pcdealsindia.com/contact-us"><i class="fa-regular fa-life-ring me-2"></i>Contact Support</a>
+                    <a class="wa-btn" href="https://api.whatsapp.com/send?phone=919728622667&amp;text=Hi%2C%20I%20need%20help%20with%20PC%20Deals%20India." target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp me-2"></i>Chat on WhatsApp</a>
+                </div>
+
+                <div class="faq-panel">
+                    <div class="faq-panel-head">
+                        <h4>Frequently Asked <span>Questions</span></h4>
+                        <div class="faq-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="search" id="faqSearchInput" placeholder="Search your question...">
+                        </div>
+                    </div>
+
+                                            <div class="accordion faq-accordion" id="homeFaqAccordion">
+                                                            <div class="accordion-item faq-item" data-faq-text="how to purchase on www.pcdealsindia.com? register yourself first and then&gt;select the company &gt;click the product&gt;select quantity&gt;click buy now&gt;click pay now&gt;pay from different options displayed on the screen&gt;after a successful payment, please check your whatsapp or email for the product key.">
+                                    <h2 class="accordion-header" id="faqHeading1">
+                                        <button class="accordion-button " type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse1" aria-expanded="true" aria-controls="faqCollapse1">
+                                            Q. How to purchase on www.pcdealsindia.com?
+                                        </button>
+                                    </h2>
+                                    <div id="faqCollapse1" class="accordion-collapse collapse show" aria-labelledby="faqHeading1" data-bs-parent="#homeFaqAccordion">
+                                        <div class="accordion-body">
+                                            A. Register yourself first and then&gt;select the company &gt;click the product&gt;select quantity&gt;click buy now&gt;click pay now&gt;pay from different options displayed on the screen&gt;After a successful payment, please check your WhatsApp or Email for the product key.
+                                        </div>
+                                    </div>
+                                </div>
+                                                            <div class="accordion-item faq-item" data-faq-text="how would i get my invoice/bill? your gst invoice is uploaded in your account under &quot;my orders&quot; tab on our website and app within 24 hours of your purchase. you can download it from there any time after that. call 9306720491 if you need any assistance in this regards.">
+                                    <h2 class="accordion-header" id="faqHeading2">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse2" aria-expanded="false" aria-controls="faqCollapse2">
+                                            Q. How would I get my invoice/bill?
+                                        </button>
+                                    </h2>
+                                    <div id="faqCollapse2" class="accordion-collapse collapse " aria-labelledby="faqHeading2" data-bs-parent="#homeFaqAccordion">
+                                        <div class="accordion-body">
+                                            A. Your GST invoice is uploaded in your account under "My Orders" tab on our website and app within 24 hours of your purchase. You can download it from there any time after that. Call 9306720491 if you need any assistance in this regards.
+                                        </div>
+                                    </div>
+                                </div>
+                                                            <div class="accordion-item faq-item" data-faq-text="how will i get my key? after the payment you will receive your key on your  whatsapp and email within 1 second automatically. you don&#39;t need to call us for the key. you can see your key on our portal also under &quot;my orders&quot;.">
+                                    <h2 class="accordion-header" id="faqHeading3">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse3" aria-expanded="false" aria-controls="faqCollapse3">
+                                            Q. How will I get my key?
+                                        </button>
+                                    </h2>
+                                    <div id="faqCollapse3" class="accordion-collapse collapse " aria-labelledby="faqHeading3" data-bs-parent="#homeFaqAccordion">
+                                        <div class="accordion-body">
+                                            A. After the payment you will receive your key on your  WhatsApp and Email within 1 second automatically. You don't need to call us for the key. You can see your key on our portal also under "my orders".
+                                        </div>
+                                    </div>
+                                </div>
+                                                            <div class="accordion-item faq-item" data-faq-text="will i get any box/cd/dvd for the product i have purchased? no. you will receive the key only.">
+                                    <h2 class="accordion-header" id="faqHeading4">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse4" aria-expanded="false" aria-controls="faqCollapse4">
+                                            Q. Will I get any box/cd/dvd for the product I have purchased?
+                                        </button>
+                                    </h2>
+                                    <div id="faqCollapse4" class="accordion-collapse collapse " aria-labelledby="faqHeading4" data-bs-parent="#homeFaqAccordion">
+                                        <div class="accordion-body">
+                                            A. No. You will receive the key only.
+                                        </div>
+                                    </div>
+                                </div>
+                                                            <div class="accordion-item faq-item" data-faq-text="how much time it will take to get the key? after the successful payment, you will receive your key within 1 second on your whatsapp and email. you can see your key on our portal under &quot;my orders&quot; also.">
+                                    <h2 class="accordion-header" id="faqHeading5">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse5" aria-expanded="false" aria-controls="faqCollapse5">
+                                            Q. How much time it will take to get the key?
+                                        </button>
+                                    </h2>
+                                    <div id="faqCollapse5" class="accordion-collapse collapse " aria-labelledby="faqHeading5" data-bs-parent="#homeFaqAccordion">
+                                        <div class="accordion-body">
+                                            A. After the successful payment, you will receive your key within 1 second on your WhatsApp and Email. You can see your key on our portal under "my orders" also.
+                                        </div>
+                                    </div>
+                                </div>
+                                                            <div class="accordion-item faq-item" data-faq-text="whom do this site &amp; app sells its products to? an end-user or a computer dealer? our website &amp; app are used by computer dealers only. we at pc deals india do not promote our website among end users. so end user is not aware about our website or app and the products we sell on it.">
+                                    <h2 class="accordion-header" id="faqHeading6">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse6" aria-expanded="false" aria-controls="faqCollapse6">
+                                            Q. Whom do this site &amp; app sells its products to? An end-user or a computer dealer?
+                                        </button>
+                                    </h2>
+                                    <div id="faqCollapse6" class="accordion-collapse collapse " aria-labelledby="faqHeading6" data-bs-parent="#homeFaqAccordion">
+                                        <div class="accordion-body">
+                                            A. Our website &amp; app are used by computer dealers only. We at PC Deals India do not promote our website among end users. So end user is not aware about our website or app and the products we sell on it.
+                                        </div>
+                                    </div>
+                                </div>
+                                                            <div class="accordion-item faq-item" data-faq-text="is gst included in the prices? can we claim gst input credit on your invoice? yes. and anyone can claim gst input credit on our invoice. period and all the relevant information is uploaded on the gst portal by us precisely in time.">
+                                    <h2 class="accordion-header" id="faqHeading7">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse7" aria-expanded="false" aria-controls="faqCollapse7">
+                                            Q. Is GST included in the prices? Can we claim GST input credit on your invoice?
+                                        </button>
+                                    </h2>
+                                    <div id="faqCollapse7" class="accordion-collapse collapse " aria-labelledby="faqHeading7" data-bs-parent="#homeFaqAccordion">
+                                        <div class="accordion-body">
+                                            A. Yes. And anyone can claim GST input credit on our invoice. Period and all the relevant information is uploaded on the GST portal by us precisely in time.
+                                        </div>
+                                    </div>
+                                </div>
+                                                            <div class="accordion-item faq-item" data-faq-text="do you have any app also? yes. you can download it from google play store by writing pc deals india or you can download by copy paste this link in play store:-
+https://play.google.com/store/apps/details?id=com.havfly.pcdeals">
+                                    <h2 class="accordion-header" id="faqHeading8">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse8" aria-expanded="false" aria-controls="faqCollapse8">
+                                            Q. Do you have any app also?
+                                        </button>
+                                    </h2>
+                                    <div id="faqCollapse8" class="accordion-collapse collapse " aria-labelledby="faqHeading8" data-bs-parent="#homeFaqAccordion">
+                                        <div class="accordion-body">
+                                            A. Yes. You can download it from Google Play Store by writing PC Deals India or you can download by copy paste this link in Play Store:-<br>
+https://play.google.com/store/apps/details?id=com.havfly.pcdeals
+                                        </div>
+                                    </div>
+                                </div>
+                                                    </div>
+                                    </div>
+            </div>
+        </section>
+
+        
+
+            </div>
+
+
+    <footer class="home-footer">
+    <div class="home-footer-grid">
+        <div>
+            <h5><i class="fa-solid fa-briefcase"></i>Quick Links</h5>
+            <ul class="footer-links">
+                <li><a href="https://www.pcdealsindia.com/"><span class="left"><i class="fa-solid fa-house"></i>Home</span><i class="fa-solid fa-angle-right go"></i></a></li>
+                                <li><a href="https://www.pcdealsindia.com/website-reviews"><span class="left"><i class="fa-regular fa-star"></i>Review Us</span><i class="fa-solid fa-angle-right go"></i></a></li>
+                <li><a href="https://www.pcdealsindia.com/getcid"><span class="left"><i class="fa-solid fa-key"></i>Get CID</span><i class="fa-solid fa-angle-right go"></i></a></li>
+                <li><a href="https://www.pcdealsindia.com/contact-us"><span class="left"><i class="fa-regular fa-address-book"></i>Contact Us</span><i class="fa-solid fa-angle-right go"></i></a></li>
+            </ul>
+
+            <div class="footer-qr">
+                <img src="./Home_files/qr.jpg" alt="Contact QR">
+                <div>
+                    <h6>Scan to Contact Us</h6>
+                    <p>Quick support on WhatsApp.</p>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h5><i class="fa-solid fa-circle-info"></i>Information</h5>
+            <ul class="footer-links">
+                <li><a href="https://www.pcdealsindia.com/page?name=ABOUT-US"><span class="left"><i class="fa-regular fa-user"></i>About Us</span><i class="fa-solid fa-angle-right go"></i></a></li>
+                <li><a href="https://www.pcdealsindia.com/page?name=Privacy-Policy-New"><span class="left"><i class="fa-regular fa-shield"></i>Privacy Policy</span><i class="fa-solid fa-angle-right go"></i></a></li>
+                <li><a href="https://www.pcdealsindia.com/page?name=SHIPPING-RETURN"><span class="left"><i class="fa-solid fa-truck"></i>Shipping &amp; Return</span><i class="fa-solid fa-angle-right go"></i></a></li>
+                <li><a href="https://www.pcdealsindia.com/page?name=TC-And-Disclaimer"><span class="left"><i class="fa-regular fa-file-lines"></i>T&amp;C and Disclaimer</span><i class="fa-solid fa-angle-right go"></i></a></li>
+            </ul>
+
+            <div class="footer-trust-mini">
+                <div><i class="fa-solid fa-lock"></i><p>100% Secure Checkout</p></div>
+                <div><i class="fa-regular fa-circle-check"></i><p>Original Keys</p></div>
+                <div><i class="fa-solid fa-bolt"></i><p>Instant Delivery</p></div>
+                <div><i class="fa-solid fa-headset"></i><p>Technical Support</p></div>
+            </div>
+        </div>
+
+        <div>
+            <h5><i class="fa-solid fa-share-nodes"></i>Follow Us</h5>
+            <ul class="footer-links social">
+                                                            <li>
+                            <a href="https://www.facebook.com/Pcdealsindiaantiviruskeys/?ti=as" target="_blank" rel="noopener">
+                                <span class="left"><i style="--social-color: #1877f2" class="fa-brands fa-facebook-f"></i>Facebook</span>
+                                <i class="fa-solid fa-angle-right go"></i>
+                            </a>
+                        </li>
+                                                                                <li>
+                            <a href="https://www.pcdealsindia.com/%3Cp%3E%3Cstrong%3EOOPS!!%20Please%20try%C2%A0again!!%3C/strong%3E!%20Your%20payment%20is%20declined%20by%20your%20bank.%20In%20case%20your%20payment%20is%20deducted%20from%20your%20bank%20you%20will%20get%20your%20refund%20within%2048%20hours.%3C/p%3E" target="_blank" rel="noopener">
+                                <span class="left"><i style="--social-color: #e4405f" class="fa-brands fa-instagram"></i>Instagram</span>
+                                <i class="fa-solid fa-angle-right go"></i>
+                            </a>
+                        </li>
+                                                                                <li>
+                            <a href="https://twitter.com/pcdealsindia" target="_blank" rel="noopener">
+                                <span class="left"><i style="--social-color: #1da1f2" class="fa-brands fa-x-twitter"></i>Twitter</span>
+                                <i class="fa-solid fa-angle-right go"></i>
+                            </a>
+                        </li>
+                                                                                <li>
+                            <a href="https://www.linkedin.com/company/75654995" target="_blank" rel="noopener">
+                                <span class="left"><i style="--social-color: #0a66c2" class="fa-brands fa-linkedin-in"></i>LinkedIn</span>
+                                <i class="fa-solid fa-angle-right go"></i>
+                            </a>
+                        </li>
+                                                                                <li>
+                            <a href="https://www.youtube.com/pcdealsindia" target="_blank" rel="noopener">
+                                <span class="left"><i style="--social-color: #ff0000" class="fa-brands fa-youtube"></i>YouTube</span>
+                                <i class="fa-solid fa-angle-right go"></i>
+                            </a>
+                        </li>
+                                                                                <li>
+                            <a href="https://www.pcdealsindia.com/Contact%20us%20-%209728622667" target="_blank" rel="noopener">
+                                <span class="left"><i style="--social-color: #d71a24" class="fa-solid fa-shop"></i>IndiaMart</span>
+                                <i class="fa-solid fa-angle-right go"></i>
+                            </a>
+                        </li>
+                                                </ul>
+        </div>
+    </div>
+
+   <div class="home-footer-bottom">
+    
+   <div class="home-footer-text">
+    
+    <p class="home-footer-copy trademark-text">
+        All trademarks, logos, and product images are the property of their respective owners 
+        and are used for <br>
+        identification and reference purposes only.
+    </p>
+
+    <p class="home-footer-copy copyright-text">
+        © 2026 Shree Hira Computer &amp; Communication. All Rights Reserved.
+        
+    </p>
+
+</div>
+
+    <div class="home-footer-pay">
+        
+        <img src="./Home_files/payment-2.png" alt="Payment 2">
+        <img src="./Home_files/payment-3.png" alt="Payment 3">
+        <img src="./Home_files/payment-4.png" alt="Payment 4">
+    </div>
+
+</div>
+
+    <a class="footer-float-wa" href="https://api.whatsapp.com/send?phone=919728622667&amp;text=Hi%2C%20I%20need%20help%20with%20PC%20Deals%20India." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+</footer>
+
+    <script src="./Home_files/jquery-3.6.0.min.js.download"></script>
+    <script src="./Home_files/bootstrap.bundle.min.js.download"></script>
+    <script src="./Home_files/sweetalert.min.js.download"></script>
+    <script src="./Home_files/home-new.js.download"></script>
+    <script>
+        (function () {
+            if (!window.jQuery) {
+                return;
+            }
+
+            window.pcdShowKeyStockAlert = function (messageHtml) {
+                var body = messageHtml || 'Please try a lower quantity or contact support.';
+                if (typeof swal === 'function') {
+                    swal({
+                        title: '<span class="pcd-swal-title">Not enough keys in stock</span>',
+                        text: body,
+                        html: true,
+                        type: 'warning',
+                        confirmButtonText: 'Got it',
+                        confirmButtonColor: '#2563eb'
+                    });
+                } else {
+                    var plain = document.createElement('div');
+                    plain.innerHTML = body;
+                    window.alert(plain.textContent || plain.innerText || 'Unable to add this quantity.');
+                }
+            };
+
+            function pcdNormalizeAddToCartResponse(res, jqXHR) {
+                var ct = '';
+                if (jqXHR && typeof jqXHR.getResponseHeader === 'function') {
+                    ct = String(jqXHR.getResponseHeader('Content-Type') || '').toLowerCase();
+                }
+                if (typeof res === 'string') {
+                    var trimmed = res.trim();
+                    if (ct.indexOf('json') !== -1 || trimmed.charAt(0) === '{' || trimmed.charAt(0) === '[') {
+                        try {
+                            res = JSON.parse(trimmed);
+                        } catch (ignore) {
+                            /* keep string */
+                        }
+                    }
+                }
+                return res;
+            }
+
+            var pcdWalletBalance = parseFloat('0.0000') || 0;
+            var pcdPrepaidWalletBalance = parseFloat('0.0000') || 0;
+            var pcdCreditCardBalance = parseFloat('0.0000') || 0;
+            var pcdPrepaidPercent = parseFloat('2.0000') || 0;
+
+            function toNumber(value, fallback) {
+                var n = parseFloat(value);
+                return isNaN(n) ? (fallback || 0) : n;
+            }
+
+            /** Strip all whitespace from quantity (fixes "1 00" / parseInt → 1). */
+            function pcdSanitizeQtyString(v) {
+                return String(v == null ? '' : v).replace(/\s/g, '');
+            }
+
+            function getPrepaidPercent() {
+                if (pcdPrepaidPercent > 0) {
+                    return pcdPrepaidPercent;
+                }
+
+                var text = $('.prepaid-card-title .cart-summary-label').first().text() || '';
+                var match = text.match(/(\d+(?:\.\d+)?)\s*%/);
+                return match ? toNumber(match[1], 0) : 0;
+            }
+
+            function pcdComboAddonForQtyProductPage(qty) {
+                qty = parseInt(pcdSanitizeQtyString(String(qty)), 10) || 0;
+                var perOrderCombo = 0;
+                $('input.combo_product.checkbox').each(function () {
+                    if ($(this).prop('checked')) {
+                        perOrderCombo += parseFloat($(this).data('product-price')) || 0;
+                    }
+                });
+                return qty * perOrderCombo;
+            }
+
+            function updateProductLatestCartSummary() {
+                if (!$('#shopping-cart-totals-table').length) {
+                    return;
+                }
+
+                var qty = parseInt(pcdSanitizeQtyString($('#qty').val()), 10);
+                if (isNaN(qty) || qty <= 0) {
+                    qty = 1;
+                }
+
+                var unitPrice = toNumber($('#products_price').val(), 0);
+                var mainSubtotal = qty * unitPrice;
+                var comboAddon = pcdComboAddonForQtyProductPage(qty);
+                var gross = mainSubtotal + comboAddon;
+
+                var walletAllowedPerUnit = toNumber(pcdSanitizeQtyString($('#casback_can_use').val()), 0);
+                var walletDiscount = walletAllowedPerUnit * qty;
+                if (walletDiscount > pcdWalletBalance) {
+                    walletDiscount = pcdWalletBalance;
+                }
+                if (walletDiscount > gross) {
+                    walletDiscount = gross;
+                }
+
+                var prepaidPercent = getPrepaidPercent();
+                var prepaidDiscount = Math.round((Math.max(0, gross - walletDiscount) * prepaidPercent) / 100);
+                var payableAmount = Math.max(0, gross - walletDiscount - prepaidDiscount);
+                var buttonText = 'Pay Securely Now';
+
+                if (pcdPrepaidWalletBalance < payableAmount) {
+                    payableAmount = payableAmount + prepaidDiscount;
+                    prepaidDiscount = 0;
+                    $('.prepaid-card-title').hide();
+                } else {
+                    buttonText = 'Pay with Prepaid Card';
+                    $('.prepaid-card-title').show();
+                }
+
+                if (payableAmount > pcdPrepaidWalletBalance && pcdCreditCardBalance >= payableAmount) {
+                    buttonText = 'Buy Now Pay Later';
+                }
+
+                var subLabel = comboAddon > 0.001
+                    ? ('Subtotal (' + qty + ' units + combo)')
+                    : ('Subtotal (' + qty + ' x ' + unitPrice.toFixed(2) + ')');
+                $('.subtotal-heading').text(subLabel);
+                $('.price.subtotal').text('Rs. ' + gross.toFixed(2));
+                $('.price.useable_amount').text('- Rs. ' + walletDiscount.toFixed(2));
+                $('.price.prepaid-card-discount').text('- Rs. ' + prepaidDiscount.toFixed(2));
+                $('.price.grand-total').text('Rs. ' + payableAmount.toFixed(2));
+                $('.btn-proceed-checkout').html('<span class="btn-text"><i class="fa fa-lock" aria-hidden="true"></i> ' + buttonText + '</span>');
+            }
+
+            function bindAddToCartForHomeLayout() {
+                $(document).off('click.appHomeNewCart', '.add-to-Cart');
+                $(document).on('click.appHomeNewCart', '.add-to-Cart', function (e) {
+                    if (!$('#add-Product-form').length) {
+                        return true;
+                    }
+
+                    e.preventDefault();
+
+                    var $qtyInput = $('#qty');
+                    if ($qtyInput.length) {
+                        var cleanedQty = pcdSanitizeQtyString($qtyInput.val());
+                        $qtyInput.val(cleanedQty);
+                    }
+
+                    if ($('#overlay').length) {
+                        $('#overlay').stop(true, true).show();
+                    }
+
+                    var formData = $('#add-Product-form').serialize();
+                    var checkoutFlag = String($('#checkout_url').val() || '').trim();
+
+                    $.ajax({
+                        url: 'https://www.pcdealsindia.com/addToCart',
+                        type: 'POST',
+                        data: formData,
+                        success: function (res, _textStatus, jqXHR) {
+                            res = pcdNormalizeAddToCartResponse(res, jqXHR);
+
+                            if (res && typeof res === 'object' && !Array.isArray(res)) {
+                                var pend = String(res.success || '').toLowerCase() === 'pending';
+                                if (pend && res.message) {
+                                    if ($('#overlay').length) {
+                                        $('#overlay').fadeOut(300);
+                                    }
+                                    $(document).trigger('pcd:keyStockRejected');
+                                    if (typeof window.pcdShowKeyStockAlert === 'function') {
+                                        window.pcdShowKeyStockAlert(res.message);
+                                    } else if (typeof swal === 'function') {
+                                        swal({
+                                            title: 'Sorry',
+                                            text: res.message,
+                                            type: 'info',
+                                            animation: 'slide-from-top',
+                                            html: true
+                                        });
+                                    } else {
+                                        var plain = document.createElement('div');
+                                        plain.innerHTML = res.message;
+                                        alert(plain.textContent || plain.innerText || 'Unable to add this quantity.');
+                                    }
+                                    return;
+                                }
+                                if (res.success === false && res.message) {
+                                    if ($('#overlay').length) {
+                                        $('#overlay').fadeOut(300);
+                                    }
+                                    alert(res.message);
+                                    return;
+                                }
+                            }
+
+                            if (typeof res === 'string' && res.trim() !== 'already added') {
+                                $('.head-cart-content').html(res);
+                            }
+
+                            if ($('#overlay').length) {
+                                $('#overlay').stop(true, true).hide();
+                            }
+
+                            if (checkoutFlag === 'true') {
+                                window.location.href = 'https://www.pcdealsindia.com/checkout';
+                                return;
+                            }
+
+                            updateProductLatestCartSummary();
+                            $(document).trigger('pcd:addToCartSuccess');
+                        },
+                        error: function () {
+                            if ($('#overlay').length) {
+                                $('#overlay').fadeOut(300);
+                            }
+                            alert('Error, Please try later!');
+                        }
+                    });
+
+                    return false;
+                });
+            }
+
+            $(document).ready(function () {
+                bindAddToCartForHomeLayout();
+                updateProductLatestCartSummary();
+
+                $(document).on('change.appHomeNewCart', '#qty', function () {
+                    updateProductLatestCartSummary();
+                });
+
+                $(document).on('input.appHomeNewCart', '#qty', function () {
+                    var el = this;
+                    var cleaned = pcdSanitizeQtyString(el.value);
+                    if (el.value !== cleaned) {
+                        el.value = cleaned;
+                    }
+                    updateProductLatestCartSummary();
+                });
+
+                $(document).on('click.appHomeNewCart', '.quantity-btn, .unit-price, .pricing-card-btn.unit-price, #addToCartBtn', function () {
+                    setTimeout(updateProductLatestCartSummary, 0);
+                });
+
+                $(document).on('change.appHomeNewCart', 'input.combo_product.checkbox', function () {
+                    updateProductLatestCartSummary();
+                });
+            });
+        })();
+    </script>
+    <script defer="" src="./Home_files/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;9eeaf29dbe114ea3a45f41de82635ad5&quot;,&quot;r&quot;:1,&quot;server_timing&quot;:{&quot;name&quot;:{&quot;cfCacheStatus&quot;:true,&quot;cfEdge&quot;:true,&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfSpeedBrain&quot;:true},&quot;location_startswith&quot;:null}}" crossorigin="anonymous"></script>
+
+<main id="mentorai-extension" class="preplaced-extension"><div class="fixed bottom-[120px] z-[9999999] right-0 h-[40px] rounded-l-[20px] rounded-r-none bg-[#07070A] !max-w-[120px] cursor-pointer" draggable="false" style="transform: translateY(-535.699px); user-select: none; touch-action: pan-x;"><div class="flex items-center relative justify-between gap-2 py-1 pl-1"><div class="flex items-center gap-[5px]"><div class="relative"><img src="./Home_files/Leeco.png" class="h-[32px] w-[32px] rounded-full min-h-[32px] min-w-[32px]" alt="avatar"><span class="absolute -bottom-[1px] -right-[2px] border-[2px] border-[#000] w-[10px] h-[10px] rounded-full bg-[#1FC16B]"></span></div><div class="flex items-center justify-center"></div></div></div></div></main></body></html>
