@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
 import { Lock, ChevronRight } from 'lucide-react';
@@ -14,6 +14,7 @@ declare global {
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -22,8 +23,37 @@ export default function CheckoutPage() {
     address: '',
   });
   const [loading, setLoading] = useState(false);
+  const [cartItems, setCartItems] = useState<any[]>([]);
 
-  const subtotal = 3998;
+  useEffect(() => {
+    const productParam = searchParams.get('product');
+    const qtyParam = searchParams.get('qty');
+    const itemsParam = searchParams.get('items');
+
+    if (productParam && qtyParam) {
+      const saved = localStorage.getItem('cart');
+      const existingCart = saved ? JSON.parse(saved) : [];
+      const existing = existingCart.find((i: any) => i.slug === productParam);
+      if (existing) {
+        setCartItems([{ ...existing, quantity: parseInt(qtyParam) || 1 }]);
+      } else {
+        setCartItems([{ slug: productParam, quantity: parseInt(qtyParam) || 1 }]);
+      }
+    } else if (itemsParam) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(itemsParam));
+        setCartItems(parsed.map((i: any) => ({ slug: i.slug, name: i.name, price: i.price, quantity: i.qty })));
+      } catch {
+        const saved = localStorage.getItem('cart');
+        if (saved) setCartItems(JSON.parse(saved));
+      }
+    } else {
+      const saved = localStorage.getItem('cart');
+      if (saved) setCartItems(JSON.parse(saved));
+    }
+  }, [searchParams]);
+
+  const subtotal = cartItems.reduce((sum: number, item: any) => sum + (item.price || 0) * item.quantity, 0);
   const tax = Math.round(subtotal * 0.18 * 100) / 100;
   const total = subtotal + tax;
 
@@ -36,6 +66,11 @@ export default function CheckoutPage() {
         return;
       }
 
+      const items = cartItems.map((item: any) => ({
+        slug: item.slug,
+        quantity: item.quantity,
+      }));
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders/create`, {
         method: 'POST',
         headers: {
@@ -43,13 +78,18 @@ export default function CheckoutPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          items: [{ productId: 'dummy', quantity: 1 }],
+          items,
           customerInfo: form,
           paymentMethod: 'razorpay',
         }),
       });
 
       const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || 'Failed to create order');
+        setLoading(false);
+        return;
+      }
 
       if (!window.Razorpay) {
         const script = document.createElement('script');
@@ -81,7 +121,7 @@ export default function CheckoutPage() {
         contact: form.phone,
       },
       handler: function (response: any) {
-        router.push(`/payment-success?order_id=${response.razorpay_order_id}&payment_id=${response.razorpay_payment_id}`);
+        router.push(`/payment-success?order_id=${response.razorpay_order_id}&payment_id=${response.razorpay_payment_id}&signature=${response.razorpay_signature}`);
       },
       modal: {
         ondismiss: function () {
@@ -149,6 +189,16 @@ export default function CheckoutPage() {
         {/* Order Summary */}
         <div className="bg-white border border-pcd-border rounded-xl p-6 h-fit">
           <h3 className="text-sm font-bold text-pcd-text mb-4">Order Summary</h3>
+          {cartItems.length > 0 && (
+            <div className="space-y-2 mb-4 pb-4 border-b border-pcd-border">
+              {cartItems.map((item: any) => (
+                <div key={item.slug} className="flex justify-between text-sm">
+                  <span className="text-pcd-muted truncate max-w-[180px]">{item.name || item.slug} x{item.quantity}</span>
+                  <span className="font-semibold">{formatPrice((item.price || 0) * item.quantity)}</span>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-pcd-muted">Subtotal</span>

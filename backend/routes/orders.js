@@ -15,8 +15,14 @@ router.post('/create', auth, async (req, res) => {
     let subtotal = 0;
     const orderItems = [];
     for (const item of items) {
-      const product = await Product.findById(item.productId);
-      if (!product) return res.status(404).json({ message: `Product not found: ${item.productId}` });
+      let product;
+      if (item.productId) {
+        product = await Product.findById(item.productId);
+      } else if (item.slug) {
+        const allProducts = await Product.find({ slug: item.slug });
+        product = allProducts[0] || null;
+      }
+      if (!product) return res.status(404).json({ message: `Product not found: ${item.productId || item.slug}` });
       const itemTotal = product.price * item.quantity;
       subtotal += itemTotal;
       orderItems.push({
