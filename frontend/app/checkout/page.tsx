@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
+import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
-import { Lock, ChevronRight } from 'lucide-react';
+import { Lock, ChevronRight, Trash2 } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -15,6 +17,7 @@ declare global {
 export default function CheckoutPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [cartItems, setCartItems] = useState<any[]>([]);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -23,7 +26,6 @@ export default function CheckoutPage() {
     address: '',
   });
   const [loading, setLoading] = useState(false);
-  const [cartItems, setCartItems] = useState<any[]>([]);
 
   useEffect(() => {
     const productParam = searchParams.get('product');
@@ -31,30 +33,64 @@ export default function CheckoutPage() {
     const itemsParam = searchParams.get('items');
 
     if (productParam && qtyParam) {
+      const qty = parseInt(qtyParam) || 1;
       try {
         const saved = localStorage.getItem('cart');
         const existingCart = saved ? JSON.parse(saved) : [];
         if (Array.isArray(existingCart)) {
           const existing = existingCart.find((i: any) => i.slug === productParam);
           if (existing) {
-            setCartItems([{ ...existing, quantity: parseInt(qtyParam) || 1 }]);
-          } else {
-            setCartItems([{ slug: productParam, quantity: parseInt(qtyParam) || 1 }]);
+            setCartItems([{ ...existing, quantity: qty }]);
+            return;
           }
         }
       } catch {}
+
+      api.get(`/products/${productParam}`).then((product) => {
+        setCartItems([{ _id: product._id, slug: productParam, name: product.name, price: product.price, quantity: qty }]);
+      }).catch(() => {
+        setCartItems([{ slug: productParam, quantity: qty }]);
+      });
     } else if (itemsParam) {
       try {
         const parsed = JSON.parse(decodeURIComponent(itemsParam));
-        setCartItems(parsed.map((i: any) => ({ slug: i.slug, name: i.name, price: i.price, quantity: i.qty })));
-      } catch {}
+        setCartItems(parsed.map((i: any) => ({ _id: i._id, slug: i.slug, name: i.name, price: i.price, quantity: i.qty })));
+      } catch {
+        router.push('/cart');
+      }
     } else {
-      try {
-        const saved = localStorage.getItem('cart');
-        if (saved) setCartItems(JSON.parse(saved));
-      } catch {}
+      const saved = localStorage.getItem('cart');
+      if (saved) {
+        const items = JSON.parse(saved);
+        if (items.length === 0) {
+          router.push('/cart');
+          return;
+        }
+        setCartItems(items);
+      } else {
+        router.push('/cart');
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
+
+  const updateItemQty = (slug: string, delta: number) => {
+    setCartItems(prev => {
+      const next = prev.map(item =>
+        item.slug === slug ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
+      );
+      localStorage.setItem('cart', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const removeItem = (slug: string) => {
+    setCartItems(prev => {
+      const next = prev.filter(item => item.slug !== slug);
+      localStorage.setItem('cart', JSON.stringify(next));
+      if (next.length === 0) router.push('/cart');
+      return next;
+    });
+  };
 
   const subtotal = cartItems.reduce((sum: number, item: any) => sum + (item.price || 0) * item.quantity, 0);
   const tax = Math.round(subtotal * 0.18 * 100) / 100;
@@ -69,11 +105,6 @@ export default function CheckoutPage() {
         return;
       }
 
-      const items = cartItems.map((item: any) => ({
-        slug: item.slug,
-        quantity: item.quantity,
-      }));
-
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders/create`, {
         method: 'POST',
         headers: {
@@ -81,14 +112,18 @@ export default function CheckoutPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          items,
+          items: cartItems.map((i: any) => ({
+            productId: i._id,
+            slug: i.slug,
+            quantity: i.quantity,
+          })),
           customerInfo: form,
           paymentMethod: 'razorpay',
         }),
       });
 
       const data = await res.json();
-      if (!res.ok) {
+      if (!data.razorpayOrder) {
         alert(data.message || 'Failed to create order');
         setLoading(false);
         return;
@@ -105,7 +140,6 @@ export default function CheckoutPage() {
     } catch (error) {
       console.error('Checkout error:', error);
       alert('Something went wrong. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -124,7 +158,9 @@ export default function CheckoutPage() {
         contact: form.phone,
       },
       handler: function (response: any) {
-        router.push(`/payment-success?order_id=${response.razorpay_order_id}&payment_id=${response.razorpay_payment_id}&signature=${response.razorpay_signature}`);
+        router.push(
+          `/payment-success?order_id=${response.razorpay_order_id}&payment_id=${response.razorpay_payment_id}&razorpay_signature=${response.razorpay_signature}`
+        );
       },
       modal: {
         ondismiss: function () {
@@ -191,17 +227,34 @@ export default function CheckoutPage() {
 
         {/* Order Summary */}
         <div className="bg-white border border-pcd-border rounded-xl p-6 h-fit">
-          <h3 className="text-sm font-bold text-pcd-text mb-4">Order Summary</h3>
-          {cartItems.length > 0 && (
-            <div className="space-y-2 mb-4 pb-4 border-b border-pcd-border">
-              {cartItems.map((item: any) => (
-                <div key={item.slug} className="flex justify-between text-sm">
-                  <span className="text-pcd-muted truncate max-w-[180px]">{item.name || item.slug} x{item.quantity}</span>
-                  <span className="font-semibold">{formatPrice((item.price || 0) * item.quantity)}</span>
+          <h3 className="text-sm font-bold text-pcd-text mb-4">
+            Order Summary ({cartItems.length} items)
+          </h3>
+
+          {/* Cart Items */}
+          <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
+            {cartItems.map((item: any) => (
+              <div key={item.slug} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs flex-shrink-0">
+                  {item.name?.charAt(0) || 'P'}
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-pcd-text truncate">{item.name || item.slug}</p>
+                  <p className="text-[10px] text-pcd-muted">{formatPrice(item.price || 0)} x {item.quantity}</p>
+                </div>
+                <div className="flex items-center border border-pcd-border rounded-md">
+                  <button onClick={() => updateItemQty(item.slug, -1)} className="px-1.5 py-0.5 text-pcd-muted hover:text-pcd-text text-xs">-</button>
+                  <span className="px-2 py-0.5 text-xs font-semibold border-x border-pcd-border">{item.quantity}</span>
+                  <button onClick={() => updateItemQty(item.slug, 1)} className="px-1.5 py-0.5 text-pcd-muted hover:text-pcd-text text-xs">+</button>
+                </div>
+                <p className="text-xs font-extrabold text-pcd-text min-w-[50px] text-right">{formatPrice((item.price || 0) * item.quantity)}</p>
+                <button onClick={() => removeItem(item.slug)} className="p-0.5 text-pcd-muted hover:text-red-500">
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-pcd-muted">Subtotal</span>

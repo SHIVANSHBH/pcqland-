@@ -94,7 +94,7 @@ export default function CartPage() {
                 <span>{formatPrice(total)}</span>
               </div>
             </div>
-            <Link href={`/checkout?items=${encodeURIComponent(JSON.stringify(cartItems.map((i: any) => ({ slug: i.slug, name: i.name, price: i.price, qty: i.quantity }))))}`} className="btn-primary w-full mt-4">
+            <Link href={`/checkout?items=${encodeURIComponent(JSON.stringify(cartItems.map((i: any) => ({ _id: i._id, slug: i.slug, name: i.name, price: i.price, qty: i.quantity }))))}`} className="btn-primary w-full mt-4">
               Proceed to Checkout
             </Link>
             <Link href="/" className="flex items-center justify-center gap-1.5 text-xs text-pcd-muted hover:text-primary mt-3">

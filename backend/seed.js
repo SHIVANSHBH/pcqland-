@@ -100,6 +100,19 @@ async function seed() {
   const hashed = await bcrypt.hash('admin123', 10);
   await User.create({ name: 'Admin', email: 'admin@pcdealsindia.com', phone: '9728622667', password: hashed, role: 'admin', isVerified: true });
 
+  // Seed inventory with dummy keys
+  const Inventory = require('./models/Inventory');
+  const allProducts = await Product.find({});
+  const inventoryData = [];
+  for (const product of allProducts) {
+    for (let i = 0; i < 3; i++) {
+      const key = `${product.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4)}-${Array(5).fill(0).map(() => Math.random().toString(36).substring(2, 6).toUpperCase()).join('-')}`;
+      inventoryData.push({ product: product._id, key, validity: product.validity || 'Lifetime' });
+    }
+  }
+  await Inventory.insertMany(inventoryData);
+  console.log(`Inventory seeded: ${inventoryData.length} keys added`);
+
   console.log('Database seeded successfully!');
   console.log('Admin login: admin@pcdealsindia.com / admin123');
   process.exit(0);
