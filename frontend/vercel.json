@@ -1,5 +1,4 @@
 {
-  "installCommand": "cd .. && npm install && cd frontend && npm install",
   "builds": [
     { "src": "package.json", "use": "@vercel/next" },
     { "src": "api/index.js", "use": "@vercel/node" }

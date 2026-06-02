@@ -1,3 +1,6 @@
+const path = require('path');
+try { require('module').globalPaths.push(path.join(__dirname, 'node_modules')); } catch {}
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -102,6 +105,9 @@ async function init() {
 }
 
 module.exports = async (req, res) => {
+  if (req.url === '/api/health') {
+    return res.json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime() });
+  }
   try {
     await init();
     return app(req, res);
