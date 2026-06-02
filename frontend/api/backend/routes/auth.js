@@ -131,17 +131,16 @@ router.post('/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, phone, password } = req.body;
 
-    const { isUsingMongo } = require('../config/db');
-    const usingMongo = isUsingMongo();
-    let query = User.findOne({
+    console.log('login attempt:', { email, phone });
+
+    const user = await User.findOne({
       $or: [
         ...(email ? [{ email: email.toLowerCase() }] : []),
         ...(phone ? [{ phone }] : []),
       ],
     });
-    if (usingMongo && query && typeof query.select === 'function') query = query.select('+password');
+    console.log('found user:', user ? user.email : null);
 
-    const user = await query;
     const dummyHash = '$2a$10$' + 'x'.repeat(53);
     const isMatch = user ? await bcrypt.compare(password, user.password) : await bcrypt.compare(password, dummyHash);
     if (!user || !isMatch) {
