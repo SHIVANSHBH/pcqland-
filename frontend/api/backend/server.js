@@ -131,6 +131,7 @@ async function main() {
   app.use('/api/cms', require('./routes/cms'));
   app.use('/api/admin', require('./routes/admin'));
   app.use('/api/invoices', require('./routes/invoices'));
+  app.use('/api/seed', require('./routes/seed'));
 
   // Error handler
   app.use((err, req, res, next) => {

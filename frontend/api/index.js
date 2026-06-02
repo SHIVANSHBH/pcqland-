@@ -98,6 +98,7 @@ async function init() {
   app.use('/api/cms', require('./backend/routes/cms'));
   app.use('/api/admin', require('./backend/routes/admin'));
   app.use('/api/invoices', require('./backend/routes/invoices'));
+  app.use('/api/seed', require('./backend/routes/seed'));
   initialized = true;
 }
 
