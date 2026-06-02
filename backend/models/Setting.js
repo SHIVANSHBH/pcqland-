@@ -1,8 +1,7 @@
-const { createModel } = require('../config/dev-store');
+const { isUsingMongo } = require('../config/db');
 
-const Setting = createModel('Setting', {
-  allowedFields: ['key', 'value'],
-  required: ['key'],
-});
-
-module.exports = Setting;
+if (isUsingMongo()) {
+  module.exports = require('./mongo/Setting');
+} else {
+  module.exports = require('../models-nedb/Setting');
+}

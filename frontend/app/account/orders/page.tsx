@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { formatPrice, formatDate } from '@/lib/utils';
 import { Package, ChevronRight, Download, Eye } from 'lucide-react';
+import Pagination from '@/components/Pagination';
+import { OrderCardSkeleton } from '@/components/Skeleton';
 
 const sampleOrders = [
   { orderId: 'PCD202605201234', date: '2026-05-20', amount: 3998, status: 'completed', items: [{ name: 'Windows 11 Pro', qty: 1, price: 1499 }, { name: 'Microsoft Office 2021 Pro Plus', qty: 1, price: 2499 }], keys: ['WXXX-XXXXX-XXXXX-XXXXX', 'OXXX-XXXXX-XXXXX-XXXXX'] },
@@ -12,6 +14,9 @@ const sampleOrders = [
 
 export default function OrdersPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [loading] = useState(false);
+  const [page, setPage] = useState(1);
+  const perPage = 5;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
@@ -26,14 +31,18 @@ export default function OrdersPage() {
         My Orders
       </h1>
 
-      {sampleOrders.length === 0 ? (
+      {loading ? (
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => <OrderCardSkeleton key={i} />)}
+        </div>
+      ) : sampleOrders.length === 0 ? (
         <div className="text-center py-12">
           <Package className="w-12 h-12 text-pcd-muted mx-auto mb-3" />
           <p className="text-sm text-pcd-muted">No orders yet</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {sampleOrders.map((order) => (
+          {sampleOrders.slice((page - 1) * perPage, page * perPage).map((order) => (
             <div key={order.orderId} className="bg-white border border-pcd-border rounded-xl overflow-hidden">
               <button onClick={() => setExpanded(expanded === order.orderId ? null : order.orderId)} className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                 <div className="text-left">
@@ -80,6 +89,8 @@ export default function OrdersPage() {
           ))}
         </div>
       )}
+
+      {sampleOrders.length > perPage && <Pagination page={page} totalPages={Math.ceil(sampleOrders.length / perPage)} onPageChange={setPage} />}
     </div>
   );
 }

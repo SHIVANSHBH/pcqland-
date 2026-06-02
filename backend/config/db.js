@@ -1,20 +1,27 @@
 const mongoose = require('mongoose');
 
-let useNeDB = false;
+let isMongoConnected = false;
 
 const connectDB = async () => {
-  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/pcdeals';
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    console.log('No MONGODB_URI set, using NeDB (file-based database)');
+    return;
+  }
   try {
-    await mongoose.connect(uri);
+    await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+    isMongoConnected = true;
     console.log(`MongoDB connected: ${mongoose.connection.host}`);
   } catch (err) {
     console.error(`MongoDB connection error: ${err.message}`);
     console.log('Falling back to NeDB (file-based database)');
-    useNeDB = true;
   }
 };
 
-const isUsingNeDB = () => useNeDB;
+const isUsingMongo = () => isMongoConnected;
 
 module.exports = connectDB;
-module.exports.isUsingNeDB = isUsingNeDB;
+module.exports.isUsingMongo = isUsingMongo;

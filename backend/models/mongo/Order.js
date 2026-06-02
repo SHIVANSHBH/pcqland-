@@ -36,7 +36,6 @@ const orderSchema = new mongoose.Schema({
   invoiceUrl: String,
 }, { timestamps: true });
 
-orderSchema.index({ orderId: 1 });
 orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ razorpayOrderId: 1 });
 

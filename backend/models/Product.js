@@ -1,9 +1,7 @@
-const { createModel } = require('../config/dev-store');
+const { isUsingMongo } = require('../config/db');
 
-const Product = createModel('Product', {
-  allowedFields: ['name', 'slug', 'description', 'shortDescription', 'price', 'mrp', 'discount', 'images', 'category', 'validity', 'tags', 'isActive', 'isFeatured'],
-  required: ['name', 'slug', 'price'],
-  defaults: { isActive: true, isFeatured: false, images: [], tags: [] },
-});
-
-module.exports = Product;
+if (isUsingMongo()) {
+  module.exports = require('./mongo/Product');
+} else {
+  module.exports = require('../models-nedb/Product');
+}

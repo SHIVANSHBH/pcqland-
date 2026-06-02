@@ -1,9 +1,7 @@
-const { createModel } = require('../config/dev-store');
+const { isUsingMongo } = require('../config/db');
 
-const User = createModel('User', {
-  allowedFields: ['name', 'email', 'phone', 'password', 'role', 'isVerified', 'verificationCode', 'verificationCodeExpiry', 'resetCode', 'resetCodeExpiry', 'otp', 'otpExpiry', 'walletBalance', 'totalCashbackEarned', 'address', 'gstin'],
-  required: ['name', 'email', 'password'],
-  defaults: { role: 'customer', isVerified: false, walletBalance: 0, totalCashbackEarned: 0 },
-});
-
-module.exports = User;
+if (isUsingMongo()) {
+  module.exports = require('./mongo/User');
+} else {
+  module.exports = require('../models-nedb/User');
+}

@@ -1,8 +1,7 @@
-const { createModel } = require('../config/dev-store');
+const { isUsingMongo } = require('../config/db');
 
-const Token = createModel('Token', {
-  allowedFields: ['token', 'type', 'userId', 'phone', 'expiresAt'],
-  required: ['token', 'type'],
-});
-
-module.exports = Token;
+if (isUsingMongo()) {
+  module.exports = require('./mongo/Token');
+} else {
+  module.exports = require('../models-nedb/Token');
+}

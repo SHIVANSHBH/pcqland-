@@ -16,7 +16,6 @@ const productSchema = new mongoose.Schema({
   tags: [{ type: String }],
 }, { timestamps: true });
 
-productSchema.index({ slug: 1 });
 productSchema.index({ category: 1, isActive: 1 });
 productSchema.index({ isFeatured: 1 });
 

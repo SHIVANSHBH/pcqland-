@@ -5,6 +5,11 @@ const Token = require('../models/Token');
 
 function sanitize(user) {
   if (!user) return user;
+  if (typeof user.toObject === 'function') {
+    const obj = user.toObject();
+    delete obj.password;
+    return obj;
+  }
   const { password, ...rest } = user;
   return rest;
 }

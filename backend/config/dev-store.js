@@ -3,21 +3,50 @@ const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
 
-const dataDir = path.join(__dirname, '..', 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+const defaultDataDir = path.join(__dirname, '..', 'data');
+function getDataDir() {
+  const dir = process.env.DB_PATH || defaultDataDir;
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+}
+if (!fs.existsSync(defaultDataDir)) {
+  fs.mkdirSync(defaultDataDir, { recursive: true });
 }
 
 let stores = {};
+let storeLocks = {};
 
 function getStore(name) {
   if (!stores[name]) {
     stores[name] = Datastore.create({
-      filename: path.join(dataDir, `${name}.db`),
+      filename: path.join(getDataDir(), `${name}.db`),
       autoload: true,
     });
+    storeLocks[name] = { queue: [], locked: false };
   }
   return stores[name];
+}
+
+async function withStoreLock(name, fn) {
+  const lock = storeLocks[name];
+  if (!lock) return fn();
+  if (lock.locked) {
+    return new Promise((resolve, reject) => {
+      lock.queue.push({ resolve, reject });
+    }).then(() => withStoreLock(name, fn));
+  }
+  lock.locked = true;
+  try {
+    return await fn();
+  } finally {
+    lock.locked = false;
+    if (lock.queue.length > 0) {
+      const next = lock.queue.shift();
+      next.resolve();
+    }
+  }
 }
 
 function generateId() {
@@ -276,33 +305,35 @@ function createModel(name, schema = null) {
     },
 
     findOneAndUpdate: async (query, update, options = {}) => {
-      let doc = await store.findOne(processQuery(query));
-      if (!doc) {
-        if (options.upsert) {
-          const insertData = {};
-          if (update.$set) {
-            Object.assign(insertData, sanitize(update.$set));
-          } else {
-            Object.assign(insertData, sanitize(update));
+      return withStoreLock(name, async () => {
+        let doc = await store.findOne(processQuery(query));
+        if (!doc) {
+          if (options.upsert) {
+            const insertData = {};
+            if (update.$set) {
+              Object.assign(insertData, sanitize(update.$set));
+            } else {
+              Object.assign(insertData, sanitize(update));
+            }
+            Object.assign(insertData, processQuery(query));
+            insertData._id = generateId();
+            insertData.createdAt = new Date().toISOString();
+            insertData.updatedAt = new Date().toISOString();
+            await store.insert(insertData);
+            return insertData;
           }
-          Object.assign(insertData, processQuery(query));
-          insertData._id = generateId();
-          insertData.createdAt = new Date().toISOString();
-          insertData.updatedAt = new Date().toISOString();
-          await store.insert(insertData);
-          return insertData;
+          return null;
         }
-        return null;
-      }
-      let updateData = update;
-      if (update.$set) {
-        updateData = { $set: sanitize(update.$set) };
-      } else if (!update.$inc && !update.$push && !update.$pull) {
-        updateData = { $set: sanitize(update) };
-      }
-      const updated = applyUpdate(doc, updateData);
-      await store.update({ _id: doc._id }, updated);
-      return options.new !== false ? updated : null;
+        let updateData = update;
+        if (update.$set) {
+          updateData = { $set: sanitize(update.$set) };
+        } else if (!update.$inc && !update.$push && !update.$pull) {
+          updateData = { $set: sanitize(update) };
+        }
+        const updated = applyUpdate(doc, updateData);
+        await store.update({ _id: doc._id }, updated);
+        return options.new !== false ? updated : null;
+      });
     },
 
     findByIdAndDelete: async (id) => {
@@ -426,6 +457,17 @@ function createModel(name, schema = null) {
       const doc = { ...clean, _id: generateId(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
       if (doc.email) doc.email = doc.email.toLowerCase();
       return store.insert(doc);
+    },
+
+    updateById: async (id, updateFields) => {
+      const doc = await store.findOne({ _id: id });
+      if (!doc) return null;
+      for (const [k, v] of Object.entries(updateFields)) {
+        doc[k] = v;
+      }
+      doc.updatedAt = new Date().toISOString();
+      await store.update({ _id: id }, doc);
+      return doc;
     },
   };
 

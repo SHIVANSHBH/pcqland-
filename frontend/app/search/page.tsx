@@ -7,6 +7,7 @@ import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 import Image from 'next/image';
 import { Search as SearchIcon } from 'lucide-react';
+import Pagination from '@/components/Pagination';
 
 const brandIcons: Record<string, string> = {
   'special-combo-offer': '/assets/1776830587.MS win.png',
@@ -89,6 +90,8 @@ function SearchResults() {
   const cat = searchParams.get('cat') || '';
 
   const [results, setResults] = useState<{ name: string; slug: string; price: number; mrp: number; desc: string; catSlug: string }[]>([]);
+  const [page, setPage] = useState(1);
+  const perPage = 12;
 
   useEffect(() => {
     if (!query.trim()) { setResults([]); return; }
@@ -103,6 +106,7 @@ function SearchResults() {
       }
     }
     setResults(all);
+    setPage(1);
   }, [query, cat]);
 
   return (
@@ -125,7 +129,7 @@ function SearchResults() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {results.map((product) => {
+        {results.slice((page - 1) * perPage, page * perPage).map((product) => {
           const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
           return (
             <Link key={product.slug} href={`/product/${product.slug}`} className="product-card group">
@@ -153,6 +157,8 @@ function SearchResults() {
           );
         })}
       </div>
+
+      <Pagination page={page} totalPages={Math.ceil(results.length / perPage)} onPageChange={setPage} />
     </div>
   );
 }

@@ -11,6 +11,11 @@ describe('dev-store Model', () => {
     process.env.DB_PATH = testDir;
   });
 
+  afterEach(() => {
+    clearStores();
+    try { fs.rmSync(testDir, { recursive: true, force: true }); } catch {}
+  });
+
   beforeEach(() => {
     clearStores();
     try { fs.rmSync(testDir, { recursive: true, force: true }); } catch {}

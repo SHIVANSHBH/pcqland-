@@ -273,6 +273,130 @@ router.post('/change-password', auth, validate(changePasswordSchema), async (req
   }
 });
 
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) return error(res, 'Google credential is required', 400);
+
+    const axios = require('axios');
+    const verifyRes = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+    const payload = verifyRes.data;
+
+    const googleId = payload.sub;
+    const email = payload.email?.toLowerCase();
+    const name = payload.name || email?.split('@')[0] || 'User';
+
+    let user = email ? await User.findOne({ email }) : null;
+    if (user) {
+      await User.findByIdAndUpdate(user._id, { googleId });
+    } else {
+      user = await User.create({
+        name,
+        email,
+        googleId,
+        isVerified: true,
+        role: 'customer',
+      });
+    }
+
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' });
+    const refreshToken = generateRefreshToken();
+    await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000,
+      path: '/',
+    };
+    res.cookie('token', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/api/auth/refresh-token',
+    });
+
+    success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Google login successful');
+  } catch (err) {
+    error(res, 'Google authentication failed: ' + err.message);
+  }
+});
+
+router.post('/send-email-otp', validate(emailSchema), async (req, res) => {
+  try {
+    const { email } = req.body;
+    const normalizedEmail = email.toLowerCase();
+
+    const otp = generateCode();
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+
+    let user = await User.findOne({ email: normalizedEmail });
+    if (user) {
+      await User.findByIdAndUpdate(user._id, { emailOtp: otp, emailOtpExpiry: otpExpiry.toISOString() });
+    } else {
+      await Token.create({ token: otp, type: 'email-otp', email: normalizedEmail, expiresAt: otpExpiry.toISOString() });
+    }
+
+    if (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'smtp.gmail.com') {
+      sendGenericEmail({ to: email, subject: 'Your OTP for PC Deals India', text: `Your OTP is ${otp}. It expires in 5 minutes. - PC Deals India` }).catch(() => {});
+    } else {
+      console.log(`Email OTP for ${email}: ${otp}`);
+    }
+
+    success(res, null, 'OTP sent to your email');
+  } catch (err) {
+    error(res, err.message);
+  }
+});
+
+router.post('/verify-email-otp', validate(z.object({ email: z.string().email(), otp: z.string().length(6) })), async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const normalizedEmail = email.toLowerCase();
+
+    let user = await User.findOne({ email: normalizedEmail });
+    if (user) {
+      if (user.emailOtp !== otp) return error(res, 'Invalid OTP', 400);
+      if (new Date(user.emailOtpExpiry) < new Date()) return error(res, 'OTP expired', 400);
+      await User.findByIdAndUpdate(user._id, { isVerified: true, emailOtp: '', emailOtpExpiry: '' });
+    } else {
+      const otpRecord = await Token.findOne({ token: otp, type: 'email-otp', email: normalizedEmail });
+      if (!otpRecord) return error(res, 'Invalid OTP', 400);
+      if (new Date(otpRecord.expiresAt) < new Date()) return error(res, 'OTP expired', 400);
+      await Token.findByIdAndDelete(otpRecord._id);
+      user = await User.create({
+        name: normalizedEmail.split('@')[0],
+        email: normalizedEmail,
+        isVerified: true,
+        role: 'customer',
+      });
+    }
+
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' });
+    const refreshToken = generateRefreshToken();
+    await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000,
+      path: '/',
+    };
+    res.cookie('token', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/api/auth/refresh-token',
+    });
+
+    success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Login successful');
+  } catch (err) {
+    error(res, err.message);
+  }
+});
+
 router.post('/send-otp', validate(phoneSchema), async (req, res) => {
   try {
     const { phone } = req.body;
@@ -317,14 +441,38 @@ router.post('/verify-otp', validate(otpSchema), async (req, res) => {
       if (user.otp !== otp) return error(res, 'Invalid OTP', 400);
       if (new Date(user.otpExpiry) < new Date()) return error(res, 'OTP expired', 400);
       await User.findByIdAndUpdate(user._id, { isVerified: true, otp: '', otpExpiry: '' });
-      success(res, null, 'OTP verified successfully');
     } else {
       const otpRecord = await Token.findOne({ token: otp, type: 'otp', phone });
       if (!otpRecord) return error(res, 'Invalid OTP', 400);
       if (new Date(otpRecord.expiresAt) < new Date()) return error(res, 'OTP expired', 400);
       await Token.findByIdAndDelete(otpRecord._id);
-      success(res, null, 'OTP verified successfully');
+      user = await User.create({
+        name: 'User',
+        phone,
+        isVerified: true,
+        role: 'customer',
+      });
     }
+
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' });
+    const refreshToken = generateRefreshToken();
+    await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000,
+      path: '/',
+    };
+    res.cookie('token', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/api/auth/refresh-token',
+    });
+
+    success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Login successful');
   } catch (err) {
     error(res, err.message);
   }

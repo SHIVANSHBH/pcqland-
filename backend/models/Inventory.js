@@ -1,9 +1,7 @@
-const { createModel } = require('../config/dev-store');
+const { isUsingMongo } = require('../config/db');
 
-const Inventory = createModel('Inventory', {
-  allowedFields: ['product', 'key', 'validity', 'isUsed', 'order', 'usedAt'],
-  required: ['product', 'key'],
-  defaults: { isUsed: false },
-});
-
-module.exports = Inventory;
+if (isUsingMongo()) {
+  module.exports = require('./mongo/Inventory');
+} else {
+  module.exports = require('../models-nedb/Inventory');
+}

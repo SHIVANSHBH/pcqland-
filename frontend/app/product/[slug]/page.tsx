@@ -320,9 +320,22 @@ export default function ProductPage({ params }: PageProps) {
   }
 
   if (loading) {
-    return <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-    </div>;
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-6 animate-pulse">
+        <div className="h-4 bg-gray-100 rounded w-48 mb-8" />
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="bg-gray-100 rounded-2xl h-80" />
+          <div className="space-y-4">
+            <div className="h-8 bg-gray-100 rounded w-3/4" />
+            <div className="h-4 bg-gray-100 rounded w-full" />
+            <div className="h-4 bg-gray-100 rounded w-1/2" />
+            <div className="h-10 bg-gray-100 rounded w-1/3" />
+            <div className="h-12 bg-gray-100 rounded w-full" />
+            <div className="h-32 bg-gray-100 rounded w-full" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!product) {

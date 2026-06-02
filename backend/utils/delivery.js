@@ -61,7 +61,7 @@ const processOrderDeliveryInternal = async (order) => {
       console.error(`User not found for order ${order.orderId}, user ID: ${order.user}`);
       order.orderStatus = 'processing';
       order.paymentStatus = 'paid';
-      await Order._store.update({ _id: order._id }, order);
+      await Order.findByIdAndUpdate(order._id, { orderStatus: 'processing', paymentStatus: 'paid' });
       throw new Error(`User not found for delivery`);
     }
     const items = await assignKeysAtomic(order);
@@ -72,29 +72,37 @@ const processOrderDeliveryInternal = async (order) => {
 
     const allKeys = items.flatMap(i => i.keys);
 
-    try {
-      await sendKeyEmail({
-        to: order.customerInfo?.email || user.email,
-        subject: 'Your Software Keys from PC Deals India',
-        productName: items.map(i => i.productName).join(', '),
-        keys: allKeys,
-        orderId: order.orderId,
-        customerName: order.customerInfo?.name || user.name,
-      });
-    } catch (e) {
-      console.error('Email send error:', e.message);
+    if (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'smtp.gmail.com') {
+      try {
+        await sendKeyEmail({
+          to: order.customerInfo?.email || user.email,
+          subject: 'Your Software Keys from PC Deals India',
+          productName: items.map(i => i.productName).join(', '),
+          keys: allKeys,
+          orderId: order.orderId,
+          customerName: order.customerInfo?.name || user.name,
+        });
+      } catch (e) {
+        console.error('Email send error:', e.message);
+      }
+    } else {
+      console.log(`[Delivery] Email not configured — would send to ${order.customerInfo?.email || user.email}`);
     }
 
-    try {
-      await sendKeyWhatsApp({
-        phone: order.customerInfo?.phone || user.phone,
-        customerName: order.customerInfo?.name || user.name,
-        productName: items[0]?.productName || 'Product',
-        key: allKeys[0] || '',
-        orderId: order.orderId,
-      });
-    } catch (e) {
-      console.error('WhatsApp send error:', e.message);
+    if (process.env.WHATSAPP_API_KEY && process.env.WHATSAPP_API_KEY !== 'your_gupshup_api_key') {
+      try {
+        await sendKeyWhatsApp({
+          phone: order.customerInfo?.phone || user.phone,
+          customerName: order.customerInfo?.name || user.name,
+          productName: items[0]?.productName || 'Product',
+          key: allKeys[0] || '',
+          orderId: order.orderId,
+        });
+      } catch (e) {
+        console.error('WhatsApp send error:', e.message);
+      }
+    } else {
+      console.log(`[Delivery] WhatsApp not configured — would send to ${order.customerInfo?.phone || user.phone}`);
     }
 
     try {
@@ -125,13 +133,11 @@ const processOrderDeliveryInternal = async (order) => {
       });
     }
 
-    await Order._store.update({ _id: order._id }, order);
+    await Order.findByIdAndUpdate(order._id, order);
     return order;
   } catch (error) {
     console.error('Delivery processing error:', error.message);
-    order.orderStatus = 'processing';
-    order.paymentStatus = 'paid';
-    await Order._store.update({ _id: order._id }, order);
+    await Order.findByIdAndUpdate(order._id, { orderStatus: 'processing', paymentStatus: 'paid', cashbackEarned: 0, invoiceUrl: undefined });
     throw error;
   }
 };
