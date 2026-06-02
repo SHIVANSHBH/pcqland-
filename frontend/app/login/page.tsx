@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
+import { setAccessToken } from '@/lib/api';
 import { Lock, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap, CheckCircle } from 'lucide-react';
 
 type Tab = 'password' | 'phone-otp' | 'email-otp';
@@ -46,6 +47,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await api.post('/auth/login', emailPass);
+      setAccessToken(res.data.accessToken);
       toast.success('Login successful!');
       if (res.data.user.role === 'admin') router.push('/admin');
       else router.push('/');
@@ -71,7 +73,8 @@ export default function LoginPage() {
     if (!emailOtp.otp) { toast.error('Enter OTP'); return; }
     setLoading(true);
     try {
-      await api.post('/auth/verify-email-otp', { email: emailOtp.email, otp: emailOtp.otp });
+      const res2 = await api.post('/auth/verify-email-otp', { email: emailOtp.email, otp: emailOtp.otp });
+      setAccessToken(res2.data.accessToken);
       toast.success('Login successful!');
       router.push('/');
     } catch (error: any) { toast.error(error.message); }
@@ -95,7 +98,8 @@ export default function LoginPage() {
     if (!phoneOtp.otp) { toast.error('Enter OTP'); return; }
     setLoading(true);
     try {
-      await api.post('/auth/verify-otp', { phone: phoneOtp.phone, otp: phoneOtp.otp });
+      const res3 = await api.post('/auth/verify-otp', { phone: phoneOtp.phone, otp: phoneOtp.otp });
+      setAccessToken(res3.data.accessToken);
       toast.success('Login successful!');
       router.push('/');
     } catch (error: any) { toast.error(error.message); }

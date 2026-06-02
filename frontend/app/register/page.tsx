@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
+import { setAccessToken } from '@/lib/api';
 import { UserPlus, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap } from 'lucide-react';
 
 type Tab = 'password' | 'phone-otp';
@@ -44,7 +45,8 @@ export default function RegisterPage() {
     try {
       if (!passwordMatch) { toast.error('Passwords do not match'); setLoading(false); return; }
       const { confirmPassword, ...registerData } = form;
-      await api.post('/auth/register', registerData);
+      const res = await api.post('/auth/register', registerData);
+      setAccessToken(res.data.accessToken);
       toast.success('Registration successful!');
       router.push('/');
     } catch (error: any) {

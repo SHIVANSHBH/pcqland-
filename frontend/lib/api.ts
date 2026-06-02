@@ -1,8 +1,17 @@
-const API_BASE: string = process.env.NEXT_PUBLIC_API_URL || 'https://pcdeals-backend.onrender.com/api';
+const API_BASE: string = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 let _csrfToken: string | null = null;
-let _csrfFetching = false;
 let _csrfPromise: Promise<string | null> | null = null;
+
+function getAccessToken(): string | null {
+  if (typeof localStorage === 'undefined') return null;
+  try { return localStorage.getItem('accessToken'); } catch { return null; }
+}
+
+export function setAccessToken(token: string | null) {
+  if (typeof localStorage === 'undefined') return;
+  try { if (token) localStorage.setItem('accessToken', token); else localStorage.removeItem('accessToken'); } catch {}
+}
 
 async function fetchCsrfToken(): Promise<string | null> {
   if (typeof document === 'undefined') return null;
@@ -42,6 +51,9 @@ async function fetchAPI(endpoint: string, options: FetchOptions = {}): Promise<a
     'Content-Type': 'application/json',
     ...options.headers,
   };
+
+  const token = getAccessToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const isDangerous = /^(post|put|patch|delete)$/i.test(options.method || 'get');
   if (isDangerous) {
