@@ -57,23 +57,28 @@ export default function CartPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-3">
             {cartItems.map((item: any) => (
-              <div key={item.slug} className="bg-white border border-pcd-border rounded-xl p-4 flex items-center gap-4 flex-wrap">
-                <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold">
-                  {item.name?.charAt(0) || 'P'}
+              <div key={item.slug} className="bg-white border border-pcd-border rounded-xl p-3 sm:p-4">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-sm sm:text-base flex-shrink-0">
+                    {item.name?.charAt(0) || 'P'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <Link href={`/product/${item.slug}`} className="text-sm font-bold text-pcd-text hover:text-primary truncate block">{item.name}</Link>
+                    <p className="text-xs text-pcd-muted mt-0.5">{formatPrice(item.price)} each</p>
+                  </div>
+                  <p className="text-sm font-extrabold text-pcd-text hidden sm:block">{formatPrice(item.price * item.quantity)}</p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <Link href={`/product/${item.slug}`} className="text-sm font-bold text-pcd-text hover:text-primary truncate block">{item.name}</Link>
-                  <p className="text-xs text-pcd-muted mt-0.5">{formatPrice(item.price)} each</p>
+                <div className="flex items-center justify-between sm:justify-end gap-3 mt-3 sm:mt-0 sm:ml-[72px]">
+                  <div className="flex items-center border border-pcd-border rounded-lg">
+                    <button onClick={() => updateQty(item.slug, -1)} className="px-2.5 py-1.5 sm:px-3 sm:py-2 text-pcd-muted hover:text-pcd-text text-sm">-</button>
+                    <span className="px-2.5 py-1.5 sm:px-3 sm:py-2 text-sm font-semibold border-x border-pcd-border">{item.quantity}</span>
+                    <button onClick={() => updateQty(item.slug, 1)} className="px-2.5 py-1.5 sm:px-3 sm:py-2 text-pcd-muted hover:text-pcd-text text-sm">+</button>
+                  </div>
+                  <span className="text-sm font-extrabold text-pcd-text sm:hidden">{formatPrice(item.price * item.quantity)}</span>
+                  <button onClick={() => removeItem(item.slug)} className="p-2 text-pcd-muted hover:text-red-500">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-                <div className="flex items-center border border-pcd-border rounded-lg">
-                  <button onClick={() => updateQty(item.slug, -1)} className="px-3 py-2 text-pcd-muted hover:text-pcd-text text-sm">-</button>
-                  <span className="px-3 py-2 text-sm font-semibold border-x border-pcd-border">{item.quantity}</span>
-                  <button onClick={() => updateQty(item.slug, 1)} className="px-3 py-2 text-pcd-muted hover:text-pcd-text text-sm">+</button>
-                </div>
-                <p className="text-sm font-extrabold text-pcd-text text-right">{formatPrice(item.price * item.quantity)}</p>
-                <button onClick={() => removeItem(item.slug)} className="p-2.5 text-pcd-muted hover:text-red-500">
-                  <Trash2 className="w-4 h-4" />
-                </button>
               </div>
             ))}
           </div>

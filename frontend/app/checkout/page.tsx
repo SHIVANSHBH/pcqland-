@@ -221,7 +221,7 @@ export default function CheckoutPage() {
           {/* Cart Items */}
           <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
             {cartItems.map((item: any) => (
-              <div key={item.slug} className="flex flex-wrap items-center gap-2 p-2 bg-gray-50 rounded-lg">
+              <div key={item.slug} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg flex-wrap sm:flex-nowrap">
                 <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs flex-shrink-0">
                   {item.name?.charAt(0) || 'P'}
                 </div>

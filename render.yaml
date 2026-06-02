@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: pcdeals-backend
+    env: node
+    rootDir: frontend/api/backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_URL
+        value: https://pcqland.vercel.app
+      - key: JWT_SECRET
+        value: change_this_to_a_random_64_hex_string
+      - key: MONGODB_URI
+        value: mongodb+srv://user:pass@cluster.mongodb.net/pcdeals?retryWrites=true&w=majority
+      - key: PORT
+        value: 10000

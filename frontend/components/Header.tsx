@@ -195,7 +195,7 @@ export default function Header() {
               Home
             </Link>
             {categories.map((cat) => (
-              <div key={cat.slug} className={`category-flyout${cat.children ? ' has-submenu' : ''}`}>
+              <div key={cat.slug} className="category-flyout">
                 <Link href={`/category/${cat.slug}`} className="category-link">
                   <span className="category-link-main">
                     <Image src={cat.icon} alt="" width={24} height={24} className="w-6 h-6 object-contain" />
@@ -237,6 +237,24 @@ export default function Header() {
               </button>
             </div>
             <div className="p-4">
+              <div className="mb-4 pb-4 border-b border-pcd-border/50">
+                {isLoggedIn ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 py-2 text-sm font-bold text-pcd-text">
+                      <User className="w-4 h-4" /> {userName || 'My Account'}
+                    </div>
+                    <Link href="/account" className="block py-1.5 text-sm text-pcd-text hover:text-primary">My Account</Link>
+                    <Link href="/account/orders" className="block py-1.5 text-sm text-pcd-text hover:text-primary">My Orders</Link>
+                    <Link href="/account/wallet" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Wallet</Link>
+                    <Link href="/account/saved-keys" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Saved Keys</Link>
+                    <button onClick={handleLogout} className="block w-full text-left py-1.5 text-sm text-red-500">Logout</button>
+                  </div>
+                ) : (
+                  <Link href="/login" className="flex items-center gap-2 py-2.5 text-sm font-semibold text-primary">
+                    <User className="w-4 h-4" /> Login / Register
+                  </Link>
+                )}
+              </div>
               <h6 className="text-xs font-bold text-pcd-muted uppercase tracking-wider mb-3">Browse Categories</h6>
               <Link href="/" className="flex items-center gap-3 py-2.5 text-sm font-medium text-pcd-text">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>

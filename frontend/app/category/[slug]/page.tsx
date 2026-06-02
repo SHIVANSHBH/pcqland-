@@ -188,8 +188,8 @@ export default function CategoryPage({ params }: PageProps) {
             const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
             return (
               <Link key={product.slug} href={`/product/${product.slug}`} className="product-card group">
-                <div className="relative bg-gradient-to-br from-blue-50 to-white p-6 flex items-center justify-center h-48">
-                  <Image src={product.image || brandIcons[slug]} alt={product.name} width={80} height={80} className="w-20 h-20 object-contain group-hover:scale-110 transition-transform" />
+                <div className="relative bg-gradient-to-br from-blue-50 to-white card-img flex items-center justify-center">
+                  <Image src={product.image || brandIcons[slug]} alt={product.name} width={80} height={80} className="object-contain group-hover:scale-110 transition-transform" />
                   {discount > 0 && (
                     <span className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-lg">
                       {discount}% OFF
@@ -197,10 +197,10 @@ export default function CategoryPage({ params }: PageProps) {
                   )}
                 </div>
                 <div className="p-4">
-                  <h3 className="text-sm font-bold text-pcd-text mb-1 group-hover:text-primary transition-colors">{product.name}</h3>
+                  <h3 className="card-name font-bold text-pcd-text mb-1 group-hover:text-primary transition-colors">{product.name}</h3>
                   <p className="text-xs text-pcd-muted mb-3 line-clamp-2">{product.desc}</p>
                   <div className="flex items-center gap-2">
-                    <span className="text-lg font-extrabold text-primary">{formatPrice(product.price)}</span>
+                    <span className="card-price font-extrabold text-primary">{formatPrice(product.price)}</span>
                     <span className="text-sm text-pcd-muted line-through">{formatPrice(product.mrp)}</span>
                   </div>
                   <div className="mt-2 text-[10px] text-emerald-600 font-semibold flex items-center gap-1">

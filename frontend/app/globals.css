@@ -404,6 +404,18 @@
 .product-card {
   @apply bg-white border border-pcd-border rounded-xl overflow-hidden hover:shadow-lg transition-all;
 }
+.product-card .card-img {
+  @apply h-36 sm:h-48 p-4 sm:p-6;
+}
+.product-card .card-img img {
+  @apply w-16 h-16 sm:w-20 sm:h-20;
+}
+.product-card .card-name {
+  @apply text-xs sm:text-sm;
+}
+.product-card .card-price {
+  @apply text-base sm:text-lg;
+}
 
 /* Buttons */
 .btn-primary {
