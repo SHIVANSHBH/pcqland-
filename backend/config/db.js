@@ -1,4 +1,9 @@
-const mongoose = require('mongoose');
+let mongoose;
+try {
+  mongoose = require('mongoose');
+} catch {
+  mongoose = null;
+}
 
 let isMongoConnected = false;
 
@@ -6,6 +11,10 @@ const connectDB = async () => {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
     console.log('No MONGODB_URI set, using NeDB (file-based database)');
+    return;
+  }
+  if (!mongoose) {
+    console.log('Mongoose not available, using NeDB');
     return;
   }
   try {
