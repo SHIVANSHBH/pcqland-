@@ -60,7 +60,7 @@ export default function AdminOrders() {
         <div className="flex items-center gap-4 mb-4">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Search by order ID or customer..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-primary" />
+            <input type="text" placeholder="Search by order ID or customer..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-primary" />
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -99,8 +99,8 @@ export default function AdminOrders() {
                   </td>
                   <td className="py-3 text-gray-500 text-xs">{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</td>
                   <td className="py-3 text-right">
-                    <button onClick={() => resendKeys(order._id)} className="p-1.5 text-gray-400 hover:text-blue-600" title="Resend Key"><RefreshCw className="w-4 h-4" /></button>
-                    <button onClick={() => refundOrder(order._id)} className="p-1.5 text-gray-400 hover:text-red-600" title="Refund"><RotateCcw className="w-4 h-4" /></button>
+                    <button onClick={() => resendKeys(order._id)} className="p-2 text-gray-400 hover:text-blue-600" title="Resend Key"><RefreshCw className="w-4 h-4" /></button>
+                    <button onClick={() => refundOrder(order._id)} className="p-2 text-gray-400 hover:text-red-600" title="Refund"><RotateCcw className="w-4 h-4" /></button>
                   </td>
                 </tr>
               ))}

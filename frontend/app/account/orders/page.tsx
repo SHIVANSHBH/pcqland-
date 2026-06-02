@@ -68,18 +68,18 @@ export default function OrdersPage() {
                   <h4 className="text-xs font-bold text-pcd-muted uppercase mt-4 mb-2">License Keys</h4>
                   <div className="space-y-1">
                     {order.keys.map((key, i) => (
-                      <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 gap-2">
+                      <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2.5 gap-2">
                         <code className="text-xs sm:text-sm font-mono text-primary truncate min-w-0">{key}</code>
-                        <button onClick={() => navigator.clipboard.writeText(key)} className="text-xs text-pcd-muted hover:text-primary transition-colors flex-shrink-0">Copy</button>
+                        <button onClick={() => navigator.clipboard.writeText(key)} className="text-xs text-pcd-muted hover:text-primary transition-colors flex-shrink-0 px-2 py-1.5">Copy</button>
                       </div>
                     ))}
                   </div>
 
                   <div className="flex items-center gap-3 mt-4">
-                    <button className="text-xs flex items-center gap-1 text-primary font-semibold hover:underline">
+                    <button className="text-xs flex items-center gap-1 text-primary font-semibold hover:underline px-2 py-1.5 rounded-lg hover:bg-blue-50">
                       <Download className="w-3 h-3" /> Download Invoice
                     </button>
-                    <button className="text-xs flex items-center gap-1 text-emerald-600 font-semibold hover:underline">
+                    <button className="text-xs flex items-center gap-1 text-emerald-600 font-semibold hover:underline px-2 py-1.5 rounded-lg hover:bg-emerald-50">
                       <Eye className="w-3 h-3" /> View Key
                     </button>
                   </div>

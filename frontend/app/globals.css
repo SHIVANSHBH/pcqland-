@@ -66,7 +66,7 @@
 }
 
 .search-wrap .cat-picker-menu {
-  @apply absolute top-full left-0 mt-1 bg-white border border-pcd-border rounded-xl shadow-lg z-50 min-w-[220px] hidden;
+  @apply absolute top-full left-0 mt-1 bg-white border border-pcd-border rounded-xl shadow-lg z-50 min-w-[200px] sm:min-w-[220px] hidden;
 }
 
 .search-wrap .cat-picker:hover .cat-picker-menu {
@@ -333,7 +333,7 @@
 }
 
 .footer-links a {
-  @apply flex items-center justify-between py-2 text-sm text-gray-400 hover:text-white transition-colors;
+  @apply flex items-center justify-between py-2.5 text-sm text-gray-400 hover:text-white transition-colors;
 }
 
 .footer-links .go {

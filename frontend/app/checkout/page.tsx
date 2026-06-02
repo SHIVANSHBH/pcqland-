@@ -177,19 +177,19 @@ export default function CheckoutPage() {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-pcd-muted mb-1">Full Name *</label>
-                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" required />
+                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-3 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" required />
               </div>
               <div>
                 <label className="block text-xs font-medium text-pcd-muted mb-1">Email *</label>
-                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" required />
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-3 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" required />
               </div>
               <div>
                 <label className="block text-xs font-medium text-pcd-muted mb-1">Phone *</label>
-                <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-3 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" required />
+                <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-3 py-3 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" required />
               </div>
               <div>
                 <label className="block text-xs font-medium text-pcd-muted mb-1">GSTIN (Optional)</label>
-                <input type="text" value={form.gstin} onChange={(e) => setForm({ ...form, gstin: e.target.value })} className="w-full px-3 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" />
+                <input type="text" value={form.gstin} onChange={(e) => setForm({ ...form, gstin: e.target.value })} className="w-full px-3 py-3 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" />
               </div>
             </div>
             <div className="mt-4">
@@ -221,22 +221,22 @@ export default function CheckoutPage() {
           {/* Cart Items */}
           <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
             {cartItems.map((item: any) => (
-              <div key={item.slug} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+              <div key={item.slug} className="flex flex-wrap items-center gap-2 p-2 bg-gray-50 rounded-lg">
                 <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs flex-shrink-0">
                   {item.name?.charAt(0) || 'P'}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 min-w-[80px]">
                   <p className="text-xs font-semibold text-pcd-text truncate">{item.name || item.slug}</p>
                   <p className="text-[10px] text-pcd-muted">{formatPrice(item.price || 0)} x {item.quantity}</p>
                 </div>
-                <div className="flex items-center border border-pcd-border rounded-md">
-                  <button onClick={() => updateItemQty(item.slug, -1)} className="px-2 py-1 text-pcd-muted hover:text-pcd-text text-xs">-</button>
-                  <span className="px-2 py-1 text-xs font-semibold border-x border-pcd-border">{item.quantity}</span>
-                  <button onClick={() => updateItemQty(item.slug, 1)} className="px-2 py-1 text-pcd-muted hover:text-pcd-text text-xs">+</button>
+                <div className="flex items-center border border-pcd-border rounded-md ml-auto">
+                  <button onClick={() => updateItemQty(item.slug, -1)} className="px-2.5 py-1.5 text-pcd-muted hover:text-pcd-text text-xs">-</button>
+                  <span className="px-2.5 py-1.5 text-xs font-semibold border-x border-pcd-border">{item.quantity}</span>
+                  <button onClick={() => updateItemQty(item.slug, 1)} className="px-2.5 py-1.5 text-pcd-muted hover:text-pcd-text text-xs">+</button>
                 </div>
-                <p className="text-xs font-extrabold text-pcd-text min-w-[50px] text-right">{formatPrice((item.price || 0) * item.quantity)}</p>
+                <p className="text-xs font-extrabold text-pcd-text text-right">{formatPrice((item.price || 0) * item.quantity)}</p>
                 <button onClick={() => removeItem(item.slug)} className="p-2 text-pcd-muted hover:text-red-500">
-                  <Trash2 className="w-3 h-3" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
