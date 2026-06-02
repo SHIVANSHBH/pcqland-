@@ -80,6 +80,9 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime() });
 });
 
+const fs = require('fs');
+const path = require('path');
+
 if (!process.env.DB_PATH && process.env.VERCEL) {
   process.env.DB_PATH = '/tmp/data';
 }
@@ -89,6 +92,20 @@ if (!process.env.JWT_SECRET) {
 }
 
 let initialized = false;
+
+async function seedDataDir() {
+  const srcDir = path.join(__dirname, 'backend', 'data');
+  const dstDir = process.env.DB_PATH || srcDir;
+  if (srcDir === dstDir) return;
+  if (!fs.existsSync(dstDir)) fs.mkdirSync(dstDir, { recursive: true });
+  const files = fs.readdirSync(srcDir).filter(f => f.endsWith('.db'));
+  for (const file of files) {
+    const dst = path.join(dstDir, file);
+    if (!fs.existsSync(dst)) {
+      fs.copyFileSync(path.join(srcDir, file), dst);
+    }
+  }
+}
 
 async function seedAdmin() {
   try {
@@ -127,6 +144,7 @@ async function init() {
   app.use('/api/seed', require('./backend/routes/seed'));
   initialized = true;
   if (process.env.VERCEL) {
+    await seedDataDir();
     await seedAdmin();
   }
 }
