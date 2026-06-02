@@ -252,7 +252,7 @@ function applyUpdate(doc, update) {
 function createModel(name, schema = null) {
   const store = getStore(name);
 
-  function sanitize(data) {
+  function sanitize(data, skipRequired = false) {
     if (!schema || !schema.allowedFields) return data;
     const clean = {};
     for (const field of schema.allowedFields) {
@@ -261,9 +261,11 @@ function createModel(name, schema = null) {
     for (const [field, val] of Object.entries(schema.defaults || {})) {
       if (clean[field] === undefined) clean[field] = val;
     }
-    for (const field of schema.required || []) {
-      if (clean[field] === undefined || clean[field] === '') {
-        throw new Error(`${field} is required`);
+    if (!skipRequired) {
+      for (const field of schema.required || []) {
+        if (clean[field] === undefined || clean[field] === '') {
+          throw new Error(`${field} is required`);
+        }
       }
     }
     return clean;
@@ -293,10 +295,10 @@ function createModel(name, schema = null) {
       if (!doc) return null;
       let updateData = update;
       if (update.$set) {
-        const clean = sanitize(update.$set);
+        const clean = sanitize(update.$set, true);
         updateData = { $set: clean };
       } else if (!update.$inc && !update.$push && !update.$pull) {
-        updateData = { $set: sanitize(update) };
+        updateData = { $set: sanitize(update, true) };
       }
       const updated = applyUpdate(doc, updateData);
       await store.update({ _id: id }, updated);
@@ -311,9 +313,9 @@ function createModel(name, schema = null) {
           if (options.upsert) {
             const insertData = {};
             if (update.$set) {
-              Object.assign(insertData, sanitize(update.$set));
+              Object.assign(insertData, sanitize(update.$set, false));
             } else {
-              Object.assign(insertData, sanitize(update));
+              Object.assign(insertData, sanitize(update, false));
             }
             Object.assign(insertData, processQuery(query));
             insertData._id = generateId();
@@ -326,9 +328,9 @@ function createModel(name, schema = null) {
         }
         let updateData = update;
         if (update.$set) {
-          updateData = { $set: sanitize(update.$set) };
+          updateData = { $set: sanitize(update.$set, true) };
         } else if (!update.$inc && !update.$push && !update.$pull) {
-          updateData = { $set: sanitize(update) };
+          updateData = { $set: sanitize(update, true) };
         }
         const updated = applyUpdate(doc, updateData);
         await store.update({ _id: doc._id }, updated);
