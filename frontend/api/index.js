@@ -84,6 +84,10 @@ if (!process.env.DB_PATH && process.env.VERCEL) {
   process.env.DB_PATH = '/tmp/data';
 }
 
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = 'e78a710567b02f149b97a499aba3808fe536cfdb6198e2eba167cccc8cdf2811';
+}
+
 let initialized = false;
 
 async function init() {
