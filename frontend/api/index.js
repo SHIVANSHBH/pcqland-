@@ -90,6 +90,28 @@ if (!process.env.JWT_SECRET) {
 
 let initialized = false;
 
+async function seedAdmin() {
+  try {
+    const bcrypt = require('bcryptjs');
+    const User = require('./backend/models/User');
+    const existing = await User.findOne({ role: 'admin' });
+    if (!existing) {
+      const hashed = await bcrypt.hash('Admin@123', 10);
+      await User.create({
+        name: 'Admin',
+        email: 'admin@pcdeals.com',
+        phone: '9999999999',
+        password: hashed,
+        role: 'admin',
+        isVerified: true,
+      });
+      console.log('Admin user seeded on cold start');
+    }
+  } catch (err) {
+    console.error('Admin seed error:', err.message);
+  }
+}
+
 async function init() {
   if (initialized) return;
   const connectDB = require('./backend/config/db');
@@ -104,6 +126,9 @@ async function init() {
   app.use('/api/invoices', require('./backend/routes/invoices'));
   app.use('/api/seed', require('./backend/routes/seed'));
   initialized = true;
+  if (process.env.VERCEL) {
+    await seedAdmin();
+  }
 }
 
 module.exports = async (req, res) => {
