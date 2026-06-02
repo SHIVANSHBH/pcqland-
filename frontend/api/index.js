@@ -1,10 +1,10 @@
 const path = require('path');
 const Module = require('module');
-const nmPath = path.join(__dirname, 'node_modules');
-const origExtJs = Module._extensions['.js'];
-Module._extensions['.js'] = function(module, filename) {
-  if (!module.paths.includes(nmPath)) module.paths.unshift(nmPath);
-  return origExtJs.call(this, module, filename);
+const nmDir = path.resolve(__dirname, '..');
+const origFindPath = Module._findPath;
+Module._findPath = function(request, paths, isMain) {
+  const extendedPaths = paths ? [nmDir, ...paths] : [nmDir];
+  return origFindPath.call(this, request, extendedPaths, isMain);
 };
 
 const express = require('express');
