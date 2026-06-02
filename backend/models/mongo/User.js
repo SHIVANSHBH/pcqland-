@@ -3,9 +3,10 @@ const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  phone: { type: String, required: true, trim: true },
-  password: { type: String, required: true, minlength: 6, select: false },
+  email: { type: String, lowercase: true, trim: true },
+  phone: { type: String, trim: true },
+  password: { type: String, minlength: 6, select: false },
+  googleId: { type: String },
   role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
   isVerified: { type: Boolean, default: false },
   walletBalance: { type: Number, default: 0 },
@@ -18,10 +19,12 @@ const userSchema = new mongoose.Schema({
   resetCodeExpiry: { type: Date },
   otp: { type: String },
   otpExpiry: { type: Date },
+  emailOtp: { type: String },
+  emailOtpExpiry: { type: Date },
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });

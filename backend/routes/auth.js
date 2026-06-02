@@ -55,7 +55,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
       verificationCodeExpiry: codeExpiry.toISOString(),
     });
 
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' });
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
 
@@ -130,20 +130,23 @@ router.post('/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, phone, password } = req.body;
 
-    const user = await User.findOne({
+    const { isUsingMongo } = require('../config/db');
+    const query = User.findOne({
       $or: [
         ...(email ? [{ email: email.toLowerCase() }] : []),
         ...(phone ? [{ phone }] : []),
       ],
     });
+    if (isUsingMongo()) query.select('+password');
 
+    const user = await query;
     const dummyHash = '$2a$10$' + 'x'.repeat(53);
     const isMatch = user ? await bcrypt.compare(password, user.password) : await bcrypt.compare(password, dummyHash);
     if (!user || !isMatch) {
       return error(res, 'Invalid credentials', 401);
     }
 
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' });
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
 
@@ -258,7 +261,10 @@ router.post('/change-password', auth, validate(changePasswordSchema), async (req
   try {
     const { currentPassword, newPassword } = req.body;
 
-    const user = await User.findById(req.user._id);
+    const { isUsingMongo } = require('../config/db');
+    const q = User.findById(req.user._id);
+    if (isUsingMongo()) q.select('+password');
+    const user = await q;
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) return error(res, 'Current password is incorrect', 400);
 
@@ -271,6 +277,47 @@ router.post('/change-password', auth, validate(changePasswordSchema), async (req
   } catch (err) {
     error(res, err.message);
   }
+});
+
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: `${process.env.CLIENT_URL || 'http://localhost:3000'}/api/auth/google/callback`,
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    const email = profile.emails?.[0]?.value?.toLowerCase();
+    const googleId = profile.id;
+    let user = email ? await User.findOne({ email }) : null;
+    if (user) {
+      await User.findByIdAndUpdate(user._id, { googleId, name: profile.displayName || user.name });
+    } else {
+      user = await User.create({
+        name: profile.displayName || email?.split('@')[0] || 'User',
+        email,
+        googleId,
+        isVerified: true,
+        role: 'customer',
+      });
+    }
+    return done(null, user);
+  } catch (err) {
+    return done(err, null);
+  }
+}));
+
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+
+router.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: '/login' }), (req, res) => {
+  const user = req.user;
+  const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
+  const refreshToken = generateRefreshToken();
+  Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
+  const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000, path: '/' };
+  res.cookie('token', accessToken, cookieOptions);
+  res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}?google_login=success`);
 });
 
 router.post('/google', async (req, res) => {
@@ -299,7 +346,7 @@ router.post('/google', async (req, res) => {
       });
     }
 
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' });
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
 
@@ -373,7 +420,7 @@ router.post('/verify-email-otp', validate(z.object({ email: z.string().email(), 
       });
     }
 
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' });
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
 
@@ -454,7 +501,7 @@ router.post('/verify-otp', validate(otpSchema), async (req, res) => {
       });
     }
 
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' });
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
 

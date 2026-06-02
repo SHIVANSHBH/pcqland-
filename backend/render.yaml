@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: pcdeals-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_URL
+        value: https://pcdeals-frontend.vercel.app
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000

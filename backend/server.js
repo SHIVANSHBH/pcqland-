@@ -8,6 +8,7 @@ const morgan = require('morgan');
 const path = require('path');
 const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
+const passport = require('passport');
 const connectDB = require('./config/db');
 
 const app = express();
@@ -80,6 +81,9 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Passport
+app.use(passport.initialize());
 
 // Body parsing
 app.use(express.json({ limit: '10kb' }));
