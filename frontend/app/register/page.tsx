@@ -5,13 +5,29 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { UserPlus, Eye, EyeOff } from 'lucide-react';
+import { UserPlus, Eye, EyeOff, Mail, Smartphone, Chrome } from 'lucide-react';
+
+type Tab = 'password' | 'phone-otp' | 'google';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+  const [tab, setTab] = useState<Tab>('password');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Email/Password
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+
+  // Phone OTP
+  const [phoneReg, setPhoneReg] = useState({ phone: '', otp: '' });
+  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
+  const [phoneOtpTimer, setPhoneOtpTimer] = useState(0);
+
+  const tabs: { id: Tab; label: string; icon: any }[] = [
+    { id: 'password', label: 'Email/Password', icon: Mail },
+    { id: 'phone-otp', label: 'Phone OTP', icon: Smartphone },
+    { id: 'google', label: 'Google', icon: Chrome },
+  ];
 
   const passwordMatch = form.password === form.confirmPassword;
 
@@ -22,7 +38,6 @@ export default function RegisterPage() {
       if (!passwordMatch) { toast.error('Passwords do not match'); setLoading(false); return; }
       const { confirmPassword, ...registerData } = form;
       const res = await api.post('/auth/register', registerData);
-      const data = res.data;
       toast.success('Registration successful!');
       router.push('/');
     } catch (error: any) {
@@ -31,6 +46,34 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  async function sendPhoneOtp() {
+    if (!phoneReg.phone) { toast.error('Enter phone'); return; }
+    setLoading(true);
+    try {
+      await api.post('/auth/send-otp', { phone: phoneReg.phone });
+      setPhoneOtpSent(true);
+      toast.success('OTP sent to phone');
+      setPhoneOtpTimer(60);
+      const t = setInterval(() => setPhoneOtpTimer(p => { if (p <= 1) { clearInterval(t); return 0; } return p - 1; }), 1000);
+    } catch (error: any) { toast.error(error.message); }
+    finally { setLoading(false); }
+  }
+
+  async function verifyPhoneOtp() {
+    if (!phoneReg.otp) { toast.error('Enter OTP'); return; }
+    setLoading(true);
+    try {
+      await api.post('/auth/verify-otp', { phone: phoneReg.phone, otp: phoneReg.otp });
+      toast.success('Registration & login successful!');
+      router.push('/');
+    } catch (error: any) { toast.error(error.message); }
+    finally { setLoading(false); }
+  }
+
+  function handleGoogleRegister() {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/google`;
+  }
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
@@ -44,39 +87,105 @@ export default function RegisterPage() {
             <p className="text-sm text-pcd-muted mt-1">Join PC Deals India today</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-pcd-muted mb-1">Full Name</label>
-              <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" placeholder="Your Name" required />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-pcd-muted mb-1">Email Address</label>
-              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" placeholder="you@example.com" required />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-pcd-muted mb-1">Phone Number</label>
-              <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" placeholder="+91 9876543210" required />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-pcd-muted mb-1">Password</label>
-              <div className="relative">
-                <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors pr-10" placeholder="Min. 6 characters" required minLength={6} />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-pcd-muted hover:text-pcd-text">
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          {/* Tabs */}
+          <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl overflow-x-auto">
+            {tabs.map(t => {
+              const Icon = t.icon;
+              return (
+                <button key={t.id} onClick={() => setTab(t.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg whitespace-nowrap transition-all ${tab === t.id ? 'bg-white text-primary shadow-sm' : 'text-pcd-muted hover:text-pcd-text'}`}>
+                  <Icon className="w-3.5 h-3.5" />
+                  {t.label}
                 </button>
+              );
+            })}
+          </div>
+
+          {/* Email/Password Tab */}
+          {tab === 'password' && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-pcd-muted mb-1">Full Name</label>
+                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" placeholder="Your Name" required />
               </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-pcd-muted mb-1">Confirm Password</label>
-              <div className="relative">
-                <input type={showPassword ? 'text' : 'password'} value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} className="w-full px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors pr-10" placeholder="Re-enter password" required minLength={6} />
+              <div>
+                <label className="block text-xs font-medium text-pcd-muted mb-1">Email Address</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" placeholder="you@example.com" required />
               </div>
-              {!passwordMatch && form.confirmPassword && <p className="text-xs text-red-500 mt-1">Passwords do not match</p>}
+              <div>
+                <label className="block text-xs font-medium text-pcd-muted mb-1">Phone Number</label>
+                <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors" placeholder="+91 9876543210" required />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-pcd-muted mb-1">Password</label>
+                <div className="relative">
+                  <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors pr-10" placeholder="Min. 6 characters" required minLength={6} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-pcd-muted hover:text-pcd-text">
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-pcd-muted mb-1">Confirm Password</label>
+                <div className="relative">
+                  <input type={showPassword ? 'text' : 'password'} value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors pr-10" placeholder="Re-enter password" required minLength={6} />
+                </div>
+                {!passwordMatch && form.confirmPassword && <p className="text-xs text-red-500 mt-1">Passwords do not match</p>}
+              </div>
+              <button type="submit" disabled={loading || !!(!passwordMatch && form.confirmPassword)} className="btn-primary w-full disabled:opacity-50">
+                {loading ? 'Creating account...' : 'Create Account'}
+              </button>
+            </form>
+          )}
+
+          {/* Phone OTP Tab */}
+          {tab === 'phone-otp' && (
+            <div className="space-y-4">
+              <p className="text-sm text-pcd-muted">Register instantly with your phone number</p>
+              <div>
+                <label className="block text-xs font-medium text-pcd-muted mb-1">Phone Number</label>
+                <div className="flex gap-2">
+                  <input type="tel" value={phoneReg.phone} onChange={e => setPhoneReg({ ...phoneReg, phone: e.target.value })}
+                    className="flex-1 px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors"
+                    placeholder="+91 9876543210" disabled={phoneOtpSent} />
+                  <button onClick={sendPhoneOtp} disabled={loading || phoneOtpTimer > 0}
+                    className="px-4 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark disabled:opacity-50 whitespace-nowrap">
+                    {phoneOtpTimer > 0 ? `${phoneOtpTimer}s` : phoneOtpSent ? 'Resend' : 'Send OTP'}
+                  </button>
+                </div>
+              </div>
+              {phoneOtpSent && (
+                <div>
+                  <label className="block text-xs font-medium text-pcd-muted mb-1">Enter OTP</label>
+                  <input type="text" value={phoneReg.otp} onChange={e => setPhoneReg({ ...phoneReg, otp: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-pcd-border rounded-xl text-sm outline-none focus:border-primary transition-colors text-center tracking-widest"
+                    placeholder="· · · · · ·" maxLength={6} />
+                  <button onClick={verifyPhoneOtp} disabled={loading || phoneReg.otp.length < 6}
+                    className="btn-primary w-full mt-3 disabled:opacity-50">
+                    {loading ? 'Verifying...' : 'Register & Login'}
+                  </button>
+                </div>
+              )}
             </div>
-            <button type="submit" disabled={loading || !!(!passwordMatch && form.confirmPassword)} className="btn-primary w-full disabled:opacity-50">
-              {loading ? 'Creating account...' : 'Create Account'}
-            </button>
-          </form>
+          )}
+
+          {/* Google Tab */}
+          {tab === 'google' && (
+            <div className="space-y-4 text-center">
+              <p className="text-sm text-pcd-muted">Register with your Google account</p>
+              <button onClick={handleGoogleRegister}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-semibold text-sm">
+                <Chrome className="w-5 h-5 text-blue-500" />
+                Continue with Google
+              </button>
+            </div>
+          )}
 
           <div className="mt-6 text-center">
             <p className="text-sm text-pcd-muted">

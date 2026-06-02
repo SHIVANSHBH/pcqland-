@@ -282,42 +282,56 @@ router.post('/change-password', auth, validate(changePasswordSchema), async (req
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: `${process.env.CLIENT_URL || 'http://localhost:3000'}/api/auth/google/callback`,
-}, async (accessToken, refreshToken, profile, done) => {
-  try {
-    const email = profile.emails?.[0]?.value?.toLowerCase();
-    const googleId = profile.id;
-    let user = email ? await User.findOne({ email }) : null;
-    if (user) {
-      await User.findByIdAndUpdate(user._id, { googleId, name: profile.displayName || user.name });
-    } else {
-      user = await User.create({
-        name: profile.displayName || email?.split('@')[0] || 'User',
-        email,
-        googleId,
-        isVerified: true,
-        role: 'customer',
-      });
+if (process.env.GOOGLE_CLIENT_ID && !process.env.GOOGLE_CLIENT_ID.startsWith('your_')) {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: `${process.env.CLIENT_URL || 'http://localhost:3000'}/api/auth/google/callback`,
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      const email = profile.emails?.[0]?.value?.toLowerCase();
+      const googleId = profile.id;
+      let user = email ? await User.findOne({ email }) : null;
+      if (user) {
+        await User.findByIdAndUpdate(user._id, { googleId, name: profile.displayName || user.name });
+      } else {
+        user = await User.create({
+          name: profile.displayName || email?.split('@')[0] || 'User',
+          email,
+          googleId,
+          isVerified: true,
+          role: 'customer',
+        });
+      }
+      return done(null, user);
+    } catch (err) {
+      return done(err, null);
     }
-    return done(null, user);
-  } catch (err) {
-    return done(err, null);
+  }));
+}
+
+router.get('/google', (req, res, next) => {
+  if (process.env.GOOGLE_CLIENT_ID && !process.env.GOOGLE_CLIENT_ID.startsWith('your_')) {
+    passport.authenticate('google', { scope: ['profile', 'email'], session: false })(req, res, next);
+  } else {
+    res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=google_not_configured`);
   }
-}));
+});
 
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
-
-router.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: '/login' }), (req, res) => {
-  const user = req.user;
-  const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
-  const refreshToken = generateRefreshToken();
-  Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
-  const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000, path: '/' };
-  res.cookie('token', accessToken, cookieOptions);
-  res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}?google_login=success`);
+router.get('/google/callback', (req, res, next) => {
+  if (process.env.GOOGLE_CLIENT_ID && !process.env.GOOGLE_CLIENT_ID.startsWith('your_')) {
+    passport.authenticate('google', { session: false, failureRedirect: '/login' }, (err, user) => {
+      if (err || !user) return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=google_auth_failed`);
+      const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
+      const refreshToken = generateRefreshToken();
+      Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
+      const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000, path: '/' };
+      res.cookie('token', accessToken, cookieOptions);
+      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}?google_login=success`);
+    })(req, res, next);
+  } else {
+    res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=google_not_configured`);
+  }
 });
 
 router.post('/google', async (req, res) => {
