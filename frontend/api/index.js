@@ -1,9 +1,9 @@
 const path = require('path');
 const Module = require('module');
-const nmDir = path.resolve(__dirname, '..');
+const nmPath = path.join(__dirname, 'node_modules');
 const origFindPath = Module._findPath;
 Module._findPath = function(request, paths, isMain) {
-  const extendedPaths = paths ? [nmDir, ...paths] : [nmDir];
+  const extendedPaths = paths ? [nmPath, ...paths] : [nmPath];
   return origFindPath.call(this, request, extendedPaths, isMain);
 };
 
