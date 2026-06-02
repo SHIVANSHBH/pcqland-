@@ -13,3 +13,7 @@ frontend/.next/
 *.err
 *.out
 tsconfig.tsbuildinfo
+demo-proxy.js
+start-demo.ps1
+/package.json
+/package-lock.json
