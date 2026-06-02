@@ -1,9 +1,18 @@
 const Razorpay = require('razorpay');
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+let _razorpay = null;
+function getRazorpay() {
+  if (!_razorpay) {
+    if (!process.env.RAZORPAY_KEY_ID && !process.env.RAZORPAY_OAUTH_TOKEN) {
+      throw new Error('Missing RAZORPAY_KEY_ID env var');
+    }
+    _razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+  return _razorpay;
+}
 
 const createOrder = async (amount, receipt) => {
   const options = {
@@ -11,7 +20,7 @@ const createOrder = async (amount, receipt) => {
     currency: 'INR',
     receipt,
   };
-  return razorpay.orders.create(options);
+  return getRazorpay().orders.create(options);
 };
 
 const verifyPayment = (orderId, paymentId, signature) => {
@@ -24,4 +33,4 @@ const verifyPayment = (orderId, paymentId, signature) => {
   return expectedSignature === signature;
 };
 
-module.exports = { createOrder, verifyPayment, razorpay };
+module.exports = { createOrder, verifyPayment, getRazorpay };

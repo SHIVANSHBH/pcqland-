@@ -1,17 +1,3 @@
-const path = require('path');
-const nmFnPath = path.join(__dirname, 'node_modules');
-try {
-  const Module = require('module');
-  const origFindPath = Module._findPath;
-  Module._findPath = function(request, paths, isMain) {
-    if (request.startsWith('.') || request.startsWith('/')) {
-      return origFindPath.call(this, request, paths, isMain);
-    }
-    const extended = paths ? [nmFnPath, ...paths] : [nmFnPath];
-    return origFindPath.call(this, request, extended, isMain);
-  };
-} catch (e) {}
-
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
