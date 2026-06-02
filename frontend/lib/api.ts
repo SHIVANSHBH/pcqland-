@@ -1,4 +1,4 @@
-const API_BASE: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE: string = process.env.NEXT_PUBLIC_API_URL || 'https://pcdeals-backend.onrender.com/api';
 
 function getCsrfToken(): string | null {
   if (typeof document === 'undefined') return null;
