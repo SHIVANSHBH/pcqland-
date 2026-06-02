@@ -563,6 +563,19 @@ router.get('/ping', (req, res) => {
   res.json({ pong: true });
 });
 
+router.post('/make-admin', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return error(res, 'Email is required', 400);
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return error(res, 'User not found', 404);
+    await User.findByIdAndUpdate(user._id, { role: 'admin' });
+    success(res, { email }, 'User promoted to admin');
+  } catch (err) {
+    error(res, err.message);
+  }
+});
+
 router.post('/seed-admin', async (req, res) => {
   try {
     const existing = await User.findOne({ role: 'admin' });
