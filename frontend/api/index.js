@@ -1,6 +1,3 @@
-process.env.NODE_PATH = __dirname + '/node_modules';
-require('module').Module._initPaths();
-
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
