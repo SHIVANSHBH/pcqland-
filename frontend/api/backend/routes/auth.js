@@ -557,4 +557,25 @@ router.put('/profile', auth, async (req, res) => {
   }
 });
 
+router.post('/seed-admin', async (req, res) => {
+  try {
+    const existing = await User.findOne({ role: 'admin' });
+    if (existing) {
+      return success(res, { email: existing.email }, 'Admin already exists');
+    }
+    const hashed = await bcrypt.hash('Admin@123', 10);
+    const user = await User.create({
+      name: 'Admin',
+      email: 'admin@pcdeals.com',
+      phone: '9999999999',
+      password: hashed,
+      role: 'admin',
+      isVerified: true,
+    });
+    success(res, { email: user.email }, 'Admin created. Email: admin@pcdeals.com, Password: Admin@123');
+  } catch (err) {
+    error(res, err.message);
+  }
+});
+
 module.exports = router;
