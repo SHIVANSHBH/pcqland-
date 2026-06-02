@@ -29,9 +29,9 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const productParam = searchParams.get('product');
-    const qtyParam = searchParams.get('qty');
-    const itemsParam = searchParams.get('items');
+    const productParam = searchParams?.get('product');
+    const qtyParam = searchParams?.get('qty');
+    const itemsParam = searchParams?.get('items');
 
     if (productParam && qtyParam) {
       const qty = parseInt(qtyParam) || 1;
