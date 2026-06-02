@@ -225,7 +225,7 @@ export default function CheckoutPage() {
                 <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs flex-shrink-0">
                   {item.name?.charAt(0) || 'P'}
                 </div>
-                <div className="flex-1 min-w-0 min-w-[80px]">
+                <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold text-pcd-text truncate">{item.name || item.slug}</p>
                   <p className="text-[10px] text-pcd-muted">{formatPrice(item.price || 0)} x {item.quantity}</p>
                 </div>

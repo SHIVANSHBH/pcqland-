@@ -57,7 +57,7 @@ export default function CartPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-3">
             {cartItems.map((item: any) => (
-              <div key={item.slug} className="bg-white border border-pcd-border rounded-xl p-4 flex items-center gap-4">
+              <div key={item.slug} className="bg-white border border-pcd-border rounded-xl p-4 flex items-center gap-4 flex-wrap">
                 <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold">
                   {item.name?.charAt(0) || 'P'}
                 </div>
@@ -70,7 +70,7 @@ export default function CartPage() {
                   <span className="px-3 py-2 text-sm font-semibold border-x border-pcd-border">{item.quantity}</span>
                   <button onClick={() => updateQty(item.slug, 1)} className="px-3 py-2 text-pcd-muted hover:text-pcd-text text-sm">+</button>
                 </div>
-                <p className="text-sm font-extrabold text-pcd-text min-w-[70px] text-right">{formatPrice(item.price * item.quantity)}</p>
+                <p className="text-sm font-extrabold text-pcd-text text-right">{formatPrice(item.price * item.quantity)}</p>
                 <button onClick={() => removeItem(item.slug)} className="p-2.5 text-pcd-muted hover:text-red-500">
                   <Trash2 className="w-4 h-4" />
                 </button>

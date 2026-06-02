@@ -118,7 +118,7 @@
 
 /* Category Submenu */
 .category-submenu {
-  @apply absolute top-full left-0 mt-1 bg-white border border-pcd-border rounded-xl shadow-xl z-50 min-w-[280px] sm:min-w-[320px] p-4 hidden;
+  @apply absolute top-full left-0 mt-1 bg-white border border-pcd-border rounded-xl shadow-xl z-50 min-w-[240px] sm:min-w-[280px] p-4 hidden;
 }
 
 .category-flyout:hover .category-submenu,
@@ -195,7 +195,7 @@
 }
 
 .review-card {
-  @apply bg-white border border-pcd-border rounded-2xl p-6 min-w-[260px] sm:min-w-[280px] flex-shrink-0;
+  @apply bg-white border border-pcd-border rounded-2xl p-6 min-w-[240px] sm:min-w-[260px] flex-shrink-0;
 }
 
 .review-top {
@@ -433,6 +433,17 @@
 }
 .skip-link:focus {
   top: 0;
+}
+.scroll-hint {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: linear-gradient(to right, white 30%, transparent),
+              linear-gradient(to left, white 30%, transparent) 100% 0,
+              radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.08), transparent),
+              radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.08), transparent) 100% 0;
+  background-repeat: no-repeat;
+  background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

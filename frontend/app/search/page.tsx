@@ -95,18 +95,28 @@ function SearchResults() {
 
   useEffect(() => {
     if (!query.trim()) { setResults([]); return; }
-    const q = query.toLowerCase();
-    const all: any[] = [];
-    for (const [catSlug, prods] of Object.entries(fallbackProducts)) {
-      if (cat && cat !== catSlug) continue;
-      for (const p of prods) {
-        if (p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)) {
-          all.push({ ...p, catSlug });
+    async function doSearch() {
+      try {
+        const res = await api.get(`/products/search?q=${encodeURIComponent(query)}${cat ? `&cat=${encodeURIComponent(cat)}` : ''}`);
+        const apiResults = (res.data || res.products || res).map((p: any) => ({
+          name: p.name, slug: p.slug, price: p.price, mrp: p.mrp, desc: p.shortDescription || p.description || '', catSlug: typeof p.category === 'object' ? p.category.slug : cat,
+        }));
+        if (apiResults.length > 0) { setResults(apiResults); setPage(1); return; }
+      } catch {}
+      const q = query.toLowerCase();
+      const fallback: any[] = [];
+      for (const [catSlug, prods] of Object.entries(fallbackProducts)) {
+        if (cat && cat !== catSlug) continue;
+        for (const p of prods) {
+          if (p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)) {
+            fallback.push({ ...p, catSlug });
+          }
         }
       }
+      setResults(fallback);
+      setPage(1);
     }
-    setResults(all);
-    setPage(1);
+    doSearch();
   }, [query, cat]);
 
   return (

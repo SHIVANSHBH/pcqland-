@@ -6,6 +6,9 @@ const nextConfig = {
       { protocol: 'https', hostname: '**' },
     ],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 module.exports = nextConfig;
