@@ -81,6 +81,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
 
     success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Registration successful. Please verify your email.', 201);
   } catch (err) {
+    console.error('Register error:', err.message, err.stack);
     error(res, err.message);
   }
 });
@@ -131,13 +132,14 @@ router.post('/login', validate(loginSchema), async (req, res) => {
     const { email, phone, password } = req.body;
 
     const { isUsingMongo } = require('../config/db');
-    const query = User.findOne({
+    const usingMongo = isUsingMongo();
+    let query = User.findOne({
       $or: [
         ...(email ? [{ email: email.toLowerCase() }] : []),
         ...(phone ? [{ phone }] : []),
       ],
     });
-    if (isUsingMongo()) query.select('+password');
+    if (usingMongo && query && typeof query.select === 'function') query = query.select('+password');
 
     const user = await query;
     const dummyHash = '$2a$10$' + 'x'.repeat(53);
@@ -166,6 +168,7 @@ router.post('/login', validate(loginSchema), async (req, res) => {
 
     success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Login successful');
   } catch (err) {
+    console.error('Login error:', err.message, err.stack);
     error(res, err.message);
   }
 });
@@ -555,6 +558,10 @@ router.put('/profile', auth, async (req, res) => {
   } catch (err) {
     error(res, err.message);
   }
+});
+
+router.get('/ping', (req, res) => {
+  res.json({ pong: true });
 });
 
 router.post('/seed-admin', async (req, res) => {
