@@ -61,12 +61,15 @@ app.use(cookieParser());
 
 // CSRF protection (double-submit cookie pattern)
 app.use((req, res, next) => {
+  const csrfExempt = ['/api/auth/csrf', '/api/admin/upload', '/api/admin/inventory/upload'];
+  if (csrfExempt.some(p => req.path.startsWith(p))) return next();
+
   if (!req.cookies.csrf_token) {
     const csrfToken = crypto.randomBytes(32).toString('hex');
     res.cookie('csrf_token', csrfToken, {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       path: '/',
     });
   }

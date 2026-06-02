@@ -1,9 +1,36 @@
 const API_BASE: string = process.env.NEXT_PUBLIC_API_URL || 'https://pcdeals-backend.onrender.com/api';
 
-function getCsrfToken(): string | null {
+let _csrfToken: string | null = null;
+let _csrfFetching = false;
+let _csrfPromise: Promise<string | null> | null = null;
+
+async function fetchCsrfToken(): Promise<string | null> {
+  if (typeof document === 'undefined') return null;
+  if (_csrfToken) return _csrfToken;
+  if (_csrfPromise) return _csrfPromise;
+  _csrfPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/csrf`, { credentials: 'include' });
+      const data = await res.json();
+      _csrfToken = data.csrfToken || null;
+      return _csrfToken;
+    } catch {
+      return _csrfToken || null;
+    }
+  })();
+  return _csrfPromise;
+}
+
+function getCsrfTokenSync(): string | null {
   if (typeof document === 'undefined') return null;
   const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function getCsrfToken(): Promise<string | null> {
+  const syncToken = getCsrfTokenSync();
+  if (syncToken) return syncToken;
+  return fetchCsrfToken();
 }
 
 interface FetchOptions extends RequestInit {
@@ -16,9 +43,10 @@ async function fetchAPI(endpoint: string, options: FetchOptions = {}): Promise<a
     ...options.headers,
   };
 
-  const csrf = getCsrfToken();
-  if (csrf && /^(post|put|patch|delete)$/i.test(options.method || 'get')) {
-    headers['x-csrf-token'] = csrf;
+  const isDangerous = /^(post|put|patch|delete)$/i.test(options.method || 'get');
+  if (isDangerous) {
+    const csrf = await getCsrfToken();
+    if (csrf) headers['x-csrf-token'] = csrf;
   }
 
   const controller = new AbortController();

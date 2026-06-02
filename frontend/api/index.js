@@ -45,12 +45,12 @@ app.use(cors({
 app.use(cookieParser());
 
 app.use((req, res, next) => {
-  const csrfExempt = ['/api/admin/upload', '/api/admin/inventory/upload'];
+  const csrfExempt = ['/api/auth/csrf', '/api/admin/upload', '/api/admin/inventory/upload'];
   if (csrfExempt.some(p => req.path.startsWith(p))) return next();
   if (!req.cookies.csrf_token) {
     const csrfToken = crypto.randomBytes(32).toString('hex');
     res.cookie('csrf_token', csrfToken, {
-      httpOnly: false, secure: true, sameSite: 'strict', path: '/',
+      httpOnly: false, secure: true, sameSite: 'none', path: '/',
     });
   }
   const dangerousMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];

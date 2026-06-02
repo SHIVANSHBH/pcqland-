@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
@@ -68,7 +69,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 15 * 60 * 1000,
       path: '/',
     };
@@ -155,7 +156,7 @@ router.post('/login', validate(loginSchema), async (req, res) => {
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 15 * 60 * 1000,
       path: '/',
     };
@@ -328,7 +329,7 @@ router.get('/google/callback', (req, res, next) => {
       const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
       const refreshToken = generateRefreshToken();
       Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
-      const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000, path: '/' };
+      const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'none', maxAge: 7 * 24 * 60 * 60 * 1000, path: '/' };
       res.cookie('token', accessToken, cookieOptions);
       res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}?google_login=success`);
     })(req, res, next);
@@ -370,7 +371,7 @@ router.post('/google', async (req, res) => {
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 15 * 60 * 1000,
       path: '/',
     };
@@ -444,7 +445,7 @@ router.post('/verify-email-otp', validate(z.object({ email: z.string().email(), 
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 15 * 60 * 1000,
       path: '/',
     };
@@ -525,7 +526,7 @@ router.post('/verify-otp', validate(otpSchema), async (req, res) => {
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 15 * 60 * 1000,
       path: '/',
     };
@@ -562,6 +563,17 @@ router.put('/profile', auth, async (req, res) => {
 
 router.get('/ping', (req, res) => {
   res.json({ pong: true });
+});
+
+router.get('/csrf', (req, res) => {
+  const token = req.cookies.csrf_token || crypto.randomBytes(32).toString('hex');
+  if (!req.cookies.csrf_token) {
+    res.cookie('csrf_token', token, {
+      httpOnly: false, secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none', path: '/',
+    });
+  }
+  res.json({ csrfToken: token });
 });
 
 router.post('/make-admin', async (req, res) => {
