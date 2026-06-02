@@ -1,5 +1,21 @@
 const path = require('path');
-try { require('module').globalPaths.push(path.join(__dirname, 'node_modules')); } catch {}
+const Module = require('module');
+const nmPath = path.join(__dirname, 'node_modules');
+const origResolveFilename = Module._resolveFilename;
+Module._resolveFilename = function(request, parent, isMain, options) {
+  try {
+    return origResolveFilename.call(Module, request, parent, isMain, options);
+  } catch (err) {
+    if (err.code === 'MODULE_NOT_FOUND' && parent) {
+      const syntheticParent = {
+        ...parent,
+        paths: [nmPath, ...(parent.paths || [])],
+      };
+      return origResolveFilename.call(Module, request, syntheticParent, isMain, options);
+    }
+    throw err;
+  }
+};
 
 const express = require('express');
 const cors = require('cors');
