@@ -123,7 +123,7 @@ function SearchResults() {
       {results.length === 0 && query && (
         <div className="text-center py-12">
           <SearchIcon className="w-12 h-12 mx-auto text-pcd-muted mb-4" />
-          <p className="text-pcd-muted">No products found for "{query}".</p>
+          <p className="text-pcd-muted">No products found for &ldquo;{query}&rdquo;.</p>
           <Link href="/" className="text-primary hover:underline mt-2 inline-block">Browse all categories</Link>
         </div>
       )}
