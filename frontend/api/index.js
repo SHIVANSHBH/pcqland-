@@ -102,6 +102,11 @@ async function init() {
 }
 
 module.exports = async (req, res) => {
-  await init();
-  return app(req, res);
+  try {
+    await init();
+    return app(req, res);
+  } catch (err) {
+    console.error('API init error:', err);
+    res.status(500).json({ success: false, error: err.message, stack: err.stack });
+  }
 };
