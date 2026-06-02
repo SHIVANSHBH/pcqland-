@@ -151,13 +151,15 @@ async function init() {
 
 module.exports = async (req, res) => {
   if (req.url === '/api/health') {
-    return res.json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime() });
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime() }));
   }
   try {
     await init();
     return app(req, res);
   } catch (err) {
     console.error('API init error:', err);
-    res.status(500).json({ success: false, error: err.message, stack: err.stack });
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: false, error: err.message, stack: err.stack }));
   }
 };
