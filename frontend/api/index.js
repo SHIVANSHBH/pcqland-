@@ -102,16 +102,16 @@ let initialized = false;
 
 async function init() {
   if (initialized) return;
-  const connectDB = require('../../backend/config/db');
+  const connectDB = require('./backend/config/db');
   await connectDB();
-  app.use('/api/auth', require('../../backend/routes/auth'));
-  app.use('/api/categories', require('../../backend/routes/categories'));
-  app.use('/api/products', require('../../backend/routes/products'));
-  app.use('/api/orders', require('../../backend/routes/orders'));
-  app.use('/api/wallet', require('../../backend/routes/wallet'));
-  app.use('/api/cms', require('../../backend/routes/cms'));
-  app.use('/api/admin', require('../../backend/routes/admin'));
-  app.use('/api/invoices', require('../../backend/routes/invoices'));
+  app.use('/api/auth', require('./backend/routes/auth'));
+  app.use('/api/categories', require('./backend/routes/categories'));
+  app.use('/api/products', require('./backend/routes/products'));
+  app.use('/api/orders', require('./backend/routes/orders'));
+  app.use('/api/wallet', require('./backend/routes/wallet'));
+  app.use('/api/cms', require('./backend/routes/cms'));
+  app.use('/api/admin', require('./backend/routes/admin'));
+  app.use('/api/invoices', require('./backend/routes/invoices'));
   initialized = true;
 }
 
