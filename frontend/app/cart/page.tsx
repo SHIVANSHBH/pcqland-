@@ -66,12 +66,12 @@ export default function CartPage() {
                   <p className="text-xs text-pcd-muted mt-0.5">{formatPrice(item.price)} each</p>
                 </div>
                 <div className="flex items-center border border-pcd-border rounded-lg">
-                  <button onClick={() => updateQty(item.slug, -1)} className="px-2.5 py-1.5 text-pcd-muted hover:text-pcd-text text-sm">-</button>
-                  <span className="px-3 py-1.5 text-sm font-semibold border-x border-pcd-border">{item.quantity}</span>
-                  <button onClick={() => updateQty(item.slug, 1)} className="px-2.5 py-1.5 text-pcd-muted hover:text-pcd-text text-sm">+</button>
+                  <button onClick={() => updateQty(item.slug, -1)} className="px-3 py-2 text-pcd-muted hover:text-pcd-text text-sm">-</button>
+                  <span className="px-3 py-2 text-sm font-semibold border-x border-pcd-border">{item.quantity}</span>
+                  <button onClick={() => updateQty(item.slug, 1)} className="px-3 py-2 text-pcd-muted hover:text-pcd-text text-sm">+</button>
                 </div>
                 <p className="text-sm font-extrabold text-pcd-text min-w-[70px] text-right">{formatPrice(item.price * item.quantity)}</p>
-                <button onClick={() => removeItem(item.slug)} className="p-1.5 text-pcd-muted hover:text-red-500">
+                <button onClick={() => removeItem(item.slug)} className="p-2.5 text-pcd-muted hover:text-red-500">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

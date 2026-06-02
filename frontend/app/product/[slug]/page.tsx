@@ -365,7 +365,7 @@ export default function ProductPage({ params }: PageProps) {
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
-        <div className="bg-white border border-pcd-border rounded-2xl p-8 flex items-center justify-center">
+        <div className="bg-white border border-pcd-border rounded-2xl p-4 md:p-8 flex items-center justify-center">
           <div className="text-center">
             {product.images?.[0] ? (
               <Image src={product.images[0]} alt={product.name} width={192} height={192} className="w-48 h-48 object-contain mx-auto mb-4" />

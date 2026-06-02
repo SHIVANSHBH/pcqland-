@@ -113,9 +113,9 @@ export default function Header() {
           <Link href="/" className="flex-shrink-0">
             <div className="flex items-center gap-2">
               {logo ? (
-                <Image src={logo} alt="PC Deals India" width={180} height={40} className="h-10 w-auto" unoptimized />
+                <Image src={logo} alt="PC Deals India" width={120} height={40} className="h-10 w-auto sm:w-auto sm:max-w-[180px] object-contain" unoptimized />
               ) : (
-                <Image src="/assets/1565303531.shree hira computer Logo for WebSite.png" alt="PC Deals India" width={180} height={40} className="h-10 w-auto" />
+                <Image src="/assets/1565303531.shree hira computer Logo for WebSite.png" alt="PC Deals India" width={120} height={40} className="h-10 w-auto sm:w-auto" />
               )}
               <div className="hidden md:block">
                 <h1 className="text-sm font-extrabold text-pcd-text leading-tight">PC Deals India</h1>
@@ -149,7 +149,7 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
-            <Link href="/cart" className="relative p-2 text-pcd-text hover:text-primary transition-colors">
+            <Link href="/cart" className="relative p-2.5 text-pcd-text hover:text-primary transition-colors">
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center">{cartCount}</span>
@@ -158,7 +158,7 @@ export default function Header() {
 
             {isLoggedIn ? (
               <div className="relative group">
-                <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-pcd-text hover:text-primary transition-colors" aria-haspopup="true" aria-expanded="false">
+                <button className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-pcd-text hover:text-primary transition-colors" aria-haspopup="true" aria-expanded="false">
                   <User className="w-5 h-5" />
                   <span className="hidden md:inline">{userName || 'Account'}</span>
                   <ChevronDown className="w-3 h-3" />
@@ -173,13 +173,13 @@ export default function Header() {
                 </div>
               </div>
             ) : (
-              <Link href="/login" className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary border-2 border-primary rounded-xl hover:bg-primary hover:text-white transition-all">
+              <Link href="/login" className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-primary border-2 border-primary rounded-xl hover:bg-primary hover:text-white transition-all">
                 <User className="w-4 h-4" />
                 <span className="hidden md:inline">Login / Register</span>
               </Link>
             )}
 
-            <button onClick={() => setMobileMenu(true)} className="md:hidden p-2 text-pcd-text">
+            <button onClick={() => setMobileMenu(true)} className="md:hidden p-2.5 text-pcd-text">
               <Menu className="w-5 h-5" />
             </button>
           </div>
@@ -229,10 +229,10 @@ export default function Header() {
       {mobileMenu && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenu(false)} />
-          <aside className="absolute top-0 left-0 bottom-0 w-80 bg-white shadow-xl overflow-y-auto">
+          <aside className="absolute top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-xl overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-pcd-border">
               <h5 className="font-bold text-pcd-text">Menu</h5>
-              <button onClick={() => setMobileMenu(false)} className="p-1 text-pcd-muted hover:text-pcd-text">
+              <button onClick={() => setMobileMenu(false)} className="p-2.5 text-pcd-muted hover:text-pcd-text">
                 <X className="w-5 h-5" />
               </button>
             </div>

@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Header />
         <main id="main-content" className="min-h-screen">{children}</main>
         <Footer />
-        <Toaster position="top-right" />
+        <Toaster position="top-right" toastOptions={{ style: { fontSize: '14px' } }} />
       </body>
     </html>
   );

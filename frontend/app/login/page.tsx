@@ -159,19 +159,22 @@ export default function LoginPage() {
               {/* Tabs */}
               <div className="flex gap-1.5 mb-6 bg-gray-100 p-1 rounded-xl">
                 <button onClick={() => setTab('password')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold rounded-lg transition-all ${tab === 'password' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
-                  <Lock className="w-3.5 h-3.5" />
-                  Login with Email & Password
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-3 text-xs font-semibold rounded-lg transition-all min-w-0 ${tab === 'password' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
+                  <Lock className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="hidden sm:inline">Login with Email & Password</span>
+                  <span className="sm:hidden">Email</span>
                 </button>
                 <button onClick={() => setTab('phone-otp')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold rounded-lg transition-all ${tab === 'phone-otp' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
-                  <Smartphone className="w-3.5 h-3.5" />
-                  Login with Mobile (OTP)
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-3 text-xs font-semibold rounded-lg transition-all min-w-0 ${tab === 'phone-otp' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
+                  <Smartphone className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="hidden sm:inline">Login with Mobile (OTP)</span>
+                  <span className="sm:hidden">Mobile</span>
                 </button>
                 <button onClick={() => setTab('email-otp')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold rounded-lg transition-all ${tab === 'email-otp' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
-                  <Mail className="w-3.5 h-3.5" />
-                  Login with Email (OTP)
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-3 text-xs font-semibold rounded-lg transition-all min-w-0 ${tab === 'email-otp' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
+                  <Mail className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="hidden sm:inline">Login with Email (OTP)</span>
+                  <span className="sm:hidden">Email OTP</span>
                 </button>
               </div>
 
@@ -300,7 +303,7 @@ export default function LoginPage() {
       {/* Bottom Features */}
       <section className="px-4 pb-12">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               { icon: Shield, title: 'Secure Payments', desc: '100% safe & encrypted' },
               { icon: Zap, title: '1 Sec Delivery', desc: 'WhatsApp & Email' },

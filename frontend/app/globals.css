@@ -62,7 +62,7 @@
 }
 
 .search-wrap .cat-picker-toggle {
-  @apply flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-pcd-text bg-gray-50 hover:bg-gray-100 transition-colors min-w-[140px] rounded-l-xl;
+  @apply flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-pcd-text bg-gray-50 hover:bg-gray-100 transition-colors min-w-[100px] sm:min-w-[140px] rounded-l-xl;
 }
 
 .search-wrap .cat-picker-menu {
@@ -118,7 +118,7 @@
 
 /* Category Submenu */
 .category-submenu {
-  @apply absolute top-full left-0 mt-1 bg-white border border-pcd-border rounded-xl shadow-xl z-50 min-w-[320px] p-4 hidden;
+  @apply absolute top-full left-0 mt-1 bg-white border border-pcd-border rounded-xl shadow-xl z-50 min-w-[280px] sm:min-w-[320px] p-4 hidden;
 }
 
 .category-flyout:hover .category-submenu,
@@ -158,7 +158,7 @@
 }
 
 .info-card {
-  @apply bg-white border border-pcd-border rounded-xl p-5 text-center hover:shadow-md transition-shadow;
+  @apply bg-white border border-pcd-border rounded-xl p-3 md:p-5 text-center hover:shadow-md transition-shadow;
 }
 
 .info-card-icon {
@@ -195,7 +195,7 @@
 }
 
 .review-card {
-  @apply bg-white border border-pcd-border rounded-2xl p-6 min-w-[280px] flex-shrink-0;
+  @apply bg-white border border-pcd-border rounded-2xl p-6 min-w-[260px] sm:min-w-[280px] flex-shrink-0;
 }
 
 .review-top {
@@ -235,7 +235,7 @@
 }
 
 .review-nav {
-  @apply w-10 h-10 rounded-full bg-white border border-pcd-border flex items-center justify-center text-pcd-muted hover:text-primary hover:border-primary transition-all shadow-sm flex-shrink-0;
+  @apply w-11 h-11 rounded-full bg-white border border-pcd-border flex items-center justify-center text-pcd-muted hover:text-primary hover:border-primary transition-all shadow-sm flex-shrink-0;
 }
 
 .reviews-dots {
@@ -243,11 +243,11 @@
 }
 
 .reviews-dots button {
-  @apply w-2.5 h-2.5 rounded-full bg-gray-300 transition-all;
+  @apply w-3 h-3 rounded-full bg-gray-300 transition-all;
 }
 
 .reviews-dots button.active {
-  @apply bg-primary w-6;
+  @apply bg-primary w-5;
 }
 
 /* FAQ */
@@ -397,7 +397,7 @@
 }
 
 .footer-float-wa {
-  @apply fixed bottom-6 right-6 w-14 h-14 bg-emerald-500 text-white rounded-full flex items-center justify-center text-2xl shadow-lg hover:bg-emerald-600 transition-all z-50;
+  @apply fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 bg-emerald-500 text-white rounded-full flex items-center justify-center text-2xl shadow-lg hover:bg-emerald-600 transition-all z-50;
 }
 
 /* Product Card */

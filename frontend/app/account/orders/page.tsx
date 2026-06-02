@@ -68,9 +68,9 @@ export default function OrdersPage() {
                   <h4 className="text-xs font-bold text-pcd-muted uppercase mt-4 mb-2">License Keys</h4>
                   <div className="space-y-1">
                     {order.keys.map((key, i) => (
-                      <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
-                        <code className="text-sm font-mono text-primary">{key}</code>
-                        <button onClick={() => navigator.clipboard.writeText(key)} className="text-xs text-pcd-muted hover:text-primary transition-colors">Copy</button>
+                      <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 gap-2">
+                        <code className="text-xs sm:text-sm font-mono text-primary truncate min-w-0">{key}</code>
+                        <button onClick={() => navigator.clipboard.writeText(key)} className="text-xs text-pcd-muted hover:text-primary transition-colors flex-shrink-0">Copy</button>
                       </div>
                     ))}
                   </div>

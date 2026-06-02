@@ -47,11 +47,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen bg-gray-100">
       {/* Mobile Header */}
       <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <button onClick={() => setSidebarOpen(true)} className="p-1 text-gray-600">
+        <button onClick={() => setSidebarOpen(true)} className="p-2.5 text-gray-600">
           <Menu className="w-5 h-5" />
         </button>
         <span className="text-sm font-bold text-primary">PC Deals Admin</span>
-        <button onClick={handleLogout} className="p-1 text-gray-600">
+        <button onClick={handleLogout} className="p-2.5 text-gray-600">
           <LogOut className="w-5 h-5" />
         </button>
       </div>

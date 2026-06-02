@@ -230,12 +230,12 @@ export default function CheckoutPage() {
                   <p className="text-[10px] text-pcd-muted">{formatPrice(item.price || 0)} x {item.quantity}</p>
                 </div>
                 <div className="flex items-center border border-pcd-border rounded-md">
-                  <button onClick={() => updateItemQty(item.slug, -1)} className="px-1.5 py-0.5 text-pcd-muted hover:text-pcd-text text-xs">-</button>
-                  <span className="px-2 py-0.5 text-xs font-semibold border-x border-pcd-border">{item.quantity}</span>
-                  <button onClick={() => updateItemQty(item.slug, 1)} className="px-1.5 py-0.5 text-pcd-muted hover:text-pcd-text text-xs">+</button>
+                  <button onClick={() => updateItemQty(item.slug, -1)} className="px-2 py-1 text-pcd-muted hover:text-pcd-text text-xs">-</button>
+                  <span className="px-2 py-1 text-xs font-semibold border-x border-pcd-border">{item.quantity}</span>
+                  <button onClick={() => updateItemQty(item.slug, 1)} className="px-2 py-1 text-pcd-muted hover:text-pcd-text text-xs">+</button>
                 </div>
                 <p className="text-xs font-extrabold text-pcd-text min-w-[50px] text-right">{formatPrice((item.price || 0) * item.quantity)}</p>
-                <button onClick={() => removeItem(item.slug)} className="p-0.5 text-pcd-muted hover:text-red-500">
+                <button onClick={() => removeItem(item.slug)} className="p-2 text-pcd-muted hover:text-red-500">
                   <Trash2 className="w-3 h-3" />
                 </button>
               </div>
