@@ -21,6 +21,7 @@ app.use(compression());
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
+  skip: (req) => req.method === 'GET' || req.method === 'HEAD',
   message: { success: false, message: 'Too many attempts, please try again after 15 minutes' },
   standardHeaders: true,
   legacyHeaders: false,
