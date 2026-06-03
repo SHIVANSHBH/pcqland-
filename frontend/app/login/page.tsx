@@ -87,7 +87,8 @@ export default function LoginPage() {
     if (!phoneOtp.phone) { toast.error('Enter phone'); return; }
     setLoading(true);
     try {
-      await api.post('/auth/send-otp', { phone: phoneOtp.phone });
+      const cleanPhone = phoneOtp.phone.replace(/\D/g, '');
+      await api.post('/auth/send-otp', { phone: cleanPhone });
       setPhoneOtpSent(true);
       toast.success('OTP sent to phone');
       setPhoneOtpTimer(60);
@@ -100,7 +101,8 @@ export default function LoginPage() {
     if (!phoneOtp.otp) { toast.error('Enter OTP'); return; }
     setLoading(true);
     try {
-      const res3 = await api.post('/auth/verify-otp', { phone: phoneOtp.phone, otp: phoneOtp.otp });
+      const cleanPhone = phoneOtp.phone.replace(/\D/g, '');
+      const res3 = await api.post('/auth/verify-otp', { phone: cleanPhone, otp: phoneOtp.otp });
       setAccessToken(res3.data.accessToken);
       try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');
