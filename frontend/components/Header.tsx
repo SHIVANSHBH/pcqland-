@@ -162,18 +162,18 @@ export default function Header() {
           </form>
 
           {/* Actions */}
-          <div className="flex items-center gap-1 sm:gap-3">
-            <Link href="/cart" className="relative p-1.5 sm:p-2.5 text-pcd-text hover:text-primary transition-colors">
-              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+          <div className="flex items-center gap-0.5 sm:gap-3">
+            <Link href="/cart" className="relative p-2 sm:p-2.5 text-pcd-text hover:text-primary transition-colors">
+              <ShoppingCart className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-primary text-white text-[10px] sm:text-xs font-bold rounded-full flex items-center justify-center">{cartCount}</span>
+                <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] sm:w-5 sm:h-5 bg-primary text-white text-[10px] sm:text-xs font-bold rounded-full flex items-center justify-center">{cartCount}</span>
               )}
             </Link>
 
             {isLoggedIn ? (
               <div className="relative group">
-                <button className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2.5 text-sm font-medium text-pcd-text hover:text-primary transition-colors" aria-haspopup="true" aria-expanded="false">
-                  <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                <button className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 text-sm font-medium text-pcd-text hover:text-primary transition-colors" aria-haspopup="true" aria-expanded="false">
+                  <User className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
                   <span className="hidden lg:inline">{userName || 'Account'}</span>
                   <ChevronDown className="w-3 h-3 hidden lg:inline" />
                 </button>
@@ -187,14 +187,14 @@ export default function Header() {
                 </div>
               </div>
             ) : (
-              <Link href="/login" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2.5 text-xs sm:text-sm font-semibold text-primary border-2 border-primary rounded-xl hover:bg-primary hover:text-white transition-all">
+              <Link href="/login" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-sm font-semibold text-primary border-2 border-primary rounded-xl hover:bg-primary hover:text-white transition-all">
                 <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span className="hidden lg:inline">Login / Register</span>
               </Link>
             )}
 
-            <button onClick={() => setMobileMenu(true)} className="md:hidden p-1.5 sm:p-2.5 text-pcd-text">
-              <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
+            <button onClick={() => setMobileMenu(true)} className="md:hidden p-2 sm:p-2.5 text-pcd-text">
+              <Menu className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>

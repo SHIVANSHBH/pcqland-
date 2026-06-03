@@ -221,8 +221,9 @@ router.put('/orders/:id/status', adminAuth, async (req, res) => {
 router.post('/orders/:id/resend', adminAuth, async (req, res) => {
   const order = await Order.findById(req.params.id).populate('user');
   if (!order) return res.status(404).json({ message: 'Order not found' });
-  await processOrderDelivery(order);
-  res.json({ success: true, message: 'Keys resent' });
+  const { resendDelivery } = require('../utils/delivery');
+  await resendDelivery(order);
+  res.json({ success: true, message: 'Keys resent via email and WhatsApp' });
 });
 
 router.post('/orders/:id/refund', adminAuth, async (req, res) => {

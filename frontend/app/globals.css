@@ -136,6 +136,12 @@
 }
 
 @media (max-width: 767px) {
+  .search-input {
+    @apply text-xs;
+  }
+  .search-btn {
+    @apply px-2.5;
+  }
   .category-strip {
     @apply relative;
   }
@@ -148,6 +154,22 @@
     width: 24px;
     background: linear-gradient(to right, transparent, white);
     pointer-events: none;
+  }
+  .category-link-main img {
+    @apply w-5 h-5;
+  }
+  .all-btn svg {
+    @apply w-3.5 h-3.5;
+  }
+}
+
+/* Ultra-small screens */
+@media (max-width: 380px) {
+  .main-head {
+    @apply px-1;
+  }
+  .main-head .flex.items-center.gap-2 {
+    @apply gap-1;
   }
 }
 

@@ -11,6 +11,28 @@ router.post('/create', auth, async (req, res) => {
   try {
     const { items, customerInfo, paymentMethod } = req.body;
     const Product = require('../models/Product');
+    const Inventory = require('../models/Inventory');
+
+    // Check inventory availability before processing
+    for (const item of items) {
+      const productId = item.productId;
+      if (!productId && item.slug) {
+        const found = await Product.findOne({ slug: item.slug });
+        if (found) {
+          item.productId = found._id;
+        }
+      }
+      const pid = item.productId;
+      if (pid) {
+        const available = await Inventory.countDocuments({ product: pid, isUsed: false });
+        if (available < item.quantity) {
+          return res.status(400).json({
+            success: false,
+            message: `Insufficient keys for ${item.name || item.slug || 'product'}. Only ${available} available, requested ${item.quantity}.`,
+          });
+        }
+      }
+    }
 
     let subtotal = 0;
     const orderItems = [];

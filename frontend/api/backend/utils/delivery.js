@@ -36,22 +36,86 @@ async function processNextDelivery() {
 
 const assignKeysAtomic = async (order) => {
   const items = [];
-  for (const item of order.items) {
-    const assigned = [];
-    for (let i = 0; i < item.quantity; i++) {
-      const key = await Inventory.findOneAndUpdate(
-        { product: item.product, isUsed: false },
-        { isUsed: true, order: order._id, usedAt: new Date().toISOString() },
-        { new: true }
-      );
-      if (!key) {
-        throw new Error(`Insufficient keys for ${item.productName}`);
+  const assignedKeyDocs = [];
+  try {
+    for (const item of order.items) {
+      const assigned = [];
+      for (let i = 0; i < item.quantity; i++) {
+        const key = await Inventory.findOneAndUpdate(
+          { product: item.product, isUsed: false },
+          { isUsed: true, order: order._id, usedAt: new Date().toISOString() },
+          { new: true }
+        );
+        if (!key) {
+          throw new Error(`Insufficient keys for ${item.productName}`);
+        }
+        assigned.push(key.key);
+        assignedKeyDocs.push(key);
       }
-      assigned.push(key.key);
+      items.push({ ...item, keys: assigned });
     }
-    items.push({ ...item, keys: assigned });
+    return items;
+  } catch (error) {
+    // Rollback: unmark all assigned keys
+    for (const key of assignedKeyDocs) {
+      await Inventory.findByIdAndUpdate(key._id, { isUsed: false, order: null, usedAt: null });
+    }
+    throw error;
   }
-  return items;
+};
+
+const resendDelivery = async (order) => {
+  try {
+    const user = order.user || await User.findById(order.user);
+    if (!user) {
+      console.error(`User not found for order ${order.orderId}`);
+      throw new Error('User not found');
+    }
+
+    const items = order.items || [];
+    const allKeys = items.flatMap(i => i.keys || []);
+    const customerEmail = order.customerInfo?.email || user.email;
+    const customerPhone = order.customerInfo?.phone || user.phone;
+    const customerName = order.customerInfo?.name || user.name;
+
+    if (process.env.SMTP_HOST) {
+      try {
+        await sendKeyEmail({
+          to: customerEmail,
+          subject: 'Your Software Keys from PC Deals India',
+          productName: items.map(i => i.productName).join(', '),
+          keys: allKeys,
+          orderId: order.orderId,
+          customerName,
+        });
+      } catch (e) {
+        console.error('Email resend error:', e.message);
+      }
+    } else {
+      console.log(`[Resend] Email not configured — would send to ${customerEmail}`);
+    }
+
+    if (process.env.WHATSAPP_API_KEY && process.env.WHATSAPP_API_KEY !== 'your_gupshup_api_key') {
+      try {
+        await sendKeyWhatsApp({
+          phone: customerPhone,
+          customerName,
+          productName: items[0]?.productName || 'Product',
+          key: allKeys[0] || '',
+          orderId: order.orderId,
+        });
+      } catch (e) {
+        console.error('WhatsApp resend error:', e.message);
+      }
+    } else {
+      console.log(`[Resend] WhatsApp not configured — would send to ${customerPhone}`);
+    }
+
+    return order;
+  } catch (error) {
+    console.error('Resend delivery error:', error.message);
+    throw error;
+  }
 };
 
 const processOrderDeliveryInternal = async (order) => {
@@ -72,7 +136,7 @@ const processOrderDeliveryInternal = async (order) => {
 
     const allKeys = items.flatMap(i => i.keys);
 
-    if (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'smtp.gmail.com') {
+    if (process.env.SMTP_HOST) {
       try {
         await sendKeyEmail({
           to: order.customerInfo?.email || user.email,
@@ -107,7 +171,9 @@ const processOrderDeliveryInternal = async (order) => {
 
     try {
       const invoicePdf = await generateInvoice(order, user);
-      const invoiceDir = path.join(__dirname, '..', 'invoices');
+      const invoiceDir = process.env.RENDER || process.env.VERCEL
+        ? '/tmp/invoices'
+        : path.join(__dirname, '..', 'invoices');
       if (!fs.existsSync(invoiceDir)) {
         fs.mkdirSync(invoiceDir, { recursive: true });
       }
@@ -144,4 +210,4 @@ const processOrderDeliveryInternal = async (order) => {
 
 const processOrderDelivery = (order) => enqueueDelivery(order);
 
-module.exports = { processOrderDelivery };
+module.exports = { processOrderDelivery, resendDelivery };

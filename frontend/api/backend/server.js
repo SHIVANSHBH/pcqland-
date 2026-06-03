@@ -65,6 +65,9 @@ app.use((req, res, next) => {
   const csrfExempt = ['/api/auth', '/api/admin/upload', '/api/admin/inventory/upload', '/api/admin/settings'];
   if (csrfExempt.some(p => req.path.startsWith(p))) return next();
 
+  // Bearer token = immune to CSRF (stored in localStorage, not auto-sent cross-origin)
+  if (req.headers.authorization?.startsWith('Bearer ')) return next();
+
   if (!req.cookies.csrf_token) {
     const csrfToken = crypto.randomBytes(32).toString('hex');
     res.cookie('csrf_token', csrfToken, {
@@ -95,6 +98,11 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/invoices', express.static(path.join(__dirname, 'invoices')));
+if (process.env.RENDER || process.env.VERCEL) {
+  const tmpInvoiceDir = '/tmp/invoices';
+  if (!require('fs').existsSync(tmpInvoiceDir)) require('fs').mkdirSync(tmpInvoiceDir, { recursive: true });
+  app.use('/invoices', express.static(tmpInvoiceDir));
+}
 
 // Apply rate limiters
 app.use('/api/auth', authLimiter);
