@@ -55,7 +55,7 @@ router.post('/login', async (req, res) => {
     const Token = require('../models/Token');
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
-    const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'none', maxAge: 15 * 60 * 1000, path: '/' };
+    const cookieOptions = { httpOnly: true, secure: true, sameSite: 'none', maxAge: 15 * 60 * 1000, path: '/' };
     res.cookie('token', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, {
       ...cookieOptions,

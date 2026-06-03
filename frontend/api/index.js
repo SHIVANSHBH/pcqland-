@@ -8,6 +8,8 @@ const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const passport = require('passport');
 
+process.env.NODE_ENV = process.env.NODE_ENV || 'production';
+
 const app = express();
 
 app.use(compression());
@@ -45,7 +47,7 @@ app.use(cors({
 app.use(cookieParser());
 
 app.use((req, res, next) => {
-  const csrfExempt = ['/api/auth/csrf', '/api/admin/upload', '/api/admin/inventory/upload'];
+  const csrfExempt = ['/api/auth', '/api/admin/upload', '/api/admin/inventory/upload'];
   if (csrfExempt.some(p => req.path.startsWith(p))) return next();
   if (!req.cookies.csrf_token) {
     const csrfToken = crypto.randomBytes(32).toString('hex');

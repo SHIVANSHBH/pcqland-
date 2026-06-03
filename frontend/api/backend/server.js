@@ -1,4 +1,5 @@
 require('dotenv').config();
+process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -61,14 +62,14 @@ app.use(cookieParser());
 
 // CSRF protection (double-submit cookie pattern)
 app.use((req, res, next) => {
-  const csrfExempt = ['/api/auth/csrf', '/api/admin/upload', '/api/admin/inventory/upload', '/api/admin/settings'];
+  const csrfExempt = ['/api/auth', '/api/admin/upload', '/api/admin/inventory/upload', '/api/admin/settings'];
   if (csrfExempt.some(p => req.path.startsWith(p))) return next();
 
   if (!req.cookies.csrf_token) {
     const csrfToken = crypto.randomBytes(32).toString('hex');
     res.cookie('csrf_token', csrfToken, {
       httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'none',
       path: '/',
     });
