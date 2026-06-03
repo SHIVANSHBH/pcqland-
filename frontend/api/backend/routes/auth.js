@@ -15,13 +15,13 @@ const router = express.Router();
 const registerSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   email: z.string().email('Invalid email'),
-  phone: z.string().min(10, 'Invalid phone').max(15),
+  phone: z.string().min(10, 'Invalid phone').max(20),
   password: z.string().min(6, 'Password must be at least 6 characters').max(128),
 });
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email').optional(),
-  phone: z.string().min(10).max(15).optional(),
+  phone: z.string().min(10).max(20).optional(),
   password: z.string().min(1, 'Password is required'),
 }).refine(d => d.email || d.phone, { message: 'Email or phone is required' });
 
@@ -29,8 +29,8 @@ const emailSchema = z.object({ email: z.string().email('Invalid email') });
 const codeSchema = z.object({ email: z.string().email('Invalid email'), code: z.string().length(6, 'Code must be 6 digits') });
 const resetPasswordSchema = z.object({ email: z.string().email('Invalid email'), code: z.string().length(6), password: z.string().min(6).max(128) });
 const changePasswordSchema = z.object({ currentPassword: z.string().min(1), newPassword: z.string().min(6).max(128) });
-const phoneSchema = z.object({ phone: z.string().min(10).max(15) });
-const otpSchema = z.object({ phone: z.string().min(10).max(15), otp: z.string().length(6) });
+const phoneSchema = z.object({ phone: z.string().min(10).max(20) });
+const otpSchema = z.object({ phone: z.string().min(10).max(20), otp: z.string().length(6) });
 
 router.post('/register', validate(registerSchema), async (req, res) => {
   try {
@@ -60,7 +60,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
 
-    if (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'smtp.gmail.com') {
+    if (process.env.SMTP_HOST) {
       sendGenericEmail({ to: user.email, ...verificationEmail(name, verificationCode) }).catch(() => {});
     } else {
       console.log(`Verification code for ${email}: ${verificationCode}`);
@@ -116,7 +116,7 @@ router.post('/resend-verification', validate(emailSchema), async (req, res) => {
     const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await User.findByIdAndUpdate(user._id, { verificationCode, verificationCodeExpiry: codeExpiry.toISOString() });
 
-    if (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'smtp.gmail.com') {
+    if (process.env.SMTP_HOST) {
       sendGenericEmail({ to: user.email, ...verificationEmail(user.name, verificationCode) }).catch(() => {});
     } else {
       console.log(`Verification code for ${email}: ${verificationCode}`);
@@ -228,7 +228,7 @@ router.post('/forgot-password', validate(emailSchema), async (req, res) => {
     const user = await User.findOne({ email: normalizedEmail });
     if (user) {
       await User.findByIdAndUpdate(user._id, { resetCode, resetCodeExpiry: codeExpiry.toISOString() });
-      if (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'smtp.gmail.com') {
+      if (process.env.SMTP_HOST) {
         sendGenericEmail({ to: user.email, ...passwordResetEmail(user.name, resetCode) }).catch(() => {});
       } else {
         console.log(`Password reset code for ${email}: ${resetCode}`);
@@ -403,7 +403,7 @@ router.post('/send-email-otp', validate(emailSchema), async (req, res) => {
       await Token.create({ token: otp, type: 'email-otp', email: normalizedEmail, expiresAt: otpExpiry.toISOString() });
     }
 
-    if (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'smtp.gmail.com') {
+    if (process.env.SMTP_HOST) {
       sendGenericEmail({ to: email, subject: 'Your OTP for PC Deals India', text: `Your OTP is ${otp}. It expires in 5 minutes. - PC Deals India` }).catch(() => {});
     } else {
       console.log(`Email OTP for ${email}: ${otp}`);

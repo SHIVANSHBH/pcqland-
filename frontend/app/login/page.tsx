@@ -48,6 +48,7 @@ export default function LoginPage() {
     try {
       const res = await api.post('/auth/login', emailPass);
       setAccessToken(res.data.accessToken);
+      try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');
       if (res.data.user.role === 'admin') router.push('/admin');
       else router.push('/');
@@ -75,6 +76,7 @@ export default function LoginPage() {
     try {
       const res2 = await api.post('/auth/verify-email-otp', { email: emailOtp.email, otp: emailOtp.otp });
       setAccessToken(res2.data.accessToken);
+      try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');
       router.push('/');
     } catch (error: any) { toast.error(error.message); }
@@ -100,6 +102,7 @@ export default function LoginPage() {
     try {
       const res3 = await api.post('/auth/verify-otp', { phone: phoneOtp.phone, otp: phoneOtp.otp });
       setAccessToken(res3.data.accessToken);
+      try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');
       router.push('/');
     } catch (error: any) { toast.error(error.message); }

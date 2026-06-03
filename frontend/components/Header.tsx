@@ -67,24 +67,25 @@ export default function Header() {
     const cachedMe = sessionStorage.getItem('_auth_me');
     if (cachedMe) {
       try { const d = JSON.parse(cachedMe); setIsLoggedIn(true); setUserName(d.data?.name || ''); } catch {}
-    } else {
-      api.get('/auth/me').then(d => {
-        if (d && d.data) {
-          setIsLoggedIn(true);
-          setUserName(d.data.name || '');
-          try { sessionStorage.setItem('_auth_me', JSON.stringify(d)); } catch {}
-        }
-      }).catch(() => setIsLoggedIn(false));
     }
+    api.get('/auth/me').then(d => {
+      if (d && d.data) {
+        setIsLoggedIn(true);
+        setUserName(d.data.name || '');
+        try { sessionStorage.setItem('_auth_me', JSON.stringify(d)); } catch {}
+      }
+    }).catch(() => {
+      if (!cachedMe) setIsLoggedIn(false);
+    });
+
     const cachedSettings = sessionStorage.getItem('_settings');
     if (cachedSettings) {
       try { const s = JSON.parse(cachedSettings); if (s.logo) setLogo(s.logo); } catch {}
-    } else {
-      api.get('/admin/settings').then(s => {
-        if (s.logo) setLogo(s.logo);
-        try { sessionStorage.setItem('_settings', JSON.stringify(s)); } catch {}
-      }).catch(() => {});
     }
+    api.get('/admin/settings').then(s => {
+      if (s.logo) setLogo(s.logo);
+      try { sessionStorage.setItem('_settings', JSON.stringify(s)); } catch {}
+    }).catch(() => {});
     try {
       const cart = JSON.parse(localStorage.getItem('cart') || '[]');
       setCartCount((Array.isArray(cart) ? cart : []).reduce((sum: number, i: any) => sum + (i.quantity || 1), 0));
@@ -102,6 +103,8 @@ export default function Header() {
   const handleLogout = async () => {
     try { await api.post('/auth/logout', {}); } catch {}
     setIsLoggedIn(false);
+    setUserName('');
+    try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
     window.location.href = '/';
   };
 

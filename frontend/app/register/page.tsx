@@ -45,8 +45,10 @@ export default function RegisterPage() {
     try {
       if (!passwordMatch) { toast.error('Passwords do not match'); setLoading(false); return; }
       const { confirmPassword, ...registerData } = form;
+      registerData.phone = registerData.phone.replace(/\D/g, '');
       const res = await api.post('/auth/register', registerData);
       setAccessToken(res.data.accessToken);
+      try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Registration successful!');
       router.push('/');
     } catch (error: any) {
@@ -60,7 +62,8 @@ export default function RegisterPage() {
     if (!phoneReg.phone) { toast.error('Enter phone'); return; }
     setLoading(true);
     try {
-      await api.post('/auth/send-otp', { phone: phoneReg.phone });
+      const cleanPhone = phoneReg.phone.replace(/\D/g, '');
+      await api.post('/auth/send-otp', { phone: cleanPhone });
       setPhoneOtpSent(true);
       toast.success('OTP sent to phone');
       setPhoneOtpTimer(60);
@@ -73,7 +76,9 @@ export default function RegisterPage() {
     if (!phoneReg.otp) { toast.error('Enter OTP'); return; }
     setLoading(true);
     try {
-      await api.post('/auth/verify-otp', { phone: phoneReg.phone, otp: phoneReg.otp });
+      const cleanPhone = phoneReg.phone.replace(/\D/g, '');
+      const res = await api.post('/auth/verify-otp', { phone: cleanPhone, otp: phoneReg.otp });
+      setAccessToken(res.data.accessToken);
       toast.success('Registration & login successful!');
       router.push('/');
     } catch (error: any) { toast.error(error.message); }
