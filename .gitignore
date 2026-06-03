@@ -17,3 +17,5 @@ demo-proxy.js
 start-demo.ps1
 
 .vercel
+.agents/
+skills-lock.json

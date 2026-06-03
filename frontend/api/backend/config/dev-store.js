@@ -280,14 +280,35 @@ function createModel(name, schema = null) {
       return new QueryBuilder(store, processQuery(query));
     },
 
-    findOne: async (query = {}) => {
-      const docs = await store.find(processQuery(query));
-      return docs[0] || null;
+    findOne: function (query = {}) {
+      const qb = new QueryBuilder(store, processQuery(query));
+      qb._limitVal = 1;
+      const thenable = {
+        populate(field, selectStr) {
+          qb.populate(field, selectStr);
+          return thenable;
+        },
+        select(str) {
+          qb.select(str);
+          return thenable;
+        },
+        sort(obj) {
+          qb.sort(obj);
+          return thenable;
+        },
+        then(resolve, reject) {
+          return qb.exec().then(docs => resolve(docs[0] || null), reject);
+        },
+        exec: async () => {
+          const docs = await qb.exec();
+          return docs[0] || null;
+        },
+      };
+      return thenable;
     },
 
-    findById: async (id) => {
-      const doc = await store.findOne({ _id: id });
-      return doc || null;
+    findById: function (id) {
+      return this.findOne({ _id: id });
     },
 
     findByIdAndUpdate: async (id, update, options = {}) => {
@@ -401,8 +422,15 @@ function createModel(name, schema = null) {
             for (const [k, v] of Object.entries(stage.$group)) {
               if (k === '_id') continue;
               if (v.$sum) {
-                const field = typeof v.$sum === 'string' ? v.$sum.replace('$', '') : null;
-                groups[key][k] = (groups[key][k] || 0) + (field ? (d[field] || 0) : 1);
+                let val = v.$sum;
+                if (val && typeof val === 'object' && val.$cond) {
+                  const [condition, trueVal, falseVal] = val.$cond;
+                  const condField = typeof condition === 'string' ? condition.replace('$', '') : '';
+                  const condMatch = condition.$eq ? (d[condition.$eq[0].replace('$', '')] === condition.$eq[1]) : (d[condField] === true);
+                  val = condMatch ? trueVal : falseVal;
+                }
+                const field = typeof val === 'string' ? val.replace('$', '') : null;
+                groups[key][k] = (groups[key][k] || 0) + (field ? (d[field] || 0) : (typeof val === 'number' ? val : 1));
               }
             }
           }

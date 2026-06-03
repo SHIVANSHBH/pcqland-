@@ -61,7 +61,7 @@ app.use(cookieParser());
 
 // CSRF protection (double-submit cookie pattern)
 app.use((req, res, next) => {
-  const csrfExempt = ['/api/auth/csrf', '/api/admin/upload', '/api/admin/inventory/upload'];
+  const csrfExempt = ['/api/auth/csrf', '/api/admin/upload', '/api/admin/inventory/upload', '/api/admin/settings'];
   if (csrfExempt.some(p => req.path.startsWith(p))) return next();
 
   if (!req.cookies.csrf_token) {
@@ -113,17 +113,20 @@ const PORT = process.env.PORT || 5000;
 async function main() {
   await connectDB();
 
-    // Serve frontend static build for non-API routes (production mode)
+  // Serve frontend static build if it exists (production mode)
   const frontendDist = path.join(__dirname, '..', 'frontend');
-  app.use('/_next', express.static(path.join(frontendDist, '.next')));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path.startsWith('/invoices/')) return next();
-    res.sendFile(path.join(frontendDist, '.next', 'server', 'pages', 'index.html'), err => {
-      if (err) res.sendFile(path.join(frontendDist, '.next', 'server', 'app', 'index.html'), err2 => {
-        if (err2) next();
+  const nextBuildDir = path.join(frontendDist, '.next');
+  if (require('fs').existsSync(nextBuildDir)) {
+    app.use('/_next', express.static(path.join(nextBuildDir)));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path.startsWith('/invoices/')) return next();
+      res.sendFile(path.join(nextBuildDir, 'server', 'pages', 'index.html'), err => {
+        if (err) res.sendFile(path.join(nextBuildDir, 'server', 'app', 'index.html'), err2 => {
+          if (err2) next();
+        });
       });
     });
-  });
+  }
 
   // Routes (loaded after DB connection so models know which backend to use)
   app.use('/api/auth', require('./routes/auth'));

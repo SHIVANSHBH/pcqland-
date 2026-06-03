@@ -153,7 +153,7 @@
 
 /* Category Submenu */
 .category-submenu {
-  @apply absolute top-full left-0 mt-1 bg-white border border-pcd-border rounded-xl shadow-xl z-50 min-w-[240px] sm:min-w-[280px] p-4 hidden;
+  @apply absolute top-full left-0 mt-1 bg-white border border-pcd-border rounded-xl shadow-xl z-50 min-w-[200px] sm:min-w-[240px] lg:min-w-[280px] p-3 sm:p-4 hidden;
 }
 
 .category-flyout:hover .category-submenu,
@@ -230,7 +230,7 @@
 }
 
 .review-card {
-  @apply bg-white border border-pcd-border rounded-2xl p-6 min-w-[240px] sm:min-w-[260px] flex-shrink-0;
+  @apply bg-white border border-pcd-border rounded-2xl p-4 sm:p-6 min-w-[200px] sm:min-w-[240px] lg:min-w-[260px] flex-shrink-0;
 }
 
 .review-top {

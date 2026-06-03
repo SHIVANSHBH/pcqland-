@@ -159,7 +159,7 @@ function SearchResults() {
                   <span className="card-price font-extrabold text-primary">{formatPrice(product.price)}</span>
                   <span className="text-sm text-pcd-muted line-through">{formatPrice(product.mrp)}</span>
                 </div>
-                <div className="mt-2 text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                <div className="mt-2 text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                   Instant Delivery
                 </div>

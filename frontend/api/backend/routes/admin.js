@@ -76,10 +76,10 @@ router.get('/dashboard', adminAuth, async (req, res) => {
       Order.aggregate([{ $match: { paymentStatus: 'paid' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
       Order.countDocuments({ createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } }),
       Inventory.countDocuments({ isUsed: false }),
-      User.countDocuments({ role: 'user' }),
+      User.countDocuments({ role: 'customer' }),
     ]);
     const walletLiability = await User.aggregate([
-      { $match: { role: 'user' } },
+      { $match: { role: 'customer' } },
       { $group: { _id: null, total: { $sum: '$walletBalance' } } },
     ]);
     res.json({
@@ -239,7 +239,7 @@ router.post('/orders/:id/refund', adminAuth, async (req, res) => {
 
 // Users
 router.get('/users', adminAuth, async (req, res) => {
-  const users = await User.find({ role: 'user' }).sort({ createdAt: -1 });
+  const users = await User.find({ role: 'customer' }).sort({ createdAt: -1 });
   res.json(users);
 });
 

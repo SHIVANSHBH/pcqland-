@@ -64,13 +64,27 @@ export default function Header() {
   }
 
   useEffect(() => {
-    api.get('/auth/me').then(d => {
-      if (d && d.data) {
-        setIsLoggedIn(true);
-        setUserName(d.data.name || '');
-      }
-    }).catch(() => setIsLoggedIn(false));
-    api.get('/admin/settings').then(s => { if (s.logo) setLogo(s.logo); }).catch(() => {});
+    const cachedMe = sessionStorage.getItem('_auth_me');
+    if (cachedMe) {
+      try { const d = JSON.parse(cachedMe); setIsLoggedIn(true); setUserName(d.data?.name || ''); } catch {}
+    } else {
+      api.get('/auth/me').then(d => {
+        if (d && d.data) {
+          setIsLoggedIn(true);
+          setUserName(d.data.name || '');
+          try { sessionStorage.setItem('_auth_me', JSON.stringify(d)); } catch {}
+        }
+      }).catch(() => setIsLoggedIn(false));
+    }
+    const cachedSettings = sessionStorage.getItem('_settings');
+    if (cachedSettings) {
+      try { const s = JSON.parse(cachedSettings); if (s.logo) setLogo(s.logo); } catch {}
+    } else {
+      api.get('/admin/settings').then(s => {
+        if (s.logo) setLogo(s.logo);
+        try { sessionStorage.setItem('_settings', JSON.stringify(s)); } catch {}
+      }).catch(() => {});
+    }
     try {
       const cart = JSON.parse(localStorage.getItem('cart') || '[]');
       setCartCount((Array.isArray(cart) ? cart : []).reduce((sum: number, i: any) => sum + (i.quantity || 1), 0));
@@ -119,7 +133,7 @@ export default function Header() {
               )}
               <div className="hidden lg:block">
                 <h1 className="text-sm font-extrabold text-pcd-text leading-tight">PC Deals India</h1>
-                <p className="text-[10px] text-pcd-muted">Genuine Software Keys</p>
+                <p className="text-[10px] sm:text-xs text-pcd-muted">Genuine Software Keys</p>
               </div>
             </div>
           </Link>
@@ -152,7 +166,7 @@ export default function Header() {
             <Link href="/cart" className="relative p-1.5 sm:p-2.5 text-pcd-text hover:text-primary transition-colors">
               <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center">{cartCount}</span>
+                <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-primary text-white text-[10px] sm:text-xs font-bold rounded-full flex items-center justify-center">{cartCount}</span>
               )}
             </Link>
 

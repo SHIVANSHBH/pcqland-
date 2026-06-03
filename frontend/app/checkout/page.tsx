@@ -227,7 +227,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold text-pcd-text truncate">{item.name || item.slug}</p>
-                  <p className="text-[10px] text-pcd-muted">{formatPrice(item.price || 0)} x {item.quantity}</p>
+                  <p className="text-[11px] text-pcd-muted">{formatPrice(item.price || 0)} x {item.quantity}</p>
                 </div>
                 <div className="flex items-center border border-pcd-border rounded-md ml-auto">
                   <button onClick={() => updateItemQty(item.slug, -1)} className="px-2.5 py-1.5 text-pcd-muted hover:text-pcd-text text-xs">-</button>
@@ -263,7 +263,7 @@ export default function CheckoutPage() {
             {loading ? 'Processing...' : `Pay ${formatPrice(total)} Securely`}
           </button>
 
-          <div className="mt-4 text-[10px] text-pcd-muted text-center">
+          <div className="mt-4 text-[11px] text-pcd-muted text-center">
             Your payment is processed securely via Razorpay. We do not store your card details.
           </div>
         </div>

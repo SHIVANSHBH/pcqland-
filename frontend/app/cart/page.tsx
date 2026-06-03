@@ -68,7 +68,7 @@ export default function CartPage() {
                   </div>
                   <p className="text-sm font-extrabold text-pcd-text hidden sm:block">{formatPrice(item.price * item.quantity)}</p>
                 </div>
-                <div className="flex items-center justify-between sm:justify-end gap-3 mt-3 sm:mt-0 sm:ml-[72px]">
+                <div className="flex items-center justify-between sm:justify-end gap-3 mt-3 sm:mt-0 sm:ml-[72px] flex-wrap">
                   <div className="flex items-center border border-pcd-border rounded-lg">
                     <button onClick={() => updateQty(item.slug, -1)} className="px-2.5 py-1.5 sm:px-3 sm:py-2 text-pcd-muted hover:text-pcd-text text-sm">-</button>
                     <span className="px-2.5 py-1.5 sm:px-3 sm:py-2 text-sm font-semibold border-x border-pcd-border">{item.quantity}</span>

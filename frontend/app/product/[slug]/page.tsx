@@ -438,22 +438,22 @@ export default function ProductPage({ params }: PageProps) {
         <div className="bg-white border border-pcd-border rounded-xl p-4 text-center">
           <Zap className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
           <h6 className="text-xs font-bold text-pcd-text">Instant Delivery</h6>
-          <p className="text-[10px] text-pcd-muted">On Email & WhatsApp</p>
+          <p className="text-[11px] text-pcd-muted">On Email & WhatsApp</p>
         </div>
         <div className="bg-white border border-pcd-border rounded-xl p-4 text-center">
           <Shield className="w-6 h-6 text-blue-500 mx-auto mb-2" />
           <h6 className="text-xs font-bold text-pcd-text">100% Genuine</h6>
-          <p className="text-[10px] text-pcd-muted">Original License Keys</p>
+          <p className="text-[11px] text-pcd-muted">Original License Keys</p>
         </div>
         <div className="bg-white border border-pcd-border rounded-xl p-4 text-center">
           <FileText className="w-6 h-6 text-amber-500 mx-auto mb-2" />
           <h6 className="text-xs font-bold text-pcd-text">GST Invoice</h6>
-          <p className="text-[10px] text-pcd-muted">Claim Input Tax Credit</p>
+          <p className="text-[11px] text-pcd-muted">Claim Input Tax Credit</p>
         </div>
         <div className="bg-white border border-pcd-border rounded-xl p-4 text-center">
           <CheckCircle className="w-6 h-6 text-green-500 mx-auto mb-2" />
           <h6 className="text-xs font-bold text-pcd-text">Validity</h6>
-          <p className="text-[10px] text-pcd-muted">{product.validity || 'Lifetime'}</p>
+          <p className="text-[11px] text-pcd-muted">{product.validity || 'Lifetime'}</p>
         </div>
       </div>
     </div>
