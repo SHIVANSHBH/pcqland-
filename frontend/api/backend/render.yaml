@@ -9,6 +9,8 @@ services:
         value: production
       - key: CLIENT_URL
         value: https://pcqland.vercel.app
+      - key: BACKEND_URL
+        value: https://pcdeals-backend.onrender.com
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_ACCESS_EXPIRES
