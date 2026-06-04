@@ -51,7 +51,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
       phone,
       password: hashed,
       role: 'customer',
-      isVerified: false,
+      isVerified: process.env.SMTP_HOST ? false : true,
       verificationCode,
       verificationCodeExpiry: codeExpiry.toISOString(),
     });

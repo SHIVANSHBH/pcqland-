@@ -47,10 +47,12 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await api.post('/auth/login', emailPass);
-      setAccessToken(res.data.accessToken);
+      const loginData = res?.data;
+      if (!loginData?.accessToken) throw new Error('Invalid response');
+      setAccessToken(loginData.accessToken);
       try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');
-      if (res.data.user.role === 'admin') router.push('/admin');
+      if (loginData.user?.role === 'admin') router.push('/admin');
       else router.push('/');
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
@@ -75,6 +77,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res2 = await api.post('/auth/verify-email-otp', { email: emailOtp.email, otp: emailOtp.otp });
+      if (!res2?.data?.accessToken) throw new Error('Invalid response');
       setAccessToken(res2.data.accessToken);
       try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');
@@ -103,6 +106,7 @@ export default function LoginPage() {
     try {
       const cleanPhone = phoneOtp.phone.replace(/\D/g, '');
       const res3 = await api.post('/auth/verify-otp', { phone: cleanPhone, otp: phoneOtp.otp });
+      if (!res3?.data?.accessToken) throw new Error('Invalid response');
       setAccessToken(res3.data.accessToken);
       try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');

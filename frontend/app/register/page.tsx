@@ -48,6 +48,7 @@ export default function RegisterPage() {
       const cleanPhone = phone.replace(/\D/g, '');
       const body = cleanPhone ? { ...rest, phone: cleanPhone } : rest;
       const res = await api.post('/auth/register', body);
+      if (!res?.data?.accessToken) throw new Error('Invalid response');
       setAccessToken(res.data.accessToken);
       try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Registration successful!');
@@ -79,6 +80,7 @@ export default function RegisterPage() {
     try {
       const cleanPhone = phoneReg.phone.replace(/\D/g, '');
       const res = await api.post('/auth/verify-otp', { phone: cleanPhone, otp: phoneReg.otp });
+      if (!res?.data?.accessToken) throw new Error('Invalid response');
       setAccessToken(res.data.accessToken);
       toast.success('Registration & login successful!');
       router.push('/');
