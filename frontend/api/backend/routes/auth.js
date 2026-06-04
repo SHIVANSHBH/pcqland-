@@ -15,13 +15,13 @@ const router = express.Router();
 const registerSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   email: z.string().email('Invalid email'),
-  phone: z.string().min(10, 'Invalid phone').max(20),
+  phone: z.string().min(7).max(20).optional(),
   password: z.string().min(6, 'Password must be at least 6 characters').max(128),
 });
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email').optional(),
-  phone: z.string().min(10).max(20).optional(),
+  phone: z.string().min(7).max(20).optional(),
   password: z.string().min(1, 'Password is required'),
 }).refine(d => d.email || d.phone, { message: 'Email or phone is required' });
 
@@ -29,8 +29,8 @@ const emailSchema = z.object({ email: z.string().email('Invalid email') });
 const codeSchema = z.object({ email: z.string().email('Invalid email'), code: z.string().length(6, 'Code must be 6 digits') });
 const resetPasswordSchema = z.object({ email: z.string().email('Invalid email'), code: z.string().length(6), password: z.string().min(6).max(128) });
 const changePasswordSchema = z.object({ currentPassword: z.string().min(1), newPassword: z.string().min(6).max(128) });
-const phoneSchema = z.object({ phone: z.string().min(10).max(20) });
-const otpSchema = z.object({ phone: z.string().min(10).max(20), otp: z.string().length(6) });
+const phoneSchema = z.object({ phone: z.string().min(7).max(20) });
+const otpSchema = z.object({ phone: z.string().min(7).max(20), otp: z.string().length(6) });
 
 router.post('/register', validate(registerSchema), async (req, res) => {
   try {

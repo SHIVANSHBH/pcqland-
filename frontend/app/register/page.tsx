@@ -46,6 +46,7 @@ export default function RegisterPage() {
       if (!passwordMatch) { toast.error('Passwords do not match'); setLoading(false); return; }
       const { confirmPassword, ...registerData } = form;
       registerData.phone = registerData.phone.replace(/\D/g, '');
+      if (!registerData.phone) delete registerData.phone;
       const res = await api.post('/auth/register', registerData);
       setAccessToken(res.data.accessToken);
       try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
