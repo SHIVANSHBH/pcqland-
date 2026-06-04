@@ -41,7 +41,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
       return error(res, 'Email or phone already registered', 400);
     }
 
-    const hashed = await bcrypt.hash(password, 10);
+    const hashed = require('../config/db').isUsingMongo() ? password : await bcrypt.hash(password, 10);
     const verificationCode = generateCode();
     const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -595,7 +595,7 @@ router.post('/seed-admin', async (req, res) => {
     if (existing) {
       return success(res, { email: existing.email }, 'Admin already exists');
     }
-    const hashed = await bcrypt.hash('Admin@123', 10);
+    const hashed = require('../config/db').isUsingMongo() ? 'Admin@123' : await bcrypt.hash('Admin@123', 10);
     const user = await User.create({
       name: 'Admin',
       email: 'admin@pcdeals.com',
