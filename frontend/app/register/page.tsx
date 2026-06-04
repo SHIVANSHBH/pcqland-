@@ -44,10 +44,10 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       if (!passwordMatch) { toast.error('Passwords do not match'); setLoading(false); return; }
-      const { confirmPassword, ...registerData } = form;
-      registerData.phone = registerData.phone.replace(/\D/g, '');
-      if (!registerData.phone) delete registerData.phone;
-      const res = await api.post('/auth/register', registerData);
+      const { confirmPassword, phone, ...rest } = form;
+      const cleanPhone = phone.replace(/\D/g, '');
+      const body = cleanPhone ? { ...rest, phone: cleanPhone } : rest;
+      const res = await api.post('/auth/register', body);
       setAccessToken(res.data.accessToken);
       try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Registration successful!');

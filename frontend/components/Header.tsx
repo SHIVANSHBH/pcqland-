@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { api } from '@/lib/api';
 import Image from 'next/image';
 import { Search, User, ShoppingCart, Menu, X, ChevronDown, Phone, Headphones } from 'lucide-react';
@@ -45,6 +45,7 @@ const categories = [
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -98,7 +99,7 @@ export default function Header() {
     };
     window.addEventListener('storage', handleCart);
     return () => window.removeEventListener('storage', handleCart);
-  }, []);
+  }, [pathname]);
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout', {}); } catch {}
