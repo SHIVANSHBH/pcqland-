@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { setAccessToken, clearAuth } from '@/lib/api';
+import { syncAuthAndRedirect } from '@/lib/auth-sync';
 import toast from 'react-hot-toast';
 import { Lock, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap } from 'lucide-react';
 
@@ -67,11 +68,12 @@ export default function LoginPage() {
       }
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
-        setAccessToken(session.access_token);
+        await syncAuthAndRedirect(session.access_token, router);
+      } else {
+        router.push('/');
+        router.refresh();
       }
       toast.success('Login successful!');
-      router.push('/');
-      router.refresh();
     } catch (err: any) {
       toast.error(err.message || 'Login failed');
     } finally {
@@ -124,11 +126,9 @@ export default function LoginPage() {
       }
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
-        setAccessToken(session.access_token);
+        await syncAuthAndRedirect(session.access_token, router);
       }
       toast.success('Login successful!');
-      router.push('/');
-      router.refresh();
     } catch (error: any) { toast.error(error.message); }
     finally { setLoading(false); }
   }
@@ -168,11 +168,9 @@ export default function LoginPage() {
       if (!data.success) { toast.error(data.message); return; }
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
-        setAccessToken(session.access_token);
+        await syncAuthAndRedirect(session.access_token, router);
       }
       toast.success('Login successful!');
-      router.push('/');
-      router.refresh();
     } catch (error: any) { toast.error(error.message); }
     finally { setLoading(false); }
   }

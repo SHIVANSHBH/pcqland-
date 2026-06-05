@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { setAccessToken } from '@/lib/api';
+import { syncAuthAndRedirect } from '@/lib/auth-sync';
 import toast from 'react-hot-toast';
 import { UserPlus, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap } from 'lucide-react';
 
@@ -77,11 +78,12 @@ export default function SignupPage() {
 
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
-        setAccessToken(session.access_token);
+        await syncAuthAndRedirect(session.access_token, router);
+      } else {
+        toast.success('Registration successful! Please check your email to verify your account.');
+        router.push('/login');
+        router.refresh();
       }
-      toast.success('Registration successful!');
-      router.push('/');
-      router.refresh();
     } catch (error: any) {
       toast.error(error.message || 'Registration failed');
     } finally {
@@ -122,9 +124,14 @@ export default function SignupPage() {
       });
       const data = await res.json();
       if (!data.success) { toast.error(data.message); return; }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        await syncAuthAndRedirect(session.access_token, router);
+      } else {
+        router.push('/');
+        router.refresh();
+      }
       toast.success('Registration & login successful!');
-      router.push('/');
-      router.refresh();
     } catch (error: any) { toast.error(error.message); }
     finally { setLoading(false); }
   }
