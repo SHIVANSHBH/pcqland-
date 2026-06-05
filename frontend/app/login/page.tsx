@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { setAccessToken } from '@/lib/api';
+import { setAccessToken, setRefreshToken } from '@/lib/api';
 import { Lock, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap, CheckCircle } from 'lucide-react';
 
 type Tab = 'password' | 'phone-otp' | 'email-otp';
@@ -59,6 +59,7 @@ export default function LoginPage() {
       const loginData = res?.data;
       if (!loginData?.accessToken) throw new Error('Invalid response');
       setAccessToken(loginData.accessToken);
+      if (loginData.refreshToken) setRefreshToken(loginData.refreshToken);
       try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');
       if (loginData.user?.role === 'admin') router.push('/admin');
@@ -89,9 +90,11 @@ export default function LoginPage() {
       const res2 = await api.post('/auth/verify-email-otp', { email: emailOtp.email, otp: emailOtp.otp });
       if (!res2?.data?.accessToken) throw new Error('Invalid response');
       setAccessToken(res2.data.accessToken);
+      if (res2.data.refreshToken) setRefreshToken(res2.data.refreshToken);
       try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');
-      router.push('/');
+      if (res2.data.user?.role === 'admin') router.push('/admin');
+      else router.push('/');
     } catch (error: any) { toast.error(error.message); }
     finally { setLoading(false); }
   }
@@ -119,9 +122,11 @@ export default function LoginPage() {
       const res3 = await api.post('/auth/verify-otp', { phone: cleanPhone, otp: phoneOtp.otp });
       if (!res3?.data?.accessToken) throw new Error('Invalid response');
       setAccessToken(res3.data.accessToken);
+      if (res3.data.refreshToken) setRefreshToken(res3.data.refreshToken);
       try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');
-      router.push('/');
+      if (res3.data.user?.role === 'admin') router.push('/admin');
+      else router.push('/');
     } catch (error: any) { toast.error(error.message); }
     finally { setLoading(false); }
   }

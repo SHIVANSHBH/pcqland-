@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Token = require('../models/Token');
-const { auth, adminAuth, sanitize, generateRefreshToken, generateCode } = require('../middleware/auth');
+const { auth, adminAuth, sanitize, generateRefreshToken, generateCode, hashCode } = require('../middleware/auth');
 const { validate, z } = require('../middleware/validate');
 const { success, error } = require('../utils/response');
 const { sendGenericEmail } = require('../utils/email');
@@ -52,7 +52,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
       password: hashed,
       role: 'customer',
       isVerified: process.env.SMTP_HOST ? false : true,
-      verificationCode,
+      verificationCode: hashCode(verificationCode),
       verificationCodeExpiry: codeExpiry.toISOString(),
     });
 
@@ -66,17 +66,18 @@ router.post('/register', validate(registerSchema), async (req, res) => {
       console.log(`Verification code for ${email}: ${verificationCode}`);
     }
 
+    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
     const cookieOptions = {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      maxAge: 15 * 60 * 1000,
+      maxAge: tokenMaxAge,
       path: '/',
     };
     res.cookie('token', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, {
       ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: tokenMaxAge,
       path: '/api/auth/refresh-token',
     });
 
@@ -94,7 +95,7 @@ router.post('/verify-email', validate(codeSchema), async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return error(res, 'User not found', 404);
     if (user.isVerified) return success(res, null, 'Email already verified');
-    if (user.verificationCode !== code) return error(res, 'Invalid verification code', 400);
+    if (user.verificationCode !== hashCode(code)) return error(res, 'Invalid verification code', 400);
     if (new Date(user.verificationCodeExpiry) < new Date()) return error(res, 'Verification code expired', 400);
 
     await User.findByIdAndUpdate(user._id, { isVerified: true, verificationCode: '', verificationCodeExpiry: '' });
@@ -114,7 +115,7 @@ router.post('/resend-verification', validate(emailSchema), async (req, res) => {
 
     const verificationCode = generateCode();
     const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
-    await User.findByIdAndUpdate(user._id, { verificationCode, verificationCodeExpiry: codeExpiry.toISOString() });
+    await User.findByIdAndUpdate(user._id, { verificationCode: hashCode(verificationCode), verificationCodeExpiry: codeExpiry.toISOString() });
 
     if (process.env.SMTP_HOST) {
       sendGenericEmail({ to: user.email, ...verificationEmail(user.name, verificationCode) }).catch(() => {});
@@ -153,17 +154,18 @@ router.post('/login', validate(loginSchema), async (req, res) => {
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
 
+    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
     const cookieOptions = {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      maxAge: 15 * 60 * 1000,
+      maxAge: tokenMaxAge,
       path: '/',
     };
     res.cookie('token', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, {
       ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: tokenMaxAge,
       path: '/api/auth/refresh-token',
     });
 
@@ -191,7 +193,7 @@ router.post('/refresh-token', async (req, res) => {
 
     await Token.findByIdAndDelete(stored._id);
 
-    const newAccessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' });
+    const newAccessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
     const newRefreshToken = generateRefreshToken();
     await Token.create({ token: newRefreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
 
@@ -227,7 +229,7 @@ router.post('/forgot-password', validate(emailSchema), async (req, res) => {
 
     const user = await User.findOne({ email: normalizedEmail });
     if (user) {
-      await User.findByIdAndUpdate(user._id, { resetCode, resetCodeExpiry: codeExpiry.toISOString() });
+      await User.findByIdAndUpdate(user._id, { resetCode: hashCode(resetCode), resetCodeExpiry: codeExpiry.toISOString() });
       if (process.env.SMTP_HOST) {
         sendGenericEmail({ to: user.email, ...passwordResetEmail(user.name, resetCode) }).catch(() => {});
       } else {
@@ -247,7 +249,7 @@ router.post('/reset-password', validate(resetPasswordSchema), async (req, res) =
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return error(res, 'Invalid request', 400);
-    if (user.resetCode !== code) return error(res, 'Invalid reset code', 400);
+    if (user.resetCode !== hashCode(code)) return error(res, 'Invalid reset code', 400);
     if (new Date(user.resetCodeExpiry) < new Date()) return error(res, 'Reset code expired', 400);
 
     const hashed = await bcrypt.hash(password, 10);
@@ -368,17 +370,18 @@ router.post('/google', async (req, res) => {
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
 
+    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
     const cookieOptions = {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      maxAge: 15 * 60 * 1000,
+      maxAge: tokenMaxAge,
       path: '/',
     };
     res.cookie('token', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, {
       ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: tokenMaxAge,
       path: '/api/auth/refresh-token',
     });
 
@@ -398,9 +401,9 @@ router.post('/send-email-otp', validate(emailSchema), async (req, res) => {
 
     let user = await User.findOne({ email: normalizedEmail });
     if (user) {
-      await User.findByIdAndUpdate(user._id, { emailOtp: otp, emailOtpExpiry: otpExpiry.toISOString() });
+      await User.findByIdAndUpdate(user._id, { emailOtp: hashCode(otp), emailOtpExpiry: otpExpiry.toISOString() });
     } else {
-      await Token.create({ token: otp, type: 'email-otp', email: normalizedEmail, expiresAt: otpExpiry.toISOString() });
+      await Token.create({ token: hashCode(otp), type: 'email-otp', email: normalizedEmail, expiresAt: otpExpiry.toISOString() });
     }
 
     if (process.env.SMTP_HOST) {
@@ -422,11 +425,11 @@ router.post('/verify-email-otp', validate(z.object({ email: z.string().email(), 
 
     let user = await User.findOne({ email: normalizedEmail });
     if (user) {
-      if (user.emailOtp !== otp) return error(res, 'Invalid OTP', 400);
+      if (user.emailOtp !== hashCode(otp)) return error(res, 'Invalid OTP', 400);
       if (new Date(user.emailOtpExpiry) < new Date()) return error(res, 'OTP expired', 400);
       await User.findByIdAndUpdate(user._id, { isVerified: true, emailOtp: '', emailOtpExpiry: '' });
     } else {
-      const otpRecord = await Token.findOne({ token: otp, type: 'email-otp', email: normalizedEmail });
+      const otpRecord = await Token.findOne({ token: hashCode(otp), type: 'email-otp', email: normalizedEmail });
       if (!otpRecord) return error(res, 'Invalid OTP', 400);
       if (new Date(otpRecord.expiresAt) < new Date()) return error(res, 'OTP expired', 400);
       await Token.findByIdAndDelete(otpRecord._id);
@@ -442,17 +445,18 @@ router.post('/verify-email-otp', validate(z.object({ email: z.string().email(), 
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
 
+    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
     const cookieOptions = {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      maxAge: 15 * 60 * 1000,
+      maxAge: tokenMaxAge,
       path: '/',
     };
     res.cookie('token', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, {
       ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: tokenMaxAge,
       path: '/api/auth/refresh-token',
     });
 
@@ -471,9 +475,9 @@ router.post('/send-otp', validate(phoneSchema), async (req, res) => {
 
     let user = await User.findOne({ phone });
     if (user) {
-      await User.findByIdAndUpdate(user._id, { otp, otpExpiry: otpExpiry.toISOString() });
+      await User.findByIdAndUpdate(user._id, { otp: hashCode(otp), otpExpiry: otpExpiry.toISOString() });
     } else {
-      await Token.create({ token: otp, type: 'otp', phone, expiresAt: otpExpiry.toISOString() });
+      await Token.create({ token: hashCode(otp), type: 'otp', phone, expiresAt: otpExpiry.toISOString() });
     }
 
     if (process.env.WHATSAPP_API_KEY && process.env.WHATSAPP_API_KEY !== 'your_gupshup_api_key') {
@@ -503,11 +507,11 @@ router.post('/verify-otp', validate(otpSchema), async (req, res) => {
 
     let user = await User.findOne({ phone });
     if (user) {
-      if (user.otp !== otp) return error(res, 'Invalid OTP', 400);
+      if (user.otp !== hashCode(otp)) return error(res, 'Invalid OTP', 400);
       if (new Date(user.otpExpiry) < new Date()) return error(res, 'OTP expired', 400);
       await User.findByIdAndUpdate(user._id, { isVerified: true, otp: '', otpExpiry: '' });
     } else {
-      const otpRecord = await Token.findOne({ token: otp, type: 'otp', phone });
+      const otpRecord = await Token.findOne({ token: hashCode(otp), type: 'otp', phone });
       if (!otpRecord) return error(res, 'Invalid OTP', 400);
       if (new Date(otpRecord.expiresAt) < new Date()) return error(res, 'OTP expired', 400);
       await Token.findByIdAndDelete(otpRecord._id);
@@ -523,67 +527,22 @@ router.post('/verify-otp', validate(otpSchema), async (req, res) => {
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
 
+    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
     const cookieOptions = {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      maxAge: 15 * 60 * 1000,
+      maxAge: tokenMaxAge,
       path: '/',
     };
     res.cookie('token', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, {
       ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: tokenMaxAge,
       path: '/api/auth/refresh-token',
     });
 
     success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Login successful');
-  } catch (err) {
-    error(res, err.message);
-  }
-});
-
-router.get('/me', auth, async (req, res) => {
-  success(res, req.user, 'Profile fetched');
-});
-
-router.put('/profile', auth, async (req, res) => {
-  try {
-    const allowed = ['name', 'address', 'gstin'];
-    const updates = {};
-    for (const field of allowed) {
-      if (req.body[field] !== undefined) updates[field] = req.body[field];
-    }
-    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true });
-    success(res, sanitize(user), 'Profile updated');
-  } catch (err) {
-    error(res, err.message);
-  }
-});
-
-router.get('/ping', (req, res) => {
-  res.json({ pong: true });
-});
-
-router.get('/csrf', (req, res) => {
-  const token = req.cookies.csrf_token || crypto.randomBytes(32).toString('hex');
-  if (!req.cookies.csrf_token) {
-    res.cookie('csrf_token', token, {
-      httpOnly: false, secure: true,
-      sameSite: 'none', path: '/',
-    });
-  }
-  res.json({ csrfToken: token });
-});
-
-router.post('/make-admin', adminAuth, async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) return error(res, 'Email is required', 400);
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) return error(res, 'User not found', 404);
-    await User.findByIdAndUpdate(user._id, { $set: { role: 'admin' } });
-    success(res, { email }, 'User promoted to admin');
   } catch (err) {
     error(res, err.message);
   }

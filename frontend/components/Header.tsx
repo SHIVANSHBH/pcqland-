@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, clearAuth } from '@/lib/api';
 import Image from 'next/image';
 import { Search, User, ShoppingCart, Menu, X, ChevronDown, Phone, Headphones } from 'lucide-react';
 
@@ -103,9 +103,9 @@ export default function Header() {
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout', {}); } catch {}
+    clearAuth();
     setIsLoggedIn(false);
     setUserName('');
-    try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
     window.location.href = '/';
   };
 

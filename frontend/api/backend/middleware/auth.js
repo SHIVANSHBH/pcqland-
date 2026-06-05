@@ -68,4 +68,8 @@ function generateCode(length = 6) {
   return (crypto.randomInt(min, max + 1)).toString();
 }
 
-module.exports = { auth, adminAuth, sanitize, generateRefreshToken, generateCode };
+function hashCode(code) {
+  return crypto.createHash('sha256').update(code).digest('hex');
+}
+
+module.exports = { auth, adminAuth, sanitize, generateRefreshToken, generateCode, hashCode };

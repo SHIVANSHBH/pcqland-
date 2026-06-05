@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LayoutDashboard, Package, LayoutGrid, Box, ShoppingCart, Users, FileText, Settings, LogOut, Menu, X } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, clearAuth } from '@/lib/api';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
@@ -23,8 +23,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    api.get('/admin/dashboard').then((res) => {
-      if (res) setAuthorized(true);
+    api.get('/auth/me').then((res) => {
+      if (res?.data?.role === 'admin') setAuthorized(true);
+      else router.push('/login');
     }).catch(() => {
       router.push('/login');
     });
@@ -40,6 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout', {}); } catch {}
+    clearAuth();
     router.push('/login');
   };
 

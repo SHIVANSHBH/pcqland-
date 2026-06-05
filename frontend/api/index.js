@@ -62,7 +62,7 @@ app.use(cookieParser());
 app.use((req, res, next) => {
   if (req.headers.authorization?.startsWith('Bearer ')) return next();
 
-  const csrfExempt = ['/api/admin/upload', '/api/admin/inventory/upload'];
+  const csrfExempt = ['/api/seed', '/api/admin/upload', '/api/admin/inventory/upload', '/api/admin/settings'];
   if (csrfExempt.some(p => req.path.startsWith(p))) return next();
   if (!req.cookies.csrf_token) {
     const csrfToken = crypto.randomBytes(32).toString('hex');
@@ -91,6 +91,7 @@ app.use('/api/orders', orderLimiter);
 app.use('/api/wallet', orderLimiter);
 app.use('/api/auth/send-otp', otpLimiter);
 app.use('/api/auth/verify-otp', otpLimiter);
+app.use('/api/auth/reset-password', otpLimiter);
 app.use('/api', apiLimiter);
 
 app.get('/api/health', (req, res) => {

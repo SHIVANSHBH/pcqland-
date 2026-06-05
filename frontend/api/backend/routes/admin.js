@@ -54,16 +54,17 @@ router.post('/login', async (req, res) => {
     if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid credentials' });
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' });
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
     const { sanitize, generateRefreshToken } = require('../middleware/auth');
     const Token = require('../models/Token');
     const refreshToken = generateRefreshToken();
     await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
-    const cookieOptions = { httpOnly: true, secure: true, sameSite: 'none', maxAge: 15 * 60 * 1000, path: '/' };
+    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
+    const cookieOptions = { httpOnly: true, secure: true, sameSite: 'none', maxAge: tokenMaxAge, path: '/' };
     res.cookie('token', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, {
       ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: tokenMaxAge,
       path: '/api/auth/refresh-token',
     });
     res.json({ success: true, message: 'Login successful', data: { accessToken, refreshToken, user: sanitize(user) } });
