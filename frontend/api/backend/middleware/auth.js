@@ -63,7 +63,9 @@ function generateRefreshToken() {
 }
 
 function generateCode(length = 6) {
-  return Math.floor(10 ** (length - 1) + Math.random() * 9 * 10 ** (length - 1)).toString();
+  const min = 10 ** (length - 1);
+  const max = 10 ** length - 1;
+  return (crypto.randomInt(min, max + 1)).toString();
 }
 
 module.exports = { auth, adminAuth, sanitize, generateRefreshToken, generateCode };

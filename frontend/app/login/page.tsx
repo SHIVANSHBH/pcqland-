@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
@@ -15,6 +15,15 @@ export default function LoginPage() {
   const [tab, setTab] = useState<Tab>('password');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const emailOtpRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const phoneOtpRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (emailOtpRef.current) clearInterval(emailOtpRef.current);
+      if (phoneOtpRef.current) clearInterval(phoneOtpRef.current);
+    };
+  }, []);
 
   // Email/Password
   const [emailPass, setEmailPass] = useState({ email: '', password: '' });
@@ -67,7 +76,8 @@ export default function LoginPage() {
       setEmailOtpSent(true);
       toast.success('OTP sent to email');
       setEmailOtpTimer(60);
-      const t = setInterval(() => setEmailOtpTimer(p => { if (p <= 1) { clearInterval(t); return 0; } return p - 1; }), 1000);
+      if (emailOtpRef.current) clearInterval(emailOtpRef.current);
+      emailOtpRef.current = setInterval(() => setEmailOtpTimer(p => { if (p <= 1) { if (emailOtpRef.current) clearInterval(emailOtpRef.current); return 0; } return p - 1; }), 1000);
     } catch (error: any) { toast.error(error.message); }
     finally { setLoading(false); }
   }
@@ -95,7 +105,8 @@ export default function LoginPage() {
       setPhoneOtpSent(true);
       toast.success('OTP sent to phone');
       setPhoneOtpTimer(60);
-      const t = setInterval(() => setPhoneOtpTimer(p => { if (p <= 1) { clearInterval(t); return 0; } return p - 1; }), 1000);
+      if (phoneOtpRef.current) clearInterval(phoneOtpRef.current);
+      phoneOtpRef.current = setInterval(() => setPhoneOtpTimer(p => { if (p <= 1) { if (phoneOtpRef.current) clearInterval(phoneOtpRef.current); return 0; } return p - 1; }), 1000);
     } catch (error: any) { toast.error(error.message); }
     finally { setLoading(false); }
   }

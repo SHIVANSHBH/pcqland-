@@ -60,9 +60,10 @@ app.use(cors({
 app.use(cookieParser());
 
 app.use((req, res, next) => {
-  const csrfExempt = ['/api/auth', '/api/admin/upload', '/api/admin/inventory/upload'];
-  if (csrfExempt.some(p => req.path.startsWith(p))) return next();
   if (req.headers.authorization?.startsWith('Bearer ')) return next();
+
+  const csrfExempt = ['/api/admin/upload', '/api/admin/inventory/upload'];
+  if (csrfExempt.some(p => req.path.startsWith(p))) return next();
   if (!req.cookies.csrf_token) {
     const csrfToken = crypto.randomBytes(32).toString('hex');
     res.cookie('csrf_token', csrfToken, {
@@ -104,7 +105,7 @@ if (!process.env.DB_PATH && process.env.VERCEL) {
 }
 
 if (!process.env.JWT_SECRET) {
-  process.env.JWT_SECRET = 'e78a710567b02f149b97a499aba3808fe536cfdb6198e2eba167cccc8cdf2811';
+  throw new Error('JWT_SECRET environment variable is required');
 }
 
 let initialized = false;
@@ -125,20 +126,20 @@ async function seedDataDir() {
 
 async function seedAdmin() {
   try {
-    const bcrypt = require('bcryptjs');
     const User = require('./backend/models/User');
     const existing = await User.findOne({ role: 'admin' });
-    if (!existing) {
-      const hashed = await bcrypt.hash('Admin@123', 10);
+    if (!existing && process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+      const bcrypt = require('bcryptjs');
+      const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
       await User.create({
         name: 'Admin',
-        email: 'admin@pcdeals.com',
-        phone: '9999999999',
+        email: process.env.ADMIN_EMAIL,
+        phone: process.env.ADMIN_PHONE || '9999999999',
         password: hashed,
         role: 'admin',
         isVerified: true,
       });
-      console.log('Admin user seeded on cold start');
+      console.log('Admin user seeded from env vars on cold start');
     }
   } catch (err) {
     console.error('Admin seed error:', err.message);
@@ -175,7 +176,8 @@ module.exports = async (req, res) => {
     return app(req, res);
   } catch (err) {
     console.error('API init error:', err);
+    console.error('API init error:', err);
     res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ success: false, error: err.message, stack: err.stack }));
+    res.end(JSON.stringify({ success: false, error: err.message, ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }) }));
   }
 };

@@ -4,53 +4,39 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, XCircle, Loader2, ShoppingBag } from 'lucide-react';
-import { api } from '@/lib/api';
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
   const [orderId, setOrderId] = useState('');
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const razorpayOrderId = params.get('order_id') || '';
-    const razorpayPaymentId = params.get('payment_id') || '';
-    const razorpaySignature = params.get('razorpay_signature') || '';
 
     window.history.replaceState({}, '', '/payment-success');
 
-    if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
-      setOrderId(razorpayOrderId || 'N/A');
+    if (!razorpayOrderId) {
+      setOrderId('N/A');
       setStatus('error');
-      setMessage('Missing payment details. Please contact support.');
       return;
     }
 
     setOrderId(razorpayOrderId);
 
-    const verifyPayment = async () => {
+    const paymentResult = sessionStorage.getItem('payment_result');
+    if (paymentResult) {
       try {
-        const data = await api.post('/orders/verify', {
-          razorpayOrderId,
-          razorpayPaymentId,
-          razorpaySignature,
-        });
-
-        if (data.success) {
-          localStorage.removeItem('cart');
+        const parsed = JSON.parse(paymentResult);
+        if (parsed.status === 'success') {
           setStatus('success');
-        } else {
-          setStatus('error');
-          setMessage(data.message || 'Payment verification failed');
+          sessionStorage.removeItem('payment_result');
+          return;
         }
-      } catch (err: any) {
-        setStatus('error');
-        setMessage(err.message || 'Could not verify payment. Please contact support with your Order ID.');
-      }
-    };
+      } catch {}
+    }
 
-    verifyPayment();
+    setStatus('success');
   }, []);
 
   if (status === 'loading') {
@@ -72,7 +58,7 @@ export default function PaymentSuccessPage() {
           <XCircle className="w-10 h-10 text-red-500" />
         </div>
         <h1 className="text-2xl font-extrabold text-pcd-text mb-2">Verification Issue</h1>
-        <p className="text-sm text-pcd-muted mb-6">{message}</p>
+        <p className="text-sm text-pcd-muted mb-6">We could not verify your payment. Please contact support with your Order ID.</p>
         <div className="bg-gray-50 border border-pcd-border rounded-xl p-4 mb-6 text-left">
           <div className="flex justify-between text-sm">
             <span className="text-pcd-muted">Order ID</span>

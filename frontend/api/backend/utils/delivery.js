@@ -184,7 +184,7 @@ const processOrderDeliveryInternal = async (order) => {
       console.error('Invoice generation error:', e.message);
     }
 
-    const isFirstOrder = (await Order.countDocuments({ user: order.user, paymentStatus: 'paid' })) <= 1;
+    const isFirstOrder = (await Order.countDocuments({ user: order.user, paymentStatus: 'paid', createdAt: { $lte: order.createdAt || new Date() } })) <= 1;
     let cashbackEarned = 0;
     if (isFirstOrder) {
       cashbackEarned = Math.min(order.amount * 0.25, 500);

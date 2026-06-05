@@ -96,9 +96,11 @@ async function seed() {
     { name: 'Guardian Total Security 1Y-1PC', slug: 'guardian-total-security-1y', description: 'Guardian Total Security - 1 Year / 1 PC', shortDescription: 'Guardian Total Security - 1 Year / 1 PC', category: 'cat-guard', price: 399, mrp: 1499, discount: 73, images: [], validity: '1 Year', isActive: true, isFeatured: false, tags: ['antivirus', 'guardian'] },
   ]);
 
-  // Create admin user
-  const hashed = await bcrypt.hash('admin123', 10);
-  await User.create({ name: 'Admin', email: 'admin@pcdealsindia.com', phone: '9728622667', password: hashed, role: 'admin', isVerified: true });
+  // Create admin user (use env ADMIN_EMAIL and ADMIN_PASSWORD)
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@pcdealsindia.com';
+  const hashed = await bcrypt.hash(adminPassword, 10);
+  await User.create({ name: 'Admin', email: adminEmail, phone: '9728622667', password: hashed, role: 'admin', isVerified: true });
 
   // Seed inventory with dummy keys
   const Inventory = require('./models/Inventory');
@@ -114,7 +116,7 @@ async function seed() {
   console.log(`Inventory seeded: ${inventoryData.length} keys added`);
 
   console.log('Database seeded successfully!');
-  console.log('Admin login: admin@pcdealsindia.com / admin123');
+  console.log(`Admin login: ${adminEmail} (password from env ADMIN_PASSWORD)`);
   process.exit(0);
 }
 

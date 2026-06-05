@@ -145,6 +145,9 @@
   .category-strip {
     @apply relative;
   }
+  .category-row {
+    position: relative;
+  }
   .category-row::after {
     content: '';
     position: absolute;

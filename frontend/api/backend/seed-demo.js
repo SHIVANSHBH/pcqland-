@@ -76,11 +76,13 @@ require('dotenv').config();
     { name: 'Visual Studio 2019 Professional', slug: 'ms-vs-2019-pro', cat: 'ms-visual-studio', price: 4499, mrp: 39999, desc: 'Microsoft Visual Studio 2019 Professional License Key', validity: 'Lifetime' },
   ];
 
-  // Create admin
-  const adminExists = await User.findOne({ email: 'admin@pcdealsindia.com' });
+  // Create admin (use env vars for credentials)
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@pcdealsindia.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
+  const adminExists = await User.findOne({ email: adminEmail });
   if (!adminExists) {
-    await User.create({ name: 'Admin', email: 'admin@pcdealsindia.com', phone: '919999999999', password: 'Admin@123', role: 'admin', isVerified: true });
-    console.log('✅ Admin: admin@pcdealsindia.com / Admin@123');
+    await User.create({ name: 'Admin', email: adminEmail, phone: '919999999999', password: adminPassword, role: 'admin', isVerified: true });
+    console.log(`✅ Admin: ${adminEmail} (password from env or default)`);
   }
 
   // Create customer
@@ -149,7 +151,7 @@ require('dotenv').config();
   console.log('✅ Settings seeded');
 
   console.log('\n🎉 Seed complete!');
-  console.log('   Admin:    admin@pcdealsindia.com / Admin@123');
+  console.log('   Admin:    admin@pcdealsindia.com (password from env ADMIN_PASSWORD)');
   console.log('   Customer: customer@test.com / Test@123');
   process.exit(0);
 })().catch(err => { console.error('Seed failed:', err); process.exit(1); });

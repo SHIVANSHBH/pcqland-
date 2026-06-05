@@ -235,7 +235,7 @@ router.post('/orders/:id/refund', adminAuth, async (req, res) => {
   if (!order) return res.status(404).json({ message: 'Order not found' });
   order.paymentStatus = 'refunded';
   order.orderStatus = 'refunded';
-  await Order.updateById(order._id, { orderStatus: 'refunded', paymentStatus: 'refunded' });
+  await Order.findByIdAndUpdate(order._id, { orderStatus: 'refunded', paymentStatus: 'refunded' });
   if (order.cashbackEarned > 0) {
     await User.findByIdAndUpdate(order.user, { $inc: { walletBalance: -order.cashbackEarned } });
   }

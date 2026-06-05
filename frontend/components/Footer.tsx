@@ -61,7 +61,7 @@ export default function Footer() {
             All trademarks, logos, and product images are the property of their respective owners and are used for identification and reference purposes only.
           </p>
           <p className="home-footer-copy copyright-text">
-            &copy; 2026 Shree Hira Computer &amp; Communication. All Rights Reserved.
+            &copy; {new Date().getFullYear()} Shree Hira Computer &amp; Communication. All Rights Reserved.
           </p>
         </div>
         <div className="home-footer-pay">

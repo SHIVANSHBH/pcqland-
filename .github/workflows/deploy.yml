@@ -5,7 +5,11 @@ on:
     branches: [main]
 
 jobs:
+  ci-check:
+    uses: ./.github/workflows/ci.yml
+
   deploy-frontend:
+    needs: [ci-check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

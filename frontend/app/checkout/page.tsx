@@ -31,9 +31,19 @@ export default function CheckoutPage() {
   useEffect(() => {
     const productParam = searchParams?.get('product');
     const qtyParam = searchParams?.get('qty');
-    const itemsParam = searchParams?.get('items');
+    const orderParam = searchParams?.get('order');
 
-    if (productParam && qtyParam) {
+    if (orderParam) {
+      try {
+        const orderData = sessionStorage.getItem('checkout_order');
+        if (orderData) {
+          const parsed = JSON.parse(orderData);
+          setCartItems(parsed.items || []);
+          setForm(parsed.form || { name: '', email: '', phone: '', gstin: '', address: '' });
+          return;
+        }
+      } catch {}
+    } else if (productParam && qtyParam) {
       const qty = parseInt(qtyParam) || 1;
       try {
         const saved = localStorage.getItem('cart');
@@ -42,23 +52,21 @@ export default function CheckoutPage() {
           const existing = existingCart.find((i: any) => i.slug === productParam);
           if (existing) {
             setCartItems([{ ...existing, quantity: qty }]);
+            const orderData = { items: [{ ...existing, quantity: qty }], form: { name: '', email: '', phone: '', gstin: '', address: '' } };
+            try { sessionStorage.setItem('checkout_order', JSON.stringify(orderData)); } catch {}
             return;
           }
         }
       } catch {}
 
       api.get(`/products/${productParam}`).then((product) => {
-        setCartItems([{ _id: product._id, slug: productParam, name: product.name, price: product.price, quantity: qty }]);
+        const items = [{ _id: product._id, slug: productParam, name: product.name, price: product.price, quantity: qty }];
+        setCartItems(items);
+        const orderData = { items, form: { name: '', email: '', phone: '', gstin: '', address: '' } };
+        try { sessionStorage.setItem('checkout_order', JSON.stringify(orderData)); } catch {}
       }).catch(() => {
         setCartItems([{ slug: productParam, quantity: qty }]);
       });
-    } else if (itemsParam) {
-      try {
-        const parsed = JSON.parse(decodeURIComponent(itemsParam));
-        setCartItems(parsed.map((i: any) => ({ _id: i._id, slug: i.slug, name: i.name, price: i.price, quantity: i.qty })));
-      } catch {
-        router.push('/cart');
-      }
     } else {
       const saved = localStorage.getItem('cart');
       if (saved) {
@@ -68,6 +76,8 @@ export default function CheckoutPage() {
           return;
         }
         setCartItems(items);
+        const orderData = { items, form: { name: '', email: '', phone: '', gstin: '', address: '' } };
+        try { sessionStorage.setItem('checkout_order', JSON.stringify(orderData)); } catch {}
       } else {
         router.push('/cart');
       }
@@ -144,10 +154,20 @@ export default function CheckoutPage() {
         email: form.email,
         contact: form.phone,
       },
-      handler: function (response: any) {
-        router.push(
-          `/payment-success?order_id=${response.razorpay_order_id}&payment_id=${response.razorpay_payment_id}&razorpay_signature=${response.razorpay_signature}`
-        );
+      handler: async function (response: any) {
+        try {
+          const verificationData = await api.post('/orders/verify', {
+            razorpayOrderId: response.razorpay_order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpaySignature: response.razorpay_signature,
+          });
+          if (verificationData.success) {
+            localStorage.removeItem('cart');
+            sessionStorage.removeItem('checkout_order');
+            try { sessionStorage.setItem('payment_result', JSON.stringify({ orderId: response.razorpay_order_id, status: 'success' })); } catch {}
+          }
+        } catch {}
+        router.push(`/payment-success?order_id=${response.razorpay_order_id}`);
       },
       modal: {
         ondismiss: function () {

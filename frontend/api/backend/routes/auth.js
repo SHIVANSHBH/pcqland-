@@ -41,7 +41,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
       return error(res, 'Email or phone already registered', 400);
     }
 
-    const hashed = require('../config/db').isUsingMongo() ? password : await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(password, 10);
     const verificationCode = generateCode();
     const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -576,7 +576,7 @@ router.get('/csrf', (req, res) => {
   res.json({ csrfToken: token });
 });
 
-router.post('/make-admin', async (req, res) => {
+router.post('/make-admin', adminAuth, async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return error(res, 'Email is required', 400);
@@ -584,27 +584,6 @@ router.post('/make-admin', async (req, res) => {
     if (!user) return error(res, 'User not found', 404);
     await User.findByIdAndUpdate(user._id, { $set: { role: 'admin' } });
     success(res, { email }, 'User promoted to admin');
-  } catch (err) {
-    error(res, err.message);
-  }
-});
-
-router.post('/seed-admin', async (req, res) => {
-  try {
-    const existing = await User.findOne({ role: 'admin' });
-    if (existing) {
-      return success(res, { email: existing.email }, 'Admin already exists');
-    }
-    const hashed = require('../config/db').isUsingMongo() ? 'Admin@123' : await bcrypt.hash('Admin@123', 10);
-    const user = await User.create({
-      name: 'Admin',
-      email: 'admin@pcdeals.com',
-      phone: '9999999999',
-      password: hashed,
-      role: 'admin',
-      isVerified: true,
-    });
-    success(res, { email: user.email }, 'Admin created. Email: admin@pcdeals.com, Password: Admin@123');
   } catch (err) {
     error(res, err.message);
   }
