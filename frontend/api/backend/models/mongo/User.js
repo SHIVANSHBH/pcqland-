@@ -24,6 +24,8 @@ const userSchema = new mongoose.Schema({
   emailOtp: { type: String },
   emailOtpExpiry: { type: Date },
   token: { type: String, default: null },
+  loginAttempts: { type: Number, default: 0 },
+  lockUntil: { type: Date, default: null },
 }, { timestamps: true });
 
 userSchema.pre('save', async function () {

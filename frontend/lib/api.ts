@@ -4,58 +4,9 @@ let _csrfToken: string | null = null;
 let _csrfPromise: Promise<string | null> | null = null;
 let _refreshPromise: Promise<boolean> | null = null;
 
-function getAccessToken(): string | null {
-  if (typeof localStorage === 'undefined') return null;
-  try { return localStorage.getItem('accessToken'); } catch { return null; }
-}
-
-export function getAccessTokenSync(): string | null {
-  return getAccessToken();
-}
-
-export function setAccessToken(token: string | null) {
-  if (typeof localStorage === 'undefined') return;
-  try { if (token) localStorage.setItem('accessToken', token); else localStorage.removeItem('accessToken'); } catch {}
-}
-
-function getRefreshToken(): string | null {
-  if (typeof localStorage === 'undefined') return null;
-  try { return localStorage.getItem('refreshToken'); } catch { return null; }
-}
-
-export function setRefreshToken(token: string | null) {
-  if (typeof localStorage === 'undefined') return;
-  try { if (token) localStorage.setItem('refreshToken', token); else localStorage.removeItem('refreshToken'); } catch {}
-}
-
 export function clearAuth() {
-  setAccessToken(null);
-  setRefreshToken(null);
   if (typeof sessionStorage !== 'undefined') {
     try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
-  }
-}
-
-async function attemptRefresh(): Promise<boolean> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return false;
-  try {
-    const res = await fetch(`${API_BASE}/auth/refresh-token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-      credentials: 'include',
-    });
-    if (!res.ok) return false;
-    const data = await res.json();
-    if (data?.data?.accessToken) {
-      setAccessToken(data.data.accessToken);
-      if (data.data.refreshToken) setRefreshToken(data.data.refreshToken);
-      return true;
-    }
-    return false;
-  } catch {
-    return false;
   }
 }
 
@@ -98,9 +49,6 @@ async function fetchAPI(endpoint: string, options: FetchOptions = {}): Promise<a
     ...options.headers,
   };
 
-  const token = getAccessToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-
   const isDangerous = /^(post|put|patch|delete)$/i.test(options.method || 'get');
   if (isDangerous) {
     const csrf = await getCsrfToken();
@@ -118,13 +66,24 @@ async function fetchAPI(endpoint: string, options: FetchOptions = {}): Promise<a
     });
     if (!res.ok) {
       const error = await res.json().catch(() => ({ message: 'Request failed' }));
-      if (res.status === 401 && error.code === 'TOKEN_EXPIRED') {
-        if (!_refreshPromise) _refreshPromise = attemptRefresh();
+      if (res.status === 401 && error.message === 'Token expired') {
+        if (!_refreshPromise) {
+          _refreshPromise = (async () => {
+            try {
+              const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+              });
+              if (!refreshRes.ok) return false;
+              const refreshData = await refreshRes.json();
+              return !!refreshData?.success;
+            } catch { return false; }
+          })();
+        }
         const refreshed = await _refreshPromise;
         _refreshPromise = null;
         if (refreshed) {
-          const newToken = getAccessToken();
-          if (newToken) headers['Authorization'] = `Bearer ${newToken}`;
           const retryRes = await fetch(`${API_BASE}${endpoint}`, {
             ...options,
             headers,

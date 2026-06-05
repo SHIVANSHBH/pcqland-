@@ -15,16 +15,19 @@ router.post('/create', auth, async (req, res) => {
 
     // Check inventory availability before processing
     for (const item of items) {
-      const productId = item.productId;
+      let productId = item.productId;
+      if (productId && typeof productId !== 'string') {
+        return res.status(400).json({ success: false, message: 'Invalid product ID' });
+      }
       if (!productId && item.slug) {
-        const found = await Product.findOne({ slug: item.slug });
+        const found = await Product.findOne({ slug: String(item.slug) });
         if (found) {
-          item.productId = found._id;
+          productId = String(found._id);
+          item.productId = productId;
         }
       }
-      const pid = item.productId;
-      if (pid) {
-        const available = await Inventory.countDocuments({ product: pid, isUsed: false });
+      if (productId) {
+        const available = await Inventory.countDocuments({ product: productId, isUsed: false });
         if (available < item.quantity) {
           return res.status(400).json({
             success: false,
@@ -38,10 +41,10 @@ router.post('/create', auth, async (req, res) => {
     const orderItems = [];
     for (const item of items) {
       let product;
-      if (item.productId) {
+      if (item.productId && typeof item.productId === 'string') {
         product = await Product.findById(item.productId);
       }
-      if (!product && item.slug) {
+      if (!product && item.slug && typeof item.slug === 'string') {
         const allProducts = await Product.find({ slug: item.slug });
         product = allProducts[0] || null;
       }
@@ -56,16 +59,7 @@ router.post('/create', auth, async (req, res) => {
           totalPrice: itemTotal,
         });
       } else {
-        const price = item.price || 0;
-        const itemTotal = price * item.quantity;
-        subtotal += itemTotal;
-        orderItems.push({
-          product: item.slug || item.productId,
-          productName: item.name || item.slug || 'Product',
-          quantity: item.quantity,
-          unitPrice: price,
-          totalPrice: itemTotal,
-        });
+        return res.status(400).json({ success: false, message: `Product not found: ${item.slug || item.productId || 'unknown'}` });
       }
     }
 
@@ -106,6 +100,15 @@ router.post('/create', auth, async (req, res) => {
 
     if (cashbackUsed > 0) {
       await User.findByIdAndUpdate(user._id, { $inc: { walletBalance: -cashbackUsed } });
+    }
+
+    if (paymentMethod === 'wallet') {
+      order.paymentStatus = 'paid';
+      order.orderStatus = 'processing';
+      await order.save();
+      processOrderDelivery(order).catch(err => {
+        console.error('Wallet delivery error:', err.message);
+      });
     }
 
     res.status(201).json({

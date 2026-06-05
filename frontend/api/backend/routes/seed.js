@@ -1,8 +1,12 @@
 const express = require('express');
+const { adminAuth } = require('../middleware/auth');
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+router.post('/', adminAuth, async (req, res) => {
   try {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ success: false, message: 'Seed endpoint disabled in production' });
+    }
     const { isUsingMongo } = require('../config/db');
     if (!isUsingMongo()) {
       return res.status(400).json({ success: false, message: 'MongoDB not connected. Nothing to seed.' });

@@ -61,11 +61,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    if (type === 'email') {
-      console.log(`[OTP] Email OTP for ${email}: ${otp}`);
-    } else {
-      console.log(`[OTP] SMS OTP for ${phone}: ${otp}`);
-    }
+    console.log(`[OTP] OTP sent to ${identifier} via ${type}`);
 
     return NextResponse.json({
       success: true,

@@ -33,10 +33,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Consume OTP on every attempt to prevent brute-force replay
     await supabase
       .from('otps')
-      .update({ attempts: otpRecord.attempts + 1, verified_at: new Date().toISOString() })
+      .update({ attempts: (otpRecord.attempts || 0) + 1, verified_at: new Date().toISOString() })
       .eq('id', otpRecord.id);
+
+    // Check if this OTP was already used
+    if (otpRecord.verified_at) {
+      return NextResponse.json(
+        { success: false, message: 'OTP already used' },
+        { status: 400 },
+      );
+    }
 
     return NextResponse.json({
       success: true,

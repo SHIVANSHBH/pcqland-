@@ -86,7 +86,7 @@ app.use(cookieParser());
 app.use((req, res, next) => {
   if (req.headers.authorization?.startsWith('Bearer ')) return next();
 
-  const csrfExempt = ['/api/seed', '/api/admin/upload', '/api/admin/inventory/upload', '/api/admin/settings'];
+  const csrfExempt = ['/api/seed', '/api/admin/upload', '/api/admin/inventory/upload'];
   if (csrfExempt.some(p => req.path.startsWith(p))) return next();
 
   if (!req.cookies.csrf_token) {
@@ -118,11 +118,14 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/invoices', express.static(path.join(__dirname, 'invoices')));
+
+const { auth } = require('./middleware/auth');
+app.use('/invoices', auth, express.static(path.join(__dirname, 'invoices')));
+
 if (process.env.RENDER || process.env.VERCEL) {
   const tmpInvoiceDir = '/tmp/invoices';
   if (!require('fs').existsSync(tmpInvoiceDir)) require('fs').mkdirSync(tmpInvoiceDir, { recursive: true });
-  app.use('/invoices', express.static(tmpInvoiceDir));
+  app.use('/invoices', auth, express.static(tmpInvoiceDir));
 }
 
 // Apply rate limiters

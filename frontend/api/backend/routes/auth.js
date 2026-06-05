@@ -146,12 +146,33 @@ router.post('/login', validate(loginSchema), async (req, res) => {
     query = await selectPassword(query);
     const user = await query;
 
+    // Account lockout check
+    if (user && user.lockUntil && new Date(user.lockUntil) > new Date()) {
+      const remaining = Math.ceil((new Date(user.lockUntil) - new Date()) / 1000 / 60);
+      return error(res, `Account locked. Try again in ${remaining} minutes`, 429);
+    }
+
     const dummyHash = '$2a$10$' + 'x'.repeat(53);
     const isMatch = user ? await bcrypt.compare(password, user.password) : await bcrypt.compare(password, dummyHash);
     if (!user || !isMatch) {
+      // Increment lockout counter
+      if (user) {
+        user.loginAttempts = (user.loginAttempts || 0) + 1;
+        if (user.loginAttempts >= 5) {
+          user.lockUntil = new Date(Date.now() + 15 * 60 * 1000);
+          user.loginAttempts = 0;
+        }
+        await user.save();
+      }
       return error(res, 'Invalid credentials', 401);
     }
+
+    // Reset lockout on success
+    user.loginAttempts = 0;
+    user.lockUntil = null;
+
     if (!user.isVerified) {
+      await user.save();
       return error(res, 'Please verify your email before logging in', 403);
     }
 
@@ -187,6 +208,20 @@ router.post('/logout', auth, async (req, res) => {
     req.user.isLoggedIn = false;
     req.user.token = null;
     await req.user.save();
+
+    // Blacklist the current token
+    if (req.token) {
+      await Token.create({
+        token: req.token,
+        type: 'blacklist',
+        userId: req.user._id,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      }).catch(() => {});
+    }
+
+    res.clearCookie('token', { path: '/' });
+    res.clearCookie('refreshToken', { path: '/api/auth/refresh-token' });
+
     success(res, null, 'Logged out successfully');
   } catch (err) {
     console.error('Logout error:', err.message);
@@ -250,7 +285,7 @@ router.post('/forgot-password', validate(emailSchema), async (req, res) => {
       if (process.env.SMTP_HOST) {
         sendGenericEmail({ to: user.email, ...passwordResetEmail(user.name, code) }).catch(() => {});
       } else {
-        console.log(`Reset code for ${email}: ${code}`);
+        console.log(`Reset code sent for ${email}`);
       }
     }
 
@@ -316,11 +351,77 @@ router.post('/change-password', auth, validate(changePasswordSchema), async (req
   }
 });
 
+// ── POST /auth/supabase-sync ─────────────────────────────
+
+router.post('/supabase-sync', async (req, res) => {
+  try {
+    const { accessToken } = req.body;
+    if (!accessToken) return error(res, 'Access token required', 400);
+
+    const supabaseUser = await verifySupabaseToken(accessToken);
+    if (!supabaseUser) return error(res, 'Invalid Supabase token', 401);
+
+    const user = await findOrCreateMongoUser(supabaseUser);
+    if (!user) return error(res, 'User creation failed', 500);
+
+    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
+    res.cookie('token', accessToken, {
+      httpOnly: true, secure: true, sameSite: 'none',
+      maxAge: tokenMaxAge, path: '/',
+    });
+
+    success(res, { user: sanitize(user) }, 'Session synced');
+  } catch (err) {
+    console.error('Supabase sync error:', err.message);
+    error(res, err.message);
+  }
+});
+
+// ── POST /auth/otp-session ────────────────────────────────
+
+router.post('/otp-session', async (req, res) => {
+  try {
+    const { email, phone } = req.body;
+    if (!email && !phone) return error(res, 'Email or phone is required', 400);
+
+    const filter = {};
+    if (email) filter.email = email.toLowerCase();
+    if (phone) filter.phone = phone;
+    let user = await User.findOne(filter);
+
+    if (!user) {
+      const name = email ? email.split('@')[0] : `User${phone.slice(-4)}`;
+      user = await User.create({
+        name,
+        email: email?.toLowerCase() || null,
+        phone: phone || null,
+        isVerified: true,
+        role: 'customer',
+      });
+    } else if (!user.isVerified) {
+      user.isVerified = true;
+      await user.save();
+    }
+
+    const { accessToken, refreshToken } = signTokens(user);
+    await Session.deleteOne({ userId: user._id });
+    await Session.create({ userId: user._id });
+    user.isLoggedIn = true;
+    user.token = accessToken;
+    await user.save();
+
+    success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Login successful');
+  } catch (err) {
+    console.error('OTP session error:', err.message);
+    error(res, err.message);
+  }
+});
+
 // ── POST /auth/refresh ───────────────────────────────────
 
 router.post('/refresh', async (req, res) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
     if (!refreshToken) return error(res, 'Refresh token required', 400);
 
     let decoded;
@@ -336,6 +437,10 @@ router.post('/refresh', async (req, res) => {
     const tokens = signTokens(user);
     user.token = tokens.accessToken;
     await user.save();
+
+    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
+    res.cookie('token', tokens.accessToken, { httpOnly: true, secure: true, sameSite: 'none', maxAge: tokenMaxAge, path: '/' });
+    res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true, secure: true, sameSite: 'none', maxAge: tokenMaxAge, path: '/api/auth/refresh' });
 
     success(res, tokens, 'Token refreshed');
   } catch (err) {
@@ -403,11 +508,12 @@ router.post('/verify-otp', validate(otpVerifySchema), async (req, res) => {
     if (user) {
       if (user.otp === hashedOtp && new Date(user.otpExpiry) > new Date()) {
         isOtpValid = true;
-        user.otp = '';
-        user.otpExpiry = '';
-        user.isVerified = true;
-        await user.save();
       }
+      // Consume OTP on every attempt to prevent brute-force
+      user.otp = '';
+      user.otpExpiry = '';
+      if (isOtpValid) user.isVerified = true;
+      await user.save();
     } else {
       const otpRecord = await Token.findOne({ token: hashedOtp, type: 'otp', ...filter });
       if (otpRecord && new Date(otpRecord.expiresAt) > new Date()) {
@@ -420,6 +526,9 @@ router.post('/verify-otp', validate(otpVerifySchema), async (req, res) => {
           isVerified: true,
           role: 'customer',
         });
+      } else if (otpRecord) {
+        // Consume OTP on failed attempt
+        await Token.findByIdAndDelete(otpRecord._id);
       }
     }
 

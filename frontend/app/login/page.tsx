@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { setAccessToken, clearAuth } from '@/lib/api';
 import { syncAuthAndRedirect } from '@/lib/auth-sync';
 import toast from 'react-hot-toast';
 import { Lock, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap } from 'lucide-react';
@@ -112,21 +111,17 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!data.success) { toast.error(data.message); return; }
-      const { error } = await supabase.auth.signInWithPassword({
-        email: emailOtp.email,
-        password: emailOtp.otp,
+      const sessionRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/otp-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailOtp.email }),
+        credentials: 'include',
       });
-      if (error) {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email: emailOtp.email,
-          password: emailOtp.otp,
-          options: { data: { name: emailOtp.email.split('@')[0] } },
-        });
-        if (signUpError) { toast.error(signUpError.message); return; }
-      }
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        await syncAuthAndRedirect(session.access_token, router);
+      const sessionData = await sessionRes.json();
+      if (!sessionData.success) { toast.error(sessionData.message || 'Login failed'); return; }
+      const session = sessionData.data;
+      if (session?.accessToken) {
+        await syncAuthAndRedirect(session.accessToken, router);
       }
       toast.success('Login successful!');
     } catch (error: any) { toast.error(error.message); }
@@ -166,9 +161,16 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!data.success) { toast.error(data.message); return; }
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        await syncAuthAndRedirect(session.access_token, router);
+      const sessionRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/otp-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: `+91${clean}` }),
+        credentials: 'include',
+      });
+      const sessionData = await sessionRes.json();
+      if (!sessionData.success) { toast.error(sessionData.message || 'Login failed'); return; }
+      if (sessionData.data?.accessToken) {
+        await syncAuthAndRedirect(sessionData.data.accessToken, router);
       }
       toast.success('Login successful!');
     } catch (error: any) { toast.error(error.message); }

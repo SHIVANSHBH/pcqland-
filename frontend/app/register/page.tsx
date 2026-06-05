@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { setAccessToken } from '@/lib/api';
 import { UserPlus, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap } from 'lucide-react';
 
 type Tab = 'password' | 'phone-otp';
@@ -48,9 +47,7 @@ export default function RegisterPage() {
       const cleanPhone = phone.replace(/\D/g, '');
       const body = cleanPhone ? { ...rest, phone: cleanPhone } : rest;
       const res = await api.post('/auth/register', body);
-      if (!res?.data?.accessToken) throw new Error('Invalid response');
-      setAccessToken(res.data.accessToken);
-      try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
+      if (!res?.success) throw new Error(res?.message || 'Registration failed');
       toast.success('Registration successful!');
       router.push('/');
     } catch (error: any) {
@@ -80,8 +77,7 @@ export default function RegisterPage() {
     try {
       const cleanPhone = phoneReg.phone.replace(/\D/g, '');
       const res = await api.post('/auth/verify-otp', { phone: cleanPhone, otp: phoneReg.otp });
-      if (!res?.data?.accessToken) throw new Error('Invalid response');
-      setAccessToken(res.data.accessToken);
+      if (!res?.success) throw new Error(res?.message || 'Verification failed');
       toast.success('Registration & login successful!');
       router.push('/');
     } catch (error: any) { toast.error(error.message); }

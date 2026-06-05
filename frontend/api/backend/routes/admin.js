@@ -102,14 +102,18 @@ router.get('/dashboard', adminAuth, async (req, res) => {
 
 // Products
 router.get('/products', adminAuth, async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
-  const skip = (page - 1) * limit;
-  const [products, total] = await Promise.all([
-    Product.find().populate('category', 'name slug').sort({ createdAt: -1 }).skip(skip).limit(limit),
-    Product.countDocuments(),
-  ]);
-  res.json({ products, total, page, pages: Math.ceil(total / limit) });
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+    const skip = (page - 1) * limit;
+    const [products, total] = await Promise.all([
+      Product.find().populate('category', 'name slug').sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Product.countDocuments(),
+    ]);
+    res.json({ products, total, page, pages: Math.ceil(total / limit) });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.post('/products', adminAuth, async (req, res) => {
@@ -131,14 +135,22 @@ router.put('/products/:id', adminAuth, async (req, res) => {
 });
 
 router.delete('/products/:id', adminAuth, async (req, res) => {
-  await Product.findByIdAndDelete(req.params.id);
-  res.json({ success: true });
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // Categories
 router.get('/categories', adminAuth, async (req, res) => {
-  const categories = await Category.find().sort({ displayOrder: 1 });
-  res.json(categories);
+  try {
+    const categories = await Category.find().sort({ displayOrder: 1 });
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.post('/categories', adminAuth, async (req, res) => {
@@ -151,22 +163,34 @@ router.post('/categories', adminAuth, async (req, res) => {
 });
 
 router.put('/categories/:id', adminAuth, async (req, res) => {
-  const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(category);
+  try {
+    const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(category);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.delete('/categories/:id', adminAuth, async (req, res) => {
-  await Category.findByIdAndDelete(req.params.id);
-  res.json({ success: true });
+  try {
+    await Category.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // Inventory
 router.get('/inventory', adminAuth, async (req, res) => {
-  const { product } = req.query;
-  const filter = {};
-  if (product) filter.product = product;
-  const items = await Inventory.find(filter).populate('product', 'name slug').sort({ createdAt: -1 });
-  res.json(items);
+  try {
+    const { product } = req.query;
+    const filter = {};
+    if (product) filter.product = product;
+    const items = await Inventory.find(filter).populate('product', 'name slug').sort({ createdAt: -1 });
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.get('/inventory/stats', adminAuth, async (req, res) => {
@@ -205,135 +229,244 @@ router.post('/inventory/upload', adminAuth, upload.single('file'), async (req, r
 
 // Orders
 router.get('/orders', adminAuth, async (req, res) => {
-  const { status, page = 1, limit = 20 } = req.query;
-  const filter = {};
-  if (status) filter.orderStatus = status;
-  const orders = await Order.find(filter)
-    .populate('user', 'name email phone')
-    .sort({ createdAt: -1 })
-    .skip((page - 1) * limit)
-    .limit(parseInt(limit));
-  const total = await Order.countDocuments(filter);
-  res.json({ orders, total, pages: Math.ceil(total / limit) });
+  try {
+    const { status, page = 1, limit = 20 } = req.query;
+    const filter = {};
+    if (status) filter.orderStatus = status;
+    const orders = await Order.find(filter)
+      .populate('user', 'name email phone')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+    const total = await Order.countDocuments(filter);
+    res.json({ orders, total, pages: Math.ceil(total / limit) });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.put('/orders/:id/status', adminAuth, async (req, res) => {
-  const { orderStatus } = req.body;
-  const order = await Order.findByIdAndUpdate(req.params.id, { orderStatus }, { new: true });
-  res.json(order);
+  try {
+    const { orderStatus } = req.body;
+    const order = await Order.findByIdAndUpdate(req.params.id, { orderStatus }, { new: true });
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.post('/orders/:id/resend', adminAuth, async (req, res) => {
-  const order = await Order.findById(req.params.id).populate('user');
-  if (!order) return res.status(404).json({ message: 'Order not found' });
-  const { resendDelivery } = require('../utils/delivery');
-  await resendDelivery(order);
-  res.json({ success: true, message: 'Keys resent via email and WhatsApp' });
+  try {
+    const order = await Order.findById(req.params.id).populate('user');
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    const { resendDelivery } = require('../utils/delivery');
+    await resendDelivery(order);
+    res.json({ success: true, message: 'Keys resent via email and WhatsApp' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.post('/orders/:id/refund', adminAuth, async (req, res) => {
-  const order = await Order.findById(req.params.id);
-  if (!order) return res.status(404).json({ message: 'Order not found' });
-  order.paymentStatus = 'refunded';
-  order.orderStatus = 'refunded';
-  await Order.findByIdAndUpdate(order._id, { orderStatus: 'refunded', paymentStatus: 'refunded' });
-  if (order.cashbackEarned > 0) {
-    await User.findByIdAndUpdate(order.user, { $inc: { walletBalance: -order.cashbackEarned } });
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (order.paymentStatus === 'refunded') {
+      return res.status(400).json({ success: false, message: 'Order already refunded' });
+    }
+
+    // Process Razorpay refund if applicable
+    if (order.razorpayPaymentId) {
+      try {
+        const Razorpay = require('razorpay');
+        const razorpay = new Razorpay({
+          key_id: process.env.RAZORPAY_KEY_ID,
+          key_secret: process.env.RAZORPAY_KEY_SECRET,
+        });
+        await razorpay.payments.refund(order.razorpayPaymentId);
+      } catch (rpErr) {
+        console.error('Razorpay refund error:', rpErr.message);
+      }
+    }
+
+    order.paymentStatus = 'refunded';
+    order.orderStatus = 'refunded';
+    await Order.findByIdAndUpdate(order._id, { orderStatus: 'refunded', paymentStatus: 'refunded' });
+    if (order.cashbackEarned > 0) {
+      await User.findByIdAndUpdate(order.user, { $inc: { walletBalance: -order.cashbackEarned } });
+    }
+    res.json({ success: true, message: 'Order refunded' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-  res.json({ success: true });
 });
 
 // Users
 router.get('/users', adminAuth, async (req, res) => {
-  const users = await User.find({ role: 'customer' }).sort({ createdAt: -1 });
-  res.json(users);
+  try {
+    const users = await User.find({ role: 'customer' }).sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.put('/users/:id/wallet', adminAuth, async (req, res) => {
-  const { amount } = req.body;
-  const user = await User.findByIdAndUpdate(req.params.id, { $inc: { walletBalance: amount } }, { new: true });
-  res.json(user);
+  try {
+    const { amount } = req.body;
+    if (typeof amount !== 'number' || isNaN(amount)) {
+      return res.status(400).json({ message: 'Invalid amount' });
+    }
+    const user = await User.findByIdAndUpdate(req.params.id, { $inc: { walletBalance: amount } }, { new: true });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // CMS
 router.get('/testimonials', adminAuth, async (req, res) => {
-  const data = await Testimonial.find().sort({ displayOrder: 1 });
-  res.json(data);
+  try {
+    const data = await Testimonial.find().sort({ displayOrder: 1 });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.post('/testimonials', adminAuth, async (req, res) => {
-  const data = await Testimonial.create(req.body);
-  res.status(201).json(data);
+  try {
+    const data = await Testimonial.create(req.body);
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 });
 
 router.put('/testimonials/:id', adminAuth, async (req, res) => {
-  const data = await Testimonial.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(data);
+  try {
+    const data = await Testimonial.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.delete('/testimonials/:id', adminAuth, async (req, res) => {
-  await Testimonial.findByIdAndDelete(req.params.id);
-  res.json({ success: true });
+  try {
+    await Testimonial.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.get('/faqs', adminAuth, async (req, res) => {
-  const data = await FAQ.find().sort({ displayOrder: 1 });
-  res.json(data);
+  try {
+    const data = await FAQ.find().sort({ displayOrder: 1 });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.post('/faqs', adminAuth, async (req, res) => {
-  const data = await FAQ.create(req.body);
-  res.status(201).json(data);
+  try {
+    const data = await FAQ.create(req.body);
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 });
 
 router.put('/faqs/:id', adminAuth, async (req, res) => {
-  const data = await FAQ.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(data);
+  try {
+    const data = await FAQ.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.delete('/faqs/:id', adminAuth, async (req, res) => {
-  await FAQ.findByIdAndDelete(req.params.id);
-  res.json({ success: true });
+  try {
+    await FAQ.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.get('/banners', adminAuth, async (req, res) => {
-  const data = await Banner.find().sort({ displayOrder: 1 });
-  res.json(data);
+  try {
+    const data = await Banner.find().sort({ displayOrder: 1 });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.post('/banners', adminAuth, async (req, res) => {
-  const data = await Banner.create(req.body);
-  res.status(201).json(data);
+  try {
+    const data = await Banner.create(req.body);
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 });
 
 router.put('/banners/:id', adminAuth, async (req, res) => {
-  const data = await Banner.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(data);
+  try {
+    const data = await Banner.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.delete('/banners/:id', adminAuth, async (req, res) => {
-  await Banner.findByIdAndDelete(req.params.id);
-  res.json({ success: true });
+  try {
+    await Banner.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.get('/usps', adminAuth, async (req, res) => {
-  const data = await USP.find().sort({ displayOrder: 1 });
-  res.json(data);
+  try {
+    const data = await USP.find().sort({ displayOrder: 1 });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.post('/usps', adminAuth, async (req, res) => {
-  const data = await USP.create(req.body);
-  res.status(201).json(data);
+  try {
+    const data = await USP.create(req.body);
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 });
 
 router.put('/usps/:id', adminAuth, async (req, res) => {
-  const data = await USP.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(data);
+  try {
+    const data = await USP.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 router.delete('/usps/:id', adminAuth, async (req, res) => {
-  await USP.findByIdAndDelete(req.params.id);
-  res.json({ success: true });
+  try {
+    await USP.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // Settings (public read for frontend display, cached 5 min)
@@ -348,10 +481,14 @@ router.get('/settings', async (req, res) => {
 });
 
 router.put('/settings', adminAuth, async (req, res) => {
-  const { key, value } = req.body;
-  await Setting.findOneAndUpdate({ key }, { value }, { upsert: true });
-  cache.del('settings');
-  res.json({ success: true });
+  try {
+    const { key, value } = req.body;
+    await Setting.findOneAndUpdate({ key }, { value }, { upsert: true });
+    cache.del('settings');
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // File Upload
