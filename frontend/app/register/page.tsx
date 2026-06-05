@@ -44,11 +44,10 @@ export default function RegisterPage() {
       const { confirmPassword, phone, ...rest } = form;
       const cleanPhone = phone.replace(/\D/g, '');
       const body = cleanPhone ? { ...rest, phone: cleanPhone } : rest;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/supabase-register`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-        credentials: 'include',
       });
       const data = await res.json();
       if (!data.success) { toast.error(data.message || 'Registration failed'); return; }
