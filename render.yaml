@@ -54,3 +54,9 @@ services:
         value: PC Deals India
       - key: TAX_RATE
         value: "0.18"
+      - key: SUPABASE_URL
+        value: "https://achytxkblnwisxdftays.supabase.co"
+      - key: SUPABASE_ANON_KEY
+        value: "sb_publishable_kZB0sFKt4QsBXQKryQQYZA_I8u_rcdD"
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
