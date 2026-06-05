@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { setAccessToken, clearAuth } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { Lock, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap } from 'lucide-react';
 
@@ -64,6 +65,10 @@ export default function LoginPage() {
         toast.error(error.message === 'Invalid login credentials' ? 'Invalid email or password' : error.message);
         return;
       }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        setAccessToken(session.access_token);
+      }
       toast.success('Login successful!');
       router.push('/');
       router.refresh();
@@ -117,6 +122,10 @@ export default function LoginPage() {
         });
         if (signUpError) { toast.error(signUpError.message); return; }
       }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        setAccessToken(session.access_token);
+      }
       toast.success('Login successful!');
       router.push('/');
       router.refresh();
@@ -157,6 +166,10 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!data.success) { toast.error(data.message); return; }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        setAccessToken(session.access_token);
+      }
       toast.success('Login successful!');
       router.push('/');
       router.refresh();

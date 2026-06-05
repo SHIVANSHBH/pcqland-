@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, trim: true },
   password: { type: String, minlength: 6, select: false },
   googleId: { type: String },
+  supabaseId: { type: String },
   role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
   isVerified: { type: Boolean, default: false },
   walletBalance: { type: Number, default: 0 },

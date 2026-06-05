@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { setAccessToken } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { UserPlus, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap } from 'lucide-react';
 
@@ -74,6 +75,10 @@ export default function SignupPage() {
         return;
       }
 
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        setAccessToken(session.access_token);
+      }
       toast.success('Registration successful!');
       router.push('/');
       router.refresh();
