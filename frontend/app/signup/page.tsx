@@ -123,12 +123,16 @@ export default function SignupPage() {
       });
       const data = await res.json();
       if (!data.success) { toast.error(data.message); return; }
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        await syncAuthAndRedirect(session.access_token, router);
-      } else {
-        router.push('/');
-        router.refresh();
+      const sessionRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/otp-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: `+91${clean}` }),
+        credentials: 'include',
+      });
+      const sessionData = await sessionRes.json();
+      if (!sessionData.success) { toast.error(sessionData.message || 'Login failed'); return; }
+      if (sessionData.data?.accessToken) {
+        await syncAuthAndRedirect(sessionData.data.accessToken, router);
       }
       toast.success('Registration & login successful!');
     } catch (error: any) { toast.error(error.message); }

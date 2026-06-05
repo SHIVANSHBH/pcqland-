@@ -351,6 +351,90 @@ router.post('/change-password', auth, validate(changePasswordSchema), async (req
   }
 });
 
+// ── POST /auth/supabase-login ────────────────────────────
+
+router.post('/supabase-login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return error(res, 'Email and password are required', 400);
+
+    const { getAuthClient } = require('../config/supabase');
+    const supabase = getAuthClient();
+    if (!supabase) return error(res, 'Supabase not configured', 500);
+
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email: email.toLowerCase(),
+      password,
+    });
+    if (authError) return error(res, authError.message === 'Invalid login credentials' ? 'Invalid email or password' : authError.message, 401);
+    if (!data?.user) return error(res, 'Authentication failed', 401);
+
+    const user = await findOrCreateMongoUser(data.user);
+    if (!user) return error(res, 'User sync failed', 500);
+
+    const { accessToken, refreshToken } = signTokens(user);
+    await Session.deleteOne({ userId: user._id });
+    await Session.create({ userId: user._id });
+    user.isLoggedIn = true;
+    user.token = accessToken;
+    await user.save();
+
+    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
+    res.cookie('token', accessToken, { httpOnly: true, secure: true, sameSite: 'none', maxAge: tokenMaxAge, path: '/' });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: 'none', maxAge: tokenMaxAge, path: '/api/auth/refresh' });
+
+    success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Login successful');
+  } catch (err) {
+    console.error('Supabase login error:', err.message);
+    error(res, err.message);
+  }
+});
+
+// ── POST /auth/supabase-register ─────────────────────────
+
+router.post('/supabase-register', async (req, res) => {
+  try {
+    const { name, email, password, phone } = req.body;
+    if (!name || !email || !password) return error(res, 'Name, email and password are required', 400);
+
+    const { getAdminClient } = require('../config/supabase');
+    const supabase = getAdminClient();
+    if (!supabase) return error(res, 'Supabase not configured', 500);
+
+    const { data, error: authError } = await supabase.auth.admin.createUser({
+      email: email.toLowerCase(),
+      password,
+      email_confirm: true,
+      user_metadata: { name, phone },
+    });
+    if (authError) return error(res, authError.message, 400);
+
+    const mongoUser = await User.create({
+      name,
+      email: email.toLowerCase(),
+      phone: phone || null,
+      supabaseId: data.user.id,
+      role: 'customer',
+      isVerified: true,
+    });
+
+    const { accessToken, refreshToken } = signTokens(mongoUser);
+    await Session.create({ userId: mongoUser._id });
+    mongoUser.isLoggedIn = true;
+    mongoUser.token = accessToken;
+    await mongoUser.save();
+
+    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
+    res.cookie('token', accessToken, { httpOnly: true, secure: true, sameSite: 'none', maxAge: tokenMaxAge, path: '/' });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: 'none', maxAge: tokenMaxAge, path: '/api/auth/refresh' });
+
+    success(res, { accessToken, refreshToken, user: sanitize(mongoUser) }, 'Registration successful', 201);
+  } catch (err) {
+    console.error('Supabase register error:', err.message);
+    error(res, err.message);
+  }
+});
+
 // ── POST /auth/supabase-sync ─────────────────────────────
 
 router.post('/supabase-sync', async (req, res) => {

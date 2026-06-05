@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 
 let supabaseAdmin = null;
+let supabaseAuth = null;
 
 function getAdminClient() {
   if (supabaseAdmin) return supabaseAdmin;
@@ -18,4 +19,15 @@ function getAdminClient() {
   return supabaseAdmin;
 }
 
-module.exports = { getAdminClient };
+function getAuthClient() {
+  if (supabaseAuth) return supabaseAuth;
+  const url = process.env.SUPABASE_URL;
+  const anonKey = process.env.SUPABASE_ANON_KEY;
+  if (!url || !anonKey || url.includes('your-project') || anonKey.includes('your-service')) {
+    return null;
+  }
+  supabaseAuth = createClient(url, anonKey);
+  return supabaseAuth;
+}
+
+module.exports = { getAdminClient, getAuthClient };

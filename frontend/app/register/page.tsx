@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { UserPlus, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap } from 'lucide-react';
 
@@ -46,8 +44,14 @@ export default function RegisterPage() {
       const { confirmPassword, phone, ...rest } = form;
       const cleanPhone = phone.replace(/\D/g, '');
       const body = cleanPhone ? { ...rest, phone: cleanPhone } : rest;
-      const res = await api.post('/auth/register', body);
-      if (!res?.success) throw new Error(res?.message || 'Registration failed');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/supabase-register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!data.success) { toast.error(data.message || 'Registration failed'); return; }
       toast.success('Registration successful!');
       router.push('/');
     } catch (error: any) {
@@ -62,7 +66,13 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const cleanPhone = phoneReg.phone.replace(/\D/g, '');
-      await api.post('/auth/send-otp', { phone: cleanPhone });
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone }),
+      });
+      const data = await res.json();
+      if (!data.success) { toast.error(data.message); return; }
       setPhoneOtpSent(true);
       toast.success('OTP sent to phone');
       setPhoneOtpTimer(60);
@@ -76,8 +86,13 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const cleanPhone = phoneReg.phone.replace(/\D/g, '');
-      const res = await api.post('/auth/verify-otp', { phone: cleanPhone, otp: phoneReg.otp });
-      if (!res?.success) throw new Error(res?.message || 'Verification failed');
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone, otp: phoneReg.otp }),
+      });
+      const data = await res.json();
+      if (!data.success) { toast.error(data.message || 'Verification failed'); return; }
       toast.success('Registration & login successful!');
       router.push('/');
     } catch (error: any) { toast.error(error.message); }

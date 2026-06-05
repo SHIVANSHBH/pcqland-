@@ -57,17 +57,19 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: emailPass.email,
-        password: emailPass.password,
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/supabase-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailPass.email, password: emailPass.password }),
+        credentials: 'include',
       });
-      if (error) {
-        toast.error(error.message === 'Invalid login credentials' ? 'Invalid email or password' : error.message);
+      const data = await res.json();
+      if (!data.success) {
+        toast.error(data.message || 'Invalid email or password');
         return;
       }
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        await syncAuthAndRedirect(session.access_token, router);
+      if (data.data?.accessToken) {
+        await syncAuthAndRedirect(data.data.accessToken, router);
       } else {
         router.push('/');
         router.refresh();
