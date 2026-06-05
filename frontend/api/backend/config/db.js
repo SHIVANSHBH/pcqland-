@@ -46,6 +46,9 @@ const connectDB = async () => {
       retryWrites: true,
       w: 'majority',
     });
+    if (mongoose.connection.readyState !== 1) {
+      await new Promise((resolve) => mongoose.connection.once('connected', resolve));
+    }
     isMongoConnected = true;
     console.log(`MongoDB connected: ${mongoose.connection.host}/${mongoose.connection.name}`);
   } catch (err) {

@@ -12,6 +12,15 @@ const rateLimit = require('express-rate-limit');
 const passport = require('passport');
 const connectDB = require('./config/db');
 
+process.on('unhandledRejection', (reason) => {
+  console.error('UNHANDLED REJECTION:', reason instanceof Error ? reason.stack : reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err.stack);
+  process.exit(1);
+});
+
 const app = express();
 
 // Compression
