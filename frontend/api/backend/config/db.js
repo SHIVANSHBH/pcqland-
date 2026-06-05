@@ -49,17 +49,25 @@ const connectDB = async () => {
     isMongoConnected = true;
     console.log(`MongoDB connected: ${mongoose.connection.host}/${mongoose.connection.name}`);
   } catch (err) {
-    console.error(`MongoDB connection error: ${err.message}`);
-    if (err.message.includes('Authentication failed')) {
+    const msg = err.message;
+    console.error(`MongoDB connection error: ${msg}`);
+    if (msg.includes('querySrv') || msg.includes('ENOTFOUND')) {
+      const hostMatch = msg.match(/_mongodb\._tcp\.(\S+)/);
+      const host = hostMatch ? hostMatch[1] : (() => { try { return new URL(uri.replace(/^mongodb\+srv:/, 'mongodb:')).hostname; } catch { return 'unknown'; } })();
+      console.error(`👉 SRV lookup failed for host: ${host}`);
+      console.error(`👉 Go to MongoDB Atlas → Cluster → Connect → "Connect your application"`);
+      console.error(`👉 Copy the exact mongodb+srv:// URI and set it as MONGODB_URI in Render dashboard`);
+      console.error(`👉 Your cluster might have been deleted or its hostname changed`);
+    } else if (msg.includes('Authentication failed')) {
       console.error('👉 Check your MongoDB username and password in MONGODB_URI');
       console.error('👉 Password must be URL-encoded if it contains special chars (@ : / ? #)');
-    } else if (err.message.includes('getaddrinfo') || err.message.includes('ENOTFOUND')) {
-      console.error('👉 Cannot resolve MongoDB host. Check your cluster hostname in MONGODB_URI');
-    } else if (err.message.includes('timed out') || err.message.includes('TIMEOUT')) {
+    } else if (msg.includes('timed out') || msg.includes('TIMEOUT')) {
       console.error('👉 Connection timed out. Add 0.0.0.0/0 to MongoDB Atlas Network Access whitelist');
       console.error('👉 https://cloud.mongodb.com → Network Access → Add IP 0.0.0.0/0');
     }
-    console.log('Falling back to NeDB (file-based database)');
+    if (!isMongoConnected) {
+      console.log('Falling back to NeDB (file-based database)');
+    }
   }
 };
 
