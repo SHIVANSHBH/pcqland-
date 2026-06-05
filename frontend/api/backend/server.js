@@ -124,9 +124,22 @@ app.use('/api/auth/send-otp', otpLimiter);
 app.use('/api/auth/verify-otp', otpLimiter);
 app.use('/api', apiLimiter);
 
-// Health check (no DB needed)
+// Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime() });
+  let dbInfo = 'nedb';
+  try {
+    const db = require('./config/db');
+    if (db.isUsingMongo && db.isUsingMongo()) {
+      const mongoose = require('mongoose');
+      dbInfo = `mongodb:${mongoose.connection.name || 'unknown'}`;
+    }
+  } catch {}
+  res.json({
+    status: 'ok',
+    database: dbInfo,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
 });
 
 const PORT = process.env.PORT || 5000;
@@ -135,7 +148,7 @@ async function main() {
   await connectDB();
 
   // Serve frontend static build if it exists (production mode)
-  const frontendDist = path.join(__dirname, '..', 'frontend');
+  const frontendDist = path.join(__dirname, '..', '..', '..', 'frontend');
   const nextBuildDir = path.join(frontendDist, '.next');
   if (require('fs').existsSync(nextBuildDir)) {
     app.use('/_next', express.static(path.join(nextBuildDir)));
