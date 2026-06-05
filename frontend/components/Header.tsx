@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { api, clearAuth } from '@/lib/api';
+import { useSession, signOut } from 'next-auth/react';
+import { api } from '@/lib/api';
 import Image from 'next/image';
 import { Search, User, ShoppingCart, Menu, X, ChevronDown, Phone, Headphones } from 'lucide-react';
 
@@ -46,8 +47,9 @@ const categories = [
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === 'authenticated';
+  const userName = (session?.user as any)?.name || '';
   const [mobileMenu, setMobileMenu] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [logo, setLogo] = useState('');
@@ -65,20 +67,6 @@ export default function Header() {
   }
 
   useEffect(() => {
-    const cachedMe = sessionStorage.getItem('_auth_me');
-    if (cachedMe) {
-      try { const d = JSON.parse(cachedMe); setIsLoggedIn(true); setUserName(d.data?.name || ''); } catch {}
-    }
-    api.get('/auth/me').then(d => {
-      if (d && d.data) {
-        setIsLoggedIn(true);
-        setUserName(d.data.name || '');
-        try { sessionStorage.setItem('_auth_me', JSON.stringify(d)); } catch {}
-      }
-    }).catch(() => {
-      if (!cachedMe) setIsLoggedIn(false);
-    });
-
     const cachedSettings = sessionStorage.getItem('_settings');
     if (cachedSettings) {
       try { const s = JSON.parse(cachedSettings); if (s.logo) setLogo(s.logo); } catch {}
@@ -103,10 +91,7 @@ export default function Header() {
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout', {}); } catch {}
-    clearAuth();
-    setIsLoggedIn(false);
-    setUserName('');
-    window.location.href = '/';
+    signOut({ callbackUrl: '/' });
   };
 
   return (

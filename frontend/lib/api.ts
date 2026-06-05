@@ -9,6 +9,10 @@ function getAccessToken(): string | null {
   try { return localStorage.getItem('accessToken'); } catch { return null; }
 }
 
+export function getAccessTokenSync(): string | null {
+  return getAccessToken();
+}
+
 export function setAccessToken(token: string | null) {
   if (typeof localStorage === 'undefined') return;
   try { if (token) localStorage.setItem('accessToken', token); else localStorage.removeItem('accessToken'); } catch {}

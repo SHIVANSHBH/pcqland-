@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { api } from '@/lib/api';
+import { signIn, getSession } from 'next-auth/react';
+import { api, setAccessToken, setRefreshToken } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { setAccessToken, setRefreshToken } from '@/lib/api';
-import { Lock, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap, CheckCircle } from 'lucide-react';
+import { Lock, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap } from 'lucide-react';
 
 type Tab = 'password' | 'phone-otp' | 'email-otp';
 
@@ -25,15 +25,12 @@ export default function LoginPage() {
     };
   }, []);
 
-  // Email/Password
   const [emailPass, setEmailPass] = useState({ email: '', password: '' });
 
-  // Email OTP
   const [emailOtp, setEmailOtp] = useState({ email: '', otp: '' });
   const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [emailOtpTimer, setEmailOtpTimer] = useState(0);
 
-  // Phone OTP
   const [phoneOtp, setPhoneOtp] = useState({ phone: '', otp: '' });
   const [phoneOtpSent, setPhoneOtpSent] = useState(false);
   const [phoneOtpTimer, setPhoneOtpTimer] = useState(0);
@@ -51,19 +48,37 @@ export default function LoginPage() {
     { count: '24 Hrs', label: 'GST Invoice' },
   ];
 
+  async function redirectAfterLogin() {
+    const session = await getSession();
+    const role = (session?.user as any)?.role;
+    if (role === 'admin') router.push('/admin');
+    else router.push('/');
+  }
+
   async function handlePasswordLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', emailPass);
-      const loginData = res?.data;
-      if (!loginData?.accessToken) throw new Error('Invalid response');
-      setAccessToken(loginData.accessToken);
-      if (loginData.refreshToken) setRefreshToken(loginData.refreshToken);
-      try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
+      const result = await signIn('credentials', {
+        email: emailPass.email,
+        password: emailPass.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        toast.error('Invalid email or password');
+        return;
+      }
+
+      const sess = await getSession();
+      const tok = (sess as any)?.accessToken;
+      if (tok) setAccessToken(tok);
+      const refTok = (sess as any)?.refreshToken;
+      if (refTok) setRefreshToken(refTok);
+
+      try { sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');
-      if (loginData.user?.role === 'admin') router.push('/admin');
-      else router.push('/');
+      await redirectAfterLogin();
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
     } finally { setLoading(false); }
@@ -87,14 +102,18 @@ export default function LoginPage() {
     if (!emailOtp.otp) { toast.error('Enter OTP'); return; }
     setLoading(true);
     try {
-      const res2 = await api.post('/auth/verify-email-otp', { email: emailOtp.email, otp: emailOtp.otp });
-      if (!res2?.data?.accessToken) throw new Error('Invalid response');
-      setAccessToken(res2.data.accessToken);
-      if (res2.data.refreshToken) setRefreshToken(res2.data.refreshToken);
-      try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
+      const res = await api.post('/auth/verify-email-otp', { email: emailOtp.email, otp: emailOtp.otp });
+      if (!res?.data?.accessToken) throw new Error('Invalid response');
+
+      setAccessToken(res.data.accessToken);
+      if (res.data.refreshToken) setRefreshToken(res.data.refreshToken);
+
+      const signInResult = await signIn('token', { accessToken: res.data.accessToken, redirect: false });
+      if (signInResult?.error) throw new Error('Session creation failed');
+
+      try { sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');
-      if (res2.data.user?.role === 'admin') router.push('/admin');
-      else router.push('/');
+      await redirectAfterLogin();
     } catch (error: any) { toast.error(error.message); }
     finally { setLoading(false); }
   }
@@ -119,26 +138,28 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const cleanPhone = phoneOtp.phone.replace(/\D/g, '');
-      const res3 = await api.post('/auth/verify-otp', { phone: cleanPhone, otp: phoneOtp.otp });
-      if (!res3?.data?.accessToken) throw new Error('Invalid response');
-      setAccessToken(res3.data.accessToken);
-      if (res3.data.refreshToken) setRefreshToken(res3.data.refreshToken);
-      try { sessionStorage.removeItem('_auth_me'); sessionStorage.removeItem('_settings'); } catch {}
+      const res = await api.post('/auth/verify-otp', { phone: cleanPhone, otp: phoneOtp.otp });
+      if (!res?.data?.accessToken) throw new Error('Invalid response');
+
+      setAccessToken(res.data.accessToken);
+      if (res.data.refreshToken) setRefreshToken(res.data.refreshToken);
+
+      const signInResult = await signIn('token', { accessToken: res.data.accessToken, redirect: false });
+      if (signInResult?.error) throw new Error('Session creation failed');
+
+      try { sessionStorage.removeItem('_settings'); } catch {}
       toast.success('Login successful!');
-      if (res3.data.user?.role === 'admin') router.push('/admin');
-      else router.push('/');
+      await redirectAfterLogin();
     } catch (error: any) { toast.error(error.message); }
     finally { setLoading(false); }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      {/* Hero + Form Section */}
       <section className="px-4 pt-8 pb-6">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8 items-start">
 
-            {/* Left - Brand */}
             <div className="space-y-8 pt-6">
               <div>
                 <Link href="/register" className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 bg-blue-50 px-5 py-2.5 rounded-full hover:bg-blue-100 transition-colors">
@@ -150,7 +171,7 @@ export default function LoginPage() {
                 <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
                   Access Your
                   <br />
-                  Account <span className="text-blue-600">Instantly</span> <span className="text-4xl">🔓</span>
+                  Account <span className="text-blue-600">Instantly</span>
                 </h1>
                 <p className="text-lg text-gray-500 max-w-md">
                   Manage orders, track deliveries & save time
@@ -175,7 +196,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Right - Login Form */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8">
               <div className="text-center mb-6">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
@@ -185,7 +205,6 @@ export default function LoginPage() {
                 <p className="text-sm text-gray-500 mt-1">Sign in to PC Deals India & manage your business</p>
               </div>
 
-              {/* Tabs */}
               <div className="flex gap-1.5 mb-6 bg-gray-100 p-1 rounded-xl">
                 <button onClick={() => setTab('password')}
                   className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-3 text-xs font-semibold rounded-lg transition-all min-w-0 ${tab === 'password' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
@@ -207,7 +226,6 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              {/* Email/Password Tab */}
               {tab === 'password' && (
                 <form onSubmit={handlePasswordLogin} className="space-y-4">
                   <div>
@@ -240,7 +258,6 @@ export default function LoginPage() {
                 </form>
               )}
 
-              {/* Phone OTP Tab */}
               {tab === 'phone-otp' && (
                 <div className="space-y-4">
                   <div>
@@ -272,7 +289,6 @@ export default function LoginPage() {
                 </div>
               )}
 
-              {/* Email OTP Tab */}
               {tab === 'email-otp' && (
                 <div className="space-y-4">
                   <div>
@@ -315,7 +331,6 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
       <section className="px-4 pb-6">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-3 gap-4 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -329,7 +344,6 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* Bottom Features */}
       <section className="px-4 pb-12">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
