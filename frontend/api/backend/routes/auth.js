@@ -92,7 +92,8 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     const { name, email, phone, password } = req.body;
     const normalizedEmail = email.toLowerCase();
 
-    const exists = await User.findOne({ $or: [{ email: normalizedEmail }, ...(phone ? [{ phone }] : [])] });
+    // Separate queries to avoid Mongoose 9.x $or + select compatibility issues
+    const exists = await User.findOne({ email: normalizedEmail }) || (phone ? await User.findOne({ phone }) : null);
     if (exists) {
       return error(res, 'Email or phone already registered', 400);
     }
