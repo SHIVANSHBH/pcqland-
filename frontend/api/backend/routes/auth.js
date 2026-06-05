@@ -137,25 +137,15 @@ router.post('/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, phone, password } = req.body;
 
-    // Fix Mongoose 9.x $or + select('+password') compatibility
-    let user;
-    if (require('../config/db').isUsingMongo()) {
-      const conditions = [];
-      if (email) conditions.push({ email: email.toLowerCase() });
-      if (phone) conditions.push({ phone });
-      if (!conditions.length) return error(res, 'Email or phone is required', 400);
-      // Find user without password first
-      const userWithoutPass = await User.findOne({ $or: conditions });
-      if (userWithoutPass) {
-        // Then fetch with password using a separate query
-        user = await User.findById(userWithoutPass._id).select('+password');
-      }
-    } else {
-      const conditions = [];
-      if (email) conditions.push({ email: email.toLowerCase() });
-      if (phone) conditions.push({ phone });
-      if (!conditions.length) return error(res, 'Email or phone is required', 400);
-      user = await User.findOne({ $or: conditions });
+    // Build filter without $or to avoid Mongoose 9.x compatibility issues
+    const filter = {};
+    if (email) filter.email = email.toLowerCase();
+    if (phone) filter.phone = phone;
+    if (!Object.keys(filter).length) return error(res, 'Email or phone is required', 400);
+
+    let user = await User.findOne(filter);
+    if (user && require('../config/db').isUsingMongo()) {
+      user = await User.findById(user._id).select('+password');
     }
 
     // Account lockout check
