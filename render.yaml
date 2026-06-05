@@ -10,9 +10,47 @@ services:
         value: production
       - key: CLIENT_URL
         value: https://pcqland.vercel.app
+      - key: BACKEND_URL
+        value: https://pcdeals-backend.onrender.com
       - key: JWT_SECRET
-        value: change_this_to_a_random_64_hex_string
-      - key: MONGODB_URI
-        value: mongodb+srv://user:pass@cluster.mongodb.net/pcdeals?retryWrites=true&w=majority
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRES
+        value: 7d
+      - key: JWT_REFRESH_EXPIRES
+        value: 7d
       - key: PORT
         value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: WHATSAPP_API_URL
+        sync: false
+      - key: WHATSAPP_API_KEY
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GSTIN
+        sync: false
+      - key: GST_PERCENTAGE
+        value: "18"
+      - key: SHOP_NAME
+        value: PC Deals India
+      - key: TAX_RATE
+        value: "0.18"

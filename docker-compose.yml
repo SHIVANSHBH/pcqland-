@@ -7,11 +7,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
-    env_file: ./backend/.env
+    env_file: ./frontend/api/backend/.env
     volumes:
-      - ./backend/data:/app/data
-      - ./backend/uploads:/app/uploads
-      - ./backend/invoices:/app/invoices
+      - ./frontend/api/backend/data:/app/data
+      - ./frontend/api/backend/uploads:/app/uploads
+      - ./frontend/api/backend/invoices:/app/invoices
     restart: unless-stopped
 
   frontend:
