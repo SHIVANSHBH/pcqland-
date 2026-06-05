@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
 import { toast } from 'react-hot-toast';
 
 export default function VerifyPage() {
@@ -13,12 +14,7 @@ export default function VerifyPage() {
   useEffect(() => {
     if (!token) return;
 
-    fetch('/api/auth/verify-email-jwt', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token }),
-    })
-      .then((res) => res.json())
+    api.post('/auth/verify-email', { token })
       .then((data) => {
         if (data.success) {
           setStatus('success');

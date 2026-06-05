@@ -13,23 +13,40 @@ const { verificationEmail, passwordResetEmail } = require('../utils/templates');
 
 const router = express.Router();
 
+// ── Helpers ──────────────────────────────────────────────
+
+function signTokens(user) {
+  const accessToken = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '10d' });
+  const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+  return { accessToken, refreshToken };
+}
+
+async function selectPassword(query) {
+  if (require('../config/db').isUsingMongo()) {
+    return query.select('+password');
+  }
+  return query;
+}
+
 const verifyEmailTemplate = (name, token) => ({
   subject: 'Verify your email - PC Deals India',
   html: `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #2563eb;">PC Deals India</h2>
       <p>Dear ${name},</p>
-      <p>Welcome! Please verify your email by clicking the button below:</p>
+      <p>Click the button below to verify your email:</p>
       <div style="text-align: center; margin: 30px 0;">
         <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/verify/${encodeURIComponent(token)}"
            style="display: inline-block; padding: 14px 32px; background: #2563eb; color: #fff; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;">
           Verify Email
         </a>
       </div>
-      <p style="color: #94a3b8; font-size: 12px;">This link expires in 10 minutes. If you did not create an account, ignore this email.</p>
+      <p style="color: #94a3b8; font-size: 12px;">This link expires in 10 minutes.</p>
     </div>
   `,
 });
+
+// ── Schemas ──────────────────────────────────────────────
 
 const registerSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -45,17 +62,37 @@ const loginSchema = z.object({
 }).refine(d => d.email || d.phone, { message: 'Email or phone is required' });
 
 const emailSchema = z.object({ email: z.string().email('Invalid email') });
-const codeSchema = z.object({ email: z.string().email('Invalid email'), code: z.string().length(6, 'Code must be 6 digits') });
-const resetPasswordSchema = z.object({ email: z.string().email('Invalid email'), code: z.string().length(6), password: z.string().min(6).max(128) });
-const changePasswordSchema = z.object({ currentPassword: z.string().min(1), newPassword: z.string().min(6).max(128) });
 const phoneSchema = z.object({ phone: z.string().min(7).max(20) });
-const otpSchema = z.object({ phone: z.string().min(7).max(20), otp: z.string().length(6) });
+const otpSendSchema = z.object({
+  email: z.string().email().optional(),
+  phone: z.string().min(7).max(20).optional(),
+}).refine(d => d.email || d.phone, { message: 'Email or phone is required' });
+
+const otpVerifySchema = z.object({
+  email: z.string().email().optional(),
+  phone: z.string().min(7).max(20).optional(),
+  otp: z.string().length(6, 'OTP must be 6 digits'),
+}).refine(d => d.email || d.phone, { message: 'Email or phone is required' });
+
+const resetPasswordSchema = z.object({
+  email: z.string().email('Invalid email'),
+  otp: z.string().length(6),
+  password: z.string().min(6).max(128),
+});
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6).max(128),
+});
+
+// ── POST /auth/register ──────────────────────────────────
 
 router.post('/register', validate(registerSchema), async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
+    const normalizedEmail = email.toLowerCase();
 
-    const exists = await User.findOne({ $or: [{ email: email.toLowerCase() }, { phone }] });
+    const exists = await User.findOne({ $or: [{ email: normalizedEmail }, ...(phone ? [{ phone }] : [])] });
     if (exists) {
       return error(res, 'Email or phone already registered', 400);
     }
@@ -64,15 +101,14 @@ router.post('/register', validate(registerSchema), async (req, res) => {
 
     const user = await User.create({
       name,
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       phone,
       password: hashed,
       role: 'customer',
-      isVerified: process.env.SMTP_HOST ? false : true,
+      isVerified: false,
     });
 
-    const accessToken = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '10d' });
-    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+    const { accessToken, refreshToken } = signTokens(user);
 
     await Session.create({ userId: user._id });
     user.isLoggedIn = true;
@@ -82,181 +118,68 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     if (process.env.SMTP_HOST) {
       const verifyToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '10m' });
       sendGenericEmail({ to: user.email, ...verifyEmailTemplate(name, verifyToken) }).catch(() => {});
-      console.log(`Verification email sent to ${email}`);
+      console.log(`Verification email sent to ${normalizedEmail}`);
     } else {
       user.isVerified = true;
       await user.save();
-      console.log(`Auto-verified ${email} (no SMTP)`);
     }
 
     success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Registration successful. Please verify your email.', 201);
   } catch (err) {
-    console.error('Register error:', err.message, err.stack);
+    console.error('Register error:', err.message);
     error(res, err.message);
   }
 });
 
-router.post('/verify-email', validate(codeSchema), async (req, res) => {
-  try {
-    const { email, code } = req.body;
-
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) return error(res, 'User not found', 404);
-    if (user.isVerified) return success(res, null, 'Email already verified');
-    if (user.verificationCode !== hashCode(code)) return error(res, 'Invalid verification code', 400);
-    if (new Date(user.verificationCodeExpiry) < new Date()) return error(res, 'Verification code expired', 400);
-
-    await User.findByIdAndUpdate(user._id, { isVerified: true, verificationCode: '', verificationCodeExpiry: '' });
-    success(res, null, 'Email verified successfully');
-  } catch (err) {
-    error(res, err.message);
-  }
-});
-
-router.post('/resend-verification', validate(emailSchema), async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) return error(res, 'User not found', 404);
-    if (user.isVerified) return success(res, null, 'Email already verified');
-
-    const verificationCode = generateCode();
-    const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
-    await User.findByIdAndUpdate(user._id, { verificationCode: hashCode(verificationCode), verificationCodeExpiry: codeExpiry.toISOString() });
-
-    if (process.env.SMTP_HOST) {
-      sendGenericEmail({ to: user.email, ...verificationEmail(user.name, verificationCode) }).catch(() => {});
-    } else {
-      console.log(`Verification code for ${email}: ${verificationCode}`);
-    }
-
-    success(res, null, 'Verification code resent');
-  } catch (err) {
-    error(res, err.message);
-  }
-});
-
-router.post('/verify-email-jwt', async (req, res) => {
-  try {
-    const { token } = req.body;
-    if (!token) return error(res, 'Token required', 400);
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded.id) return error(res, 'Invalid token', 400);
-
-    const user = await User.findById(decoded.id);
-    if (!user) return error(res, 'User not found', 404);
-
-    if (user.isVerified) {
-      return success(res, null, 'Email already verified');
-    }
-
-    user.isVerified = true;
-    await user.save();
-    success(res, null, 'Email verified successfully');
-  } catch (err) {
-    if (err.name === 'TokenExpiredError') return error(res, 'Verification link expired', 400);
-    error(res, err.message);
-  }
-});
-
-router.get('/verify-email-jwt/:token', async (req, res) => {
-  try {
-    const { token } = req.params;
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded.id) return error(res, 'Invalid token', 400);
-
-    const user = await User.findById(decoded.id);
-    if (!user) return error(res, 'User not found', 404);
-
-    if (user.isVerified) {
-      return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?verified=true`);
-    }
-
-    user.isVerified = true;
-    await user.save();
-    res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?verified=true`);
-  } catch (err) {
-    const redirectUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/login?verified=false`;
-    if (err.name === 'TokenExpiredError') {
-      return res.redirect(redirectUrl);
-    }
-    res.redirect(redirectUrl);
-  }
-});
+// ── POST /auth/login ─────────────────────────────────────
 
 router.post('/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, phone, password } = req.body;
 
-    let userQuery = User.findOne({
-      $or: [
-        ...(email ? [{ email: email.toLowerCase() }] : []),
-        ...(phone ? [{ phone }] : []),
-      ],
-    });
-    if (require('../config/db').isUsingMongo()) {
-      userQuery = userQuery.select('+password');
-    }
-    const user = await userQuery;
+    const conditions = [];
+    if (email) conditions.push({ email: email.toLowerCase() });
+    if (phone) conditions.push({ phone });
+    if (!conditions.length) return error(res, 'Email or phone is required', 400);
+
+    let query = User.findOne({ $or: conditions });
+    query = await selectPassword(query);
+    const user = await query;
 
     const dummyHash = '$2a$10$' + 'x'.repeat(53);
     const isMatch = user ? await bcrypt.compare(password, user.password) : await bcrypt.compare(password, dummyHash);
     if (!user || !isMatch) {
       return error(res, 'Invalid credentials', 401);
     }
-
     if (!user.isVerified) {
       return error(res, 'Please verify your email before logging in', 403);
     }
 
-    const existingSession = await Session.findOne({ userId: user._id });
-    if (existingSession) {
-      await Session.deleteOne({ userId: user._id });
-    }
+    await Session.deleteOne({ userId: user._id });
     await Session.create({ userId: user._id });
 
-    const accessToken = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '10d' });
-    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-
+    const { accessToken, refreshToken } = signTokens(user);
     user.isLoggedIn = true;
+    user.token = accessToken;
     await user.save();
 
     success(res, { accessToken, refreshToken, user: sanitize(user) }, `Welcome back ${user.name || 'User'}`);
   } catch (err) {
-    console.error('Login error:', err.message, err.stack);
+    console.error('Login error:', err.message);
     error(res, err.message);
   }
 });
 
-router.post('/refresh-token', async (req, res) => {
-  try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) return error(res, 'Refresh token is required', 400);
+// ── POST /auth/me ────────────────────────────────────────
 
-    const stored = await Token.findOne({ token: refreshToken, type: 'refresh' });
-    if (!stored) return error(res, 'Invalid refresh token', 401);
-    if (new Date(stored.expiresAt) < new Date()) {
-      await Token.findByIdAndDelete(stored._id);
-      return error(res, 'Refresh token expired, please login again', 401);
-    }
-
-    const user = await User.findById(stored.userId);
-    if (!user) return error(res, 'User not found', 404);
-
-    await Token.findByIdAndDelete(stored._id);
-
-    const newAccessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
-    const newRefreshToken = generateRefreshToken();
-    await Token.create({ token: newRefreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
-
-    success(res, { accessToken: newAccessToken, refreshToken: newRefreshToken }, 'Token refreshed');
-  } catch (err) {
-    error(res, err.message);
-  }
+router.get('/me', auth, (req, res) => {
+  success(res, req.user, 'User fetched');
 });
+router.post('/me', auth, (req, res) => {
+  success(res, req.user, 'User fetched');
+});
+
+// ── POST /auth/logout ────────────────────────────────────
 
 router.post('/logout', auth, async (req, res) => {
   try {
@@ -271,21 +194,63 @@ router.post('/logout', auth, async (req, res) => {
   }
 });
 
+// ── POST /auth/verify-email ──────────────────────────────
+
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return error(res, 'Token required', 400);
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) return error(res, 'User not found', 404);
+    if (user.isVerified) return success(res, null, 'Email already verified');
+
+    user.isVerified = true;
+    await user.save();
+    success(res, null, 'Email verified successfully');
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') return error(res, 'Verification link expired', 400);
+    error(res, err.message);
+  }
+});
+
+router.get('/verify-email/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) return error(res, 'User not found', 404);
+
+    if (!user.isVerified) {
+      user.isVerified = true;
+      await user.save();
+    }
+    res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?verified=true`);
+  } catch (err) {
+    res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?verified=false`);
+  }
+});
+
+// ── POST /auth/forgot-password ───────────────────────────
+
 router.post('/forgot-password', validate(emailSchema), async (req, res) => {
   try {
     const { email } = req.body;
     const normalizedEmail = email.toLowerCase();
 
-    const resetCode = generateCode();
-    const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
-
     const user = await User.findOne({ email: normalizedEmail });
     if (user) {
-      await User.findByIdAndUpdate(user._id, { resetCode: hashCode(resetCode), resetCodeExpiry: codeExpiry.toISOString() });
+      const code = generateCode();
+      const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+      user.resetCode = hashCode(code);
+      user.resetCodeExpiry = expiry;
+      await user.save();
+
       if (process.env.SMTP_HOST) {
-        sendGenericEmail({ to: user.email, ...passwordResetEmail(user.name, resetCode) }).catch(() => {});
+        sendGenericEmail({ to: user.email, ...passwordResetEmail(user.name, code) }).catch(() => {});
       } else {
-        console.log(`Password reset code for ${email}: ${resetCode}`);
+        console.log(`Reset code for ${email}: ${code}`);
       }
     }
 
@@ -295,19 +260,29 @@ router.post('/forgot-password', validate(emailSchema), async (req, res) => {
   }
 });
 
+// ── POST /auth/reset-password ────────────────────────────
+
 router.post('/reset-password', validate(resetPasswordSchema), async (req, res) => {
   try {
-    const { email, code, password } = req.body;
+    const { email, otp, password } = req.body;
+    const normalizedEmail = email.toLowerCase();
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) return error(res, 'Invalid request', 400);
-    if (user.resetCode !== hashCode(code)) return error(res, 'Invalid reset code', 400);
+
+    const query = await selectPassword(User.findById(user._id));
+    const userWithPass = await query;
+    if (userWithPass?.resetCode !== hashCode(otp)) return error(res, 'Invalid reset code', 400);
     if (new Date(user.resetCodeExpiry) < new Date()) return error(res, 'Reset code expired', 400);
 
     const hashed = await bcrypt.hash(password, 10);
-    await User.findByIdAndUpdate(user._id, { password: hashed, resetCode: '', resetCodeExpiry: '' });
+    user.password = hashed;
+    user.resetCode = '';
+    user.resetCodeExpiry = '';
+    await user.save();
 
     await Token.deleteMany({ userId: user._id, type: 'refresh' });
+    await Session.deleteMany({ userId: user._id });
 
     success(res, null, 'Password reset successful. Please login with your new password.');
   } catch (err) {
@@ -315,27 +290,157 @@ router.post('/reset-password', validate(resetPasswordSchema), async (req, res) =
   }
 });
 
+// ── POST /auth/change-password ───────────────────────────
+
 router.post('/change-password', auth, validate(changePasswordSchema), async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
-    const { isUsingMongo } = require('../config/db');
-    const q = User.findById(req.user._id);
-    if (isUsingMongo()) q.select('+password');
-    const user = await q;
+    const query = await selectPassword(User.findById(req.user._id));
+    const user = await query;
+    if (!user) return error(res, 'User not found', 404);
+
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) return error(res, 'Current password is incorrect', 400);
 
     const hashed = await bcrypt.hash(newPassword, 10);
-    await User.findByIdAndUpdate(user._id, { password: hashed });
+    user.password = hashed;
+    await user.save();
 
     await Token.deleteMany({ userId: user._id, type: 'refresh' });
+    await Session.deleteMany({ userId: user._id });
 
     success(res, null, 'Password changed successfully. Please login again.');
   } catch (err) {
     error(res, err.message);
   }
 });
+
+// ── POST /auth/refresh ───────────────────────────────────
+
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) return error(res, 'Refresh token required', 400);
+
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    } catch {
+      return error(res, 'Invalid or expired refresh token', 401);
+    }
+
+    const user = await User.findById(decoded.id);
+    if (!user) return error(res, 'User not found', 404);
+
+    const tokens = signTokens(user);
+    user.token = tokens.accessToken;
+    await user.save();
+
+    success(res, tokens, 'Token refreshed');
+  } catch (err) {
+    error(res, err.message);
+  }
+});
+
+// ── POST /auth/send-otp ──────────────────────────────────
+
+router.post('/send-otp', validate(otpSendSchema), async (req, res) => {
+  try {
+    const { email, phone } = req.body;
+    const identifier = email?.toLowerCase() || phone;
+    const otp = generateCode();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+    const filter = {};
+    if (email) filter.email = identifier;
+    if (phone) filter.phone = identifier;
+
+    const user = await User.findOne(filter);
+    if (user) {
+      user.otp = hashCode(otp);
+      user.otpExpiry = expiresAt;
+      await user.save();
+    } else {
+      await Token.create({
+        token: hashCode(otp),
+        type: 'otp',
+        email: email?.toLowerCase() || null,
+        phone: phone || null,
+        expiresAt,
+      });
+    }
+
+    if (email && process.env.SMTP_HOST) {
+      sendGenericEmail({
+        to: email,
+        subject: 'Your OTP - PC Deals India',
+        text: `Your OTP is ${otp}. It expires in 5 minutes. - PC Deals India`,
+      }).catch(() => {});
+    } else {
+      console.log(`OTP for ${identifier}: ${otp}`);
+    }
+
+    success(res, null, 'OTP sent successfully');
+  } catch (err) {
+    error(res, err.message);
+  }
+});
+
+// ── POST /auth/verify-otp ────────────────────────────────
+
+router.post('/verify-otp', validate(otpVerifySchema), async (req, res) => {
+  try {
+    const { email, phone, otp } = req.body;
+    const hashedOtp = hashCode(otp);
+    const filter = {};
+    if (email) filter.email = email.toLowerCase();
+    if (phone) filter.phone = phone;
+
+    let user = await User.findOne(filter);
+    let isOtpValid = false;
+
+    if (user) {
+      if (user.otp === hashedOtp && new Date(user.otpExpiry) > new Date()) {
+        isOtpValid = true;
+        user.otp = '';
+        user.otpExpiry = '';
+        user.isVerified = true;
+        await user.save();
+      }
+    } else {
+      const otpRecord = await Token.findOne({ token: hashedOtp, type: 'otp', ...filter });
+      if (otpRecord && new Date(otpRecord.expiresAt) > new Date()) {
+        isOtpValid = true;
+        await Token.findByIdAndDelete(otpRecord._id);
+        user = await User.create({
+          name: email ? email.split('@')[0] : `User${phone?.slice(-4)}`,
+          email: email?.toLowerCase() || null,
+          phone: phone || null,
+          isVerified: true,
+          role: 'customer',
+        });
+      }
+    }
+
+    if (!isOtpValid || !user) {
+      return error(res, 'Invalid or expired OTP', 400);
+    }
+
+    const { accessToken, refreshToken } = signTokens(user);
+    await Session.deleteOne({ userId: user._id });
+    await Session.create({ userId: user._id });
+    user.isLoggedIn = true;
+    user.token = accessToken;
+    await user.save();
+
+    success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Login successful');
+  } catch (err) {
+    error(res, err.message);
+  }
+});
+
+// ── Google OAuth ─────────────────────────────────────────
 
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
@@ -351,7 +456,9 @@ if (process.env.GOOGLE_CLIENT_ID && !process.env.GOOGLE_CLIENT_ID.startsWith('yo
       const googleId = profile.id;
       let user = email ? await User.findOne({ email }) : null;
       if (user) {
-        await User.findByIdAndUpdate(user._id, { googleId, name: profile.displayName || user.name });
+        user.googleId = googleId;
+        user.name = profile.displayName || user.name;
+        await user.save();
       } else {
         user = await User.create({
           name: profile.displayName || email?.split('@')[0] || 'User',
@@ -380,12 +487,14 @@ router.get('/google/callback', (req, res, next) => {
   if (process.env.GOOGLE_CLIENT_ID && !process.env.GOOGLE_CLIENT_ID.startsWith('your_')) {
     passport.authenticate('google', { session: false, failureRedirect: '/login' }, (err, user) => {
       if (err || !user) return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=google_auth_failed`);
-      const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
-      const refreshToken = generateRefreshToken();
-      Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
-      const cookieOptions = { httpOnly: true, secure: true, sameSite: 'none', maxAge: 7 * 24 * 60 * 60 * 1000, path: '/' };
-      res.cookie('token', accessToken, cookieOptions);
-      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}?google_login=success`);
+      const { accessToken, refreshToken } = signTokens(user);
+      Token.create({
+        token: refreshToken,
+        type: 'refresh',
+        userId: user._id,
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      });
+      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}?token=${accessToken}`);
     })(req, res, next);
   } else {
     res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=google_not_configured`);
@@ -407,196 +516,23 @@ router.post('/google', async (req, res) => {
 
     let user = email ? await User.findOne({ email }) : null;
     if (user) {
-      await User.findByIdAndUpdate(user._id, { googleId });
+      user.googleId = googleId;
+      await user.save();
     } else {
-      user = await User.create({
-        name,
-        email,
-        googleId,
-        isVerified: true,
-        role: 'customer',
-      });
+      user = await User.create({ name, email, googleId, isVerified: true, role: 'customer' });
     }
 
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
-    const refreshToken = generateRefreshToken();
-    await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
-
-    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
-    const cookieOptions = {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: tokenMaxAge,
-      path: '/',
-    };
-    res.cookie('token', accessToken, cookieOptions);
-    res.cookie('refreshToken', refreshToken, {
-      ...cookieOptions,
-      maxAge: tokenMaxAge,
-      path: '/api/auth/refresh-token',
+    const { accessToken, refreshToken } = signTokens(user);
+    await Token.create({
+      token: refreshToken,
+      type: 'refresh',
+      userId: user._id,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     });
 
     success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Google login successful');
   } catch (err) {
-    error(res, 'Google authentication failed: ' + err.message);
-  }
-});
-
-router.post('/send-email-otp', validate(emailSchema), async (req, res) => {
-  try {
-    const { email } = req.body;
-    const normalizedEmail = email.toLowerCase();
-
-    const otp = generateCode();
-    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
-
-    let user = await User.findOne({ email: normalizedEmail });
-    if (user) {
-      await User.findByIdAndUpdate(user._id, { emailOtp: hashCode(otp), emailOtpExpiry: otpExpiry.toISOString() });
-    } else {
-      await Token.create({ token: hashCode(otp), type: 'email-otp', email: normalizedEmail, expiresAt: otpExpiry.toISOString() });
-    }
-
-    if (process.env.SMTP_HOST) {
-      sendGenericEmail({ to: email, subject: 'Your OTP for PC Deals India', text: `Your OTP is ${otp}. It expires in 5 minutes. - PC Deals India` }).catch(() => {});
-    } else {
-      console.log(`Email OTP for ${email}: ${otp}`);
-    }
-
-    success(res, null, 'OTP sent to your email');
-  } catch (err) {
-    error(res, err.message);
-  }
-});
-
-router.post('/verify-email-otp', validate(z.object({ email: z.string().email(), otp: z.string().length(6) })), async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    const normalizedEmail = email.toLowerCase();
-
-    let user = await User.findOne({ email: normalizedEmail });
-    if (user) {
-      if (user.emailOtp !== hashCode(otp)) return error(res, 'Invalid OTP', 400);
-      if (new Date(user.emailOtpExpiry) < new Date()) return error(res, 'OTP expired', 400);
-      await User.findByIdAndUpdate(user._id, { isVerified: true, emailOtp: '', emailOtpExpiry: '' });
-    } else {
-      const otpRecord = await Token.findOne({ token: hashCode(otp), type: 'email-otp', email: normalizedEmail });
-      if (!otpRecord) return error(res, 'Invalid OTP', 400);
-      if (new Date(otpRecord.expiresAt) < new Date()) return error(res, 'OTP expired', 400);
-      await Token.findByIdAndDelete(otpRecord._id);
-      user = await User.create({
-        name: normalizedEmail.split('@')[0],
-        email: normalizedEmail,
-        isVerified: true,
-        role: 'customer',
-      });
-    }
-
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
-    const refreshToken = generateRefreshToken();
-    await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
-
-    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
-    const cookieOptions = {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: tokenMaxAge,
-      path: '/',
-    };
-    res.cookie('token', accessToken, cookieOptions);
-    res.cookie('refreshToken', refreshToken, {
-      ...cookieOptions,
-      maxAge: tokenMaxAge,
-      path: '/api/auth/refresh-token',
-    });
-
-    success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Login successful');
-  } catch (err) {
-    error(res, err.message);
-  }
-});
-
-router.post('/send-otp', validate(phoneSchema), async (req, res) => {
-  try {
-    const { phone } = req.body;
-
-    const otp = generateCode();
-    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
-
-    let user = await User.findOne({ phone });
-    if (user) {
-      await User.findByIdAndUpdate(user._id, { otp: hashCode(otp), otpExpiry: otpExpiry.toISOString() });
-    } else {
-      await Token.create({ token: hashCode(otp), type: 'otp', phone, expiresAt: otpExpiry.toISOString() });
-    }
-
-    if (process.env.WHATSAPP_API_KEY && process.env.WHATSAPP_API_KEY !== 'your_gupshup_api_key') {
-      const axios = require('axios');
-      axios.post(process.env.WHATSAPP_API_URL + '/msg', {
-        channel: 'whatsapp',
-        source: process.env.WHATSAPP_PHONE_NUMBER,
-        destination: phone,
-        message: `Your OTP is ${otp}. It expires in 5 minutes. - PC Deals India`,
-        'src.name': 'PCDealsIndia',
-      }, {
-        headers: { 'api-key': process.env.WHATSAPP_API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
-      }).catch(() => {});
-    } else {
-      console.log(`OTP for ${phone}: ${otp}`);
-    }
-
-    success(res, null, 'OTP sent successfully');
-  } catch (err) {
-    error(res, err.message);
-  }
-});
-
-router.post('/verify-otp', validate(otpSchema), async (req, res) => {
-  try {
-    const { phone, otp } = req.body;
-
-    let user = await User.findOne({ phone });
-    if (user) {
-      if (user.otp !== hashCode(otp)) return error(res, 'Invalid OTP', 400);
-      if (new Date(user.otpExpiry) < new Date()) return error(res, 'OTP expired', 400);
-      await User.findByIdAndUpdate(user._id, { isVerified: true, otp: '', otpExpiry: '' });
-    } else {
-      const otpRecord = await Token.findOne({ token: hashCode(otp), type: 'otp', phone });
-      if (!otpRecord) return error(res, 'Invalid OTP', 400);
-      if (new Date(otpRecord.expiresAt) < new Date()) return error(res, 'OTP expired', 400);
-      await Token.findByIdAndDelete(otpRecord._id);
-      user = await User.create({
-        name: 'User',
-        phone,
-        isVerified: true,
-        role: 'customer',
-      });
-    }
-
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
-    const refreshToken = generateRefreshToken();
-    await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
-
-    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
-    const cookieOptions = {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: tokenMaxAge,
-      path: '/',
-    };
-    res.cookie('token', accessToken, cookieOptions);
-    res.cookie('refreshToken', refreshToken, {
-      ...cookieOptions,
-      maxAge: tokenMaxAge,
-      path: '/api/auth/refresh-token',
-    });
-
-    success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Login successful');
-  } catch (err) {
-    error(res, err.message);
+    error(res, 'Google authentication failed');
   }
 });
 
