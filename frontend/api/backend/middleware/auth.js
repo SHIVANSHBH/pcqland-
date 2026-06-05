@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
 const Token = require('../models/Token');
+const Session = require('../models/Session');
 const { getAdminClient } = require('../config/supabase');
 
 function sanitize(user) {

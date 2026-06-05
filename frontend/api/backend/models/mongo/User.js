@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
+  name: { type: String, trim: true },
   email: { type: String, lowercase: true, trim: true },
   phone: { type: String, trim: true },
   password: { type: String, minlength: 6, select: false },
@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
   supabaseId: { type: String },
   role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
   isVerified: { type: Boolean, default: false },
+  isLoggedIn: { type: Boolean, default: false },
   walletBalance: { type: Number, default: 0 },
   totalCashbackEarned: { type: Number, default: 0 },
   address: { type: String, default: '' },
@@ -22,6 +23,7 @@ const userSchema = new mongoose.Schema({
   otpExpiry: { type: Date },
   emailOtp: { type: String },
   emailOtpExpiry: { type: Date },
+  token: { type: String, default: null },
 }, { timestamps: true });
 
 userSchema.pre('save', async function () {

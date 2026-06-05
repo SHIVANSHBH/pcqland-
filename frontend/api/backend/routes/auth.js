@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Token = require('../models/Token');
+const Session = require('../models/Session');
 const { auth, adminAuth, sanitize, generateRefreshToken, generateCode, hashCode } = require('../middleware/auth');
 const { validate, z } = require('../middleware/validate');
 const { success, error } = require('../utils/response');
@@ -11,6 +12,24 @@ const { sendGenericEmail } = require('../utils/email');
 const { verificationEmail, passwordResetEmail } = require('../utils/templates');
 
 const router = express.Router();
+
+const verifyEmailTemplate = (name, token) => ({
+  subject: 'Verify your email - PC Deals India',
+  html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2563eb;">PC Deals India</h2>
+      <p>Dear ${name},</p>
+      <p>Welcome! Please verify your email by clicking the button below:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/verify/${encodeURIComponent(token)}"
+           style="display: inline-block; padding: 14px 32px; background: #2563eb; color: #fff; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;">
+          Verify Email
+        </a>
+      </div>
+      <p style="color: #94a3b8; font-size: 12px;">This link expires in 10 minutes. If you did not create an account, ignore this email.</p>
+    </div>
+  `,
+});
 
 const registerSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -42,8 +61,6 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const verificationCode = generateCode();
-    const codeExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
     const user = await User.create({
       name,
@@ -52,34 +69,25 @@ router.post('/register', validate(registerSchema), async (req, res) => {
       password: hashed,
       role: 'customer',
       isVerified: process.env.SMTP_HOST ? false : true,
-      verificationCode: hashCode(verificationCode),
-      verificationCodeExpiry: codeExpiry.toISOString(),
     });
 
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
-    const refreshToken = generateRefreshToken();
-    await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
+    const accessToken = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '10d' });
+    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+
+    await Session.create({ userId: user._id });
+    user.isLoggedIn = true;
+    user.token = accessToken;
+    await user.save();
 
     if (process.env.SMTP_HOST) {
-      sendGenericEmail({ to: user.email, ...verificationEmail(name, verificationCode) }).catch(() => {});
+      const verifyToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '10m' });
+      sendGenericEmail({ to: user.email, ...verifyEmailTemplate(name, verifyToken) }).catch(() => {});
+      console.log(`Verification email sent to ${email}`);
     } else {
-      console.log(`Verification code for ${email}: ${verificationCode}`);
+      user.isVerified = true;
+      await user.save();
+      console.log(`Auto-verified ${email} (no SMTP)`);
     }
-
-    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
-    const cookieOptions = {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: tokenMaxAge,
-      path: '/',
-    };
-    res.cookie('token', accessToken, cookieOptions);
-    res.cookie('refreshToken', refreshToken, {
-      ...cookieOptions,
-      maxAge: tokenMaxAge,
-      path: '/api/auth/refresh-token',
-    });
 
     success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Registration successful. Please verify your email.', 201);
   } catch (err) {
@@ -129,6 +137,56 @@ router.post('/resend-verification', validate(emailSchema), async (req, res) => {
   }
 });
 
+router.post('/verify-email-jwt', async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return error(res, 'Token required', 400);
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded.id) return error(res, 'Invalid token', 400);
+
+    const user = await User.findById(decoded.id);
+    if (!user) return error(res, 'User not found', 404);
+
+    if (user.isVerified) {
+      return success(res, null, 'Email already verified');
+    }
+
+    user.isVerified = true;
+    await user.save();
+    success(res, null, 'Email verified successfully');
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') return error(res, 'Verification link expired', 400);
+    error(res, err.message);
+  }
+});
+
+router.get('/verify-email-jwt/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded.id) return error(res, 'Invalid token', 400);
+
+    const user = await User.findById(decoded.id);
+    if (!user) return error(res, 'User not found', 404);
+
+    if (user.isVerified) {
+      return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?verified=true`);
+    }
+
+    user.isVerified = true;
+    await user.save();
+    res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?verified=true`);
+  } catch (err) {
+    const redirectUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/login?verified=false`;
+    if (err.name === 'TokenExpiredError') {
+      return res.redirect(redirectUrl);
+    }
+    res.redirect(redirectUrl);
+  }
+});
+
 router.post('/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, phone, password } = req.body;
@@ -150,26 +208,23 @@ router.post('/login', validate(loginSchema), async (req, res) => {
       return error(res, 'Invalid credentials', 401);
     }
 
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
-    const refreshToken = generateRefreshToken();
-    await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
+    if (!user.isVerified) {
+      return error(res, 'Please verify your email before logging in', 403);
+    }
 
-    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
-    const cookieOptions = {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: tokenMaxAge,
-      path: '/',
-    };
-    res.cookie('token', accessToken, cookieOptions);
-    res.cookie('refreshToken', refreshToken, {
-      ...cookieOptions,
-      maxAge: tokenMaxAge,
-      path: '/api/auth/refresh-token',
-    });
+    const existingSession = await Session.findOne({ userId: user._id });
+    if (existingSession) {
+      await Session.deleteOne({ userId: user._id });
+    }
+    await Session.create({ userId: user._id });
 
-    success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Login successful');
+    const accessToken = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '10d' });
+    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+
+    user.isLoggedIn = true;
+    await user.save();
+
+    success(res, { accessToken, refreshToken, user: sanitize(user) }, `Welcome back ${user.name || 'User'}`);
   } catch (err) {
     console.error('Login error:', err.message, err.stack);
     error(res, err.message);
@@ -205,16 +260,13 @@ router.post('/refresh-token', async (req, res) => {
 
 router.post('/logout', auth, async (req, res) => {
   try {
-    await Token.create({ token: req.token, type: 'blacklist', userId: req.user._id, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() });
-
-    const { refreshToken } = req.body;
-    if (refreshToken) {
-      const stored = await Token.findOne({ token: refreshToken, type: 'refresh' });
-      if (stored) await Token.findByIdAndDelete(stored._id);
-    }
-
+    await Session.deleteOne({ userId: req.user._id });
+    req.user.isLoggedIn = false;
+    req.user.token = null;
+    await req.user.save();
     success(res, null, 'Logged out successfully');
   } catch (err) {
+    console.error('Logout error:', err.message);
     error(res, err.message);
   }
 });
