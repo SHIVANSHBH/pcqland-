@@ -86,7 +86,7 @@ app.use(cookieParser());
 app.use((req, res, next) => {
   if (req.headers.authorization?.startsWith('Bearer ')) return next();
 
-  const csrfExempt = ['/api/seed', '/api/admin/upload', '/api/admin/inventory/upload'];
+  const csrfExempt = ['/api/seed', '/api/auth', '/api/admin/upload', '/api/admin/inventory/upload'];
   if (csrfExempt.some(p => req.path.startsWith(p))) return next();
 
   if (!req.cookies.csrf_token) {
