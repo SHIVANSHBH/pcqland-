@@ -44,11 +44,6 @@ const upload = multer({
 router.post('/login', async (req, res) => {
   res.json({ success: true, data: { user: { _id: 'admin', name: 'Admin', email: 'admin@localhost', role: 'admin' }, accessToken: 'mock-token' } });
 });
-    res.json({ success: true, message: 'Login successful', data: { accessToken, refreshToken, user: sanitize(user) } });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
 
 // Dashboard
 router.get('/dashboard', adminAuth, async (req, res) => {
