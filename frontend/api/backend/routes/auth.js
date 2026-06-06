@@ -72,16 +72,17 @@ router.post('/register', validate(registerSchema), async (req, res) => {
       return error(res, 'Email or phone already registered', 400);
     }
 
-    const hashed = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    const user = new User({
       name,
       email: normalizedEmail,
       phone,
-      password: hashed,
+      password: hashedPassword,
       role: 'customer',
       isVerified: false,
     });
+    await user.save();
 
     const { accessToken, refreshToken } = signTokens(user);
 
