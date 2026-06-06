@@ -13,10 +13,12 @@ const { verificationEmail, passwordResetEmail } = require('../utils/templates');
 
 const router = express.Router();
 
-// Debug: echo request body to diagnose JSON parse error
-router.post('/echo', express.json(), (req, res) => {
-  res.json({ body: req.body, type: typeof req.body, keys: req.body ? Object.keys(req.body) : null });
-});
+function signTokens(user) {
+  const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
+  const refreshToken = generateRefreshToken();
+  Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() }).catch(() => {});
+  return { accessToken, refreshToken };
+}
 
 // ── Schemas ──────────────────────────────────────────────
 
