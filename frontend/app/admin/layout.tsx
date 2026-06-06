@@ -1,11 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { LayoutDashboard, Package, LayoutGrid, Box, ShoppingCart, Users, FileText, Settings, LogOut, Menu, X } from 'lucide-react';
-import { api } from '@/lib/api';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
@@ -19,28 +16,7 @@ const sidebarItems = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const { data: session, status } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  const isAdmin = (session?.user as any)?.role === 'admin';
-  if (!isAdmin) {
-    router.push('/login');
-    return null;
-  }
-
-  const handleLogout = async () => {
-    try { await api.post('/auth/logout', {}); } catch {}
-    signOut({ callbackUrl: '/login' });
-  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -49,9 +25,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Menu className="w-5 h-5" />
         </button>
         <span className="text-sm font-bold text-primary">PC Deals Admin</span>
-        <button onClick={handleLogout} className="p-2.5 text-gray-600">
+        <Link href="/" className="p-2.5 text-gray-600">
           <LogOut className="w-5 h-5" />
-        </button>
+        </Link>
       </div>
 
       <div className="flex">
@@ -78,10 +54,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               );
             })}
             <hr className="my-3 border-gray-200" />
-            <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 rounded-xl transition-colors w-full">
+            <Link href="/" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 rounded-xl transition-colors w-full">
               <LogOut className="w-5 h-5" />
-              Logout
-            </button>
+              Back to Home
+            </Link>
           </nav>
         </aside>
 
