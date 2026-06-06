@@ -4,7 +4,6 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import SessionProvider from '@/components/SessionProvider';
 
 export const metadata: Metadata = {
   title: 'PC Deals India - Buy Original Software Keys Online',
@@ -21,14 +20,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body>
-        <SessionProvider>
-          <a href="#main-content" className="skip-link">
-            Skip to main content
-          </a>
-          <Header />
-          <main id="main-content" className="min-h-screen">{children}</main>
-          <Footer />
-        </SessionProvider>
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
+        <Header />
+        <main id="main-content" className="min-h-screen">{children}</main>
+        <Footer />
         <Toaster position="top-right" toastOptions={{ style: { fontSize: '14px' } }} />
       </body>
     </html>

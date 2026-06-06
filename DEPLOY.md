@@ -17,7 +17,6 @@
 3. Root Directory: `backend`
 4. Start Command: `node server.js`
 5. Add Environment Variables:
-   - `JWT_SECRET` = any random string (e.g., `abc123xyz`)
    - `CLIENT_URL` = your Vercel URL from step 1
    - `RAZORPAY_KEY_ID` = test key (optional)
    - `RAZORPAY_KEY_SECRET` = test secret (optional)

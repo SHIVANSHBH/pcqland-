@@ -3,7 +3,6 @@
  * Run: node scripts/seed-test-data.js
  */
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
-const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
 const User = require('../models/User');
@@ -46,12 +45,11 @@ async function seed() {
     console.log('Cleaned existing test data');
 
     // Create admin user
-    const adminPassword = await bcrypt.hash(SEED_PASSWORD, 10);
     const admin = await User.create({
       name: 'Test Admin',
       email: 'admin@test.com',
       phone: '9999999999',
-      password: adminPassword,
+      password: SEED_PASSWORD,
       role: 'admin',
       isVerified: true,
     });

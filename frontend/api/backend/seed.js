@@ -3,7 +3,6 @@ const connectDB = require('./config/db');
 const Category = require('./models/Category');
 const Product = require('./models/Product');
 const User = require('./models/User');
-const bcrypt = require('bcryptjs');
 
 async function seed() {
   await connectDB();
@@ -99,8 +98,7 @@ async function seed() {
   // Create admin user (use env ADMIN_EMAIL and ADMIN_PASSWORD)
   const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@pcdealsindia.com';
-  const hashed = await bcrypt.hash(adminPassword, 10);
-  await User.create({ name: 'Admin', email: adminEmail, phone: '9728622667', password: hashed, role: 'admin', isVerified: true });
+  await User.create({ name: 'Admin', email: adminEmail, phone: '9728622667', password: 'admin123', role: 'admin', isVerified: true });
 
   // Seed inventory with dummy keys
   const Inventory = require('./models/Inventory');

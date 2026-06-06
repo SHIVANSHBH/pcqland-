@@ -3,9 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
-import { api } from '@/lib/api';
 import Image from 'next/image';
+import { api } from '@/lib/api';
 import { Search, User, ShoppingCart, Menu, X, ChevronDown, Phone, Headphones } from 'lucide-react';
 
 const brandIcons: Record<string, string> = {
@@ -47,9 +46,6 @@ const categories = [
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: session, status } = useSession();
-  const isLoggedIn = status === 'authenticated';
-  const userName = (session?.user as any)?.name || '';
   const [mobileMenu, setMobileMenu] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [logo, setLogo] = useState('');
@@ -89,9 +85,8 @@ export default function Header() {
     return () => window.removeEventListener('storage', handleCart);
   }, [pathname]);
 
-  const handleLogout = async () => {
-    try { await api.post('/auth/logout', {}); } catch {}
-    signOut({ callbackUrl: '/' });
+  const handleLogout = () => {
+    router.push('/');
   };
 
   return (
@@ -159,28 +154,12 @@ export default function Header() {
               )}
             </Link>
 
-            {isLoggedIn ? (
-              <div className="relative group">
-                <button className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 text-sm font-medium text-pcd-text hover:text-primary transition-colors" aria-haspopup="true" aria-expanded="false">
-                  <User className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
-                  <span className="hidden lg:inline">{userName || 'Account'}</span>
-                  <ChevronDown className="w-3 h-3 hidden lg:inline" />
-                </button>
-                <div className="absolute top-full right-0 mt-1 bg-white border border-pcd-border rounded-xl shadow-lg z-50 min-w-[200px] hidden group-hover:block group-focus-within:block">
-                  <Link href="/account" className="block px-4 py-2.5 text-sm text-pcd-text hover:bg-blue-50 hover:text-primary">My Account</Link>
-                  <Link href="/account/orders" className="block px-4 py-2.5 text-sm text-pcd-text hover:bg-blue-50 hover:text-primary">My Orders</Link>
-                  <Link href="/account/wallet" className="block px-4 py-2.5 text-sm text-pcd-text hover:bg-blue-50 hover:text-primary">Wallet</Link>
-                  <Link href="/account/saved-keys" className="block px-4 py-2.5 text-sm text-pcd-text hover:bg-blue-50 hover:text-primary">Saved Keys</Link>
-                  <hr className="border-pcd-border" />
-                  <button onClick={handleLogout} className="block w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50">Logout</button>
-                </div>
-              </div>
-            ) : (
-              <Link href="/login" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-sm font-semibold text-primary border-2 border-primary rounded-xl hover:bg-primary hover:text-white transition-all">
-                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="hidden lg:inline">Login / Register</span>
+            <div className="relative group">
+              <Link href="/account" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 text-sm font-medium text-pcd-text hover:text-primary transition-colors">
+                <User className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
+                <span className="hidden lg:inline">My Account</span>
               </Link>
-            )}
+            </div>
 
             <button onClick={() => setMobileMenu(true)} className="md:hidden p-2 sm:p-2.5 text-pcd-text">
               <Menu className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
@@ -241,22 +220,14 @@ export default function Header() {
             </div>
             <div className="p-4">
               <div className="mb-4 pb-4 border-b border-pcd-border/50">
-                {isLoggedIn ? (
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 py-2 text-sm font-bold text-pcd-text">
-                      <User className="w-4 h-4" /> {userName || 'My Account'}
-                    </div>
-                    <Link href="/account" className="block py-1.5 text-sm text-pcd-text hover:text-primary">My Account</Link>
-                    <Link href="/account/orders" className="block py-1.5 text-sm text-pcd-text hover:text-primary">My Orders</Link>
-                    <Link href="/account/wallet" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Wallet</Link>
-                    <Link href="/account/saved-keys" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Saved Keys</Link>
-                    <button onClick={handleLogout} className="block w-full text-left py-1.5 text-sm text-red-500">Logout</button>
-                  </div>
-                ) : (
-                  <Link href="/login" className="flex items-center gap-2 py-2.5 text-sm font-semibold text-primary">
-                    <User className="w-4 h-4" /> Login / Register
+                <div className="space-y-1">
+                  <Link href="/account" className="flex items-center gap-2 py-2.5 text-sm font-semibold text-primary">
+                    <User className="w-4 h-4" /> My Account
                   </Link>
-                )}
+                  <Link href="/account/orders" className="block py-1.5 text-sm text-pcd-text hover:text-primary">My Orders</Link>
+                  <Link href="/account/wallet" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Wallet</Link>
+                  <Link href="/account/saved-keys" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Saved Keys</Link>
+                </div>
               </div>
               <h6 className="text-xs font-bold text-pcd-muted uppercase tracking-wider mb-3">Browse Categories</h6>
               <Link href="/" className="flex items-center gap-3 py-2.5 text-sm font-medium text-pcd-text">

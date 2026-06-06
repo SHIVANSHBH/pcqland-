@@ -14,9 +14,7 @@
     "seed": "node seed-demo.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.107.0",
     "axios": "^1.6.2",
-    "bcryptjs": "^2.4.3",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -25,17 +23,13 @@
     "express": "^4.18.2",
     "express-rate-limit": "^8.5.2",
     "helmet": "^7.1.0",
-    "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.6.3",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "nedb-promises": "^6.2.3",
     "nodemailer": "^6.9.7",
-    "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0",
     "pdf-lib": "^1.17.1",
-    "razorpay": "^2.9.2",
-    "zod": "^4.4.3"
+    "razorpay": "^2.9.2"
   },
   "devDependencies": {
     "eslint": "^8.56.0",

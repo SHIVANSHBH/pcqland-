@@ -17,7 +17,6 @@ export default function RegisterPage() {
   // Email/Password
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
 
-  // Phone OTP
   const [phoneReg, setPhoneReg] = useState({ phone: '', otp: '', name: '' });
   const [phoneOtpSent, setPhoneOtpSent] = useState(false);
   const [phoneOtpTimer, setPhoneOtpTimer] = useState(0);
@@ -37,66 +36,23 @@ export default function RegisterPage() {
 
   const passwordMatch = form.password === form.confirmPassword;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    try {
-      if (!passwordMatch) { toast.error('Passwords do not match'); setLoading(false); return; }
-      const { confirmPassword, phone, ...rest } = form;
-      const cleanPhone = phone.replace(/\D/g, '');
-      const body = cleanPhone ? { ...rest, phone: cleanPhone } : rest;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!data.success) { toast.error(data.message || 'Registration failed'); return; }
-      toast.success('Registration successful!');
-      router.push('/');
-    } catch (error: any) {
-      toast.error(error.message || 'Registration failed');
-    } finally {
-      setLoading(false);
-    }
-  };
+    console.log('Auth disabled — register bypassed');
+    toast.success('Registration disabled — site is public');
+    router.push('/');
+  }
 
   async function sendPhoneOtp() {
-    if (!phoneReg.phone) { toast.error('Enter phone'); return; }
-    setLoading(true);
-    try {
-      const cleanPhone = phoneReg.phone.replace(/\D/g, '');
-      const res = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: cleanPhone }),
-      });
-      const data = await res.json();
-      if (!data.success) { toast.error(data.message); return; }
-      setPhoneOtpSent(true);
-      toast.success('OTP sent to phone');
-      setPhoneOtpTimer(60);
-      const t = setInterval(() => setPhoneOtpTimer(p => { if (p <= 1) { clearInterval(t); return 0; } return p - 1; }), 1000);
-    } catch (error: any) { toast.error(error.message); }
-    finally { setLoading(false); }
+    console.log('Auth disabled — OTP bypassed');
+    toast.success('Registration disabled — site is public');
+    router.push('/');
   }
 
   async function verifyPhoneOtp() {
-    if (!phoneReg.otp) { toast.error('Enter OTP'); return; }
-    setLoading(true);
-    try {
-      const cleanPhone = phoneReg.phone.replace(/\D/g, '');
-      const res = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: cleanPhone, otp: phoneReg.otp }),
-      });
-      const data = await res.json();
-      if (!data.success) { toast.error(data.message || 'Verification failed'); return; }
-      toast.success('Registration & login successful!');
-      router.push('/');
-    } catch (error: any) { toast.error(error.message); }
-    finally { setLoading(false); }
+    console.log('Auth disabled — OTP verify bypassed');
+    toast.success('Registration disabled — site is public');
+    router.push('/');
   }
 
   return (

@@ -11,12 +11,7 @@ services:
         value: https://pcqland.vercel.app
       - key: BACKEND_URL
         value: https://pcdeals-backend.onrender.com
-      - key: JWT_SECRET
-        generateValue: true
-      - key: JWT_ACCESS_EXPIRES
-        value: 7d
-      - key: JWT_REFRESH_EXPIRES
-        value: 7d
+      # Auth removed — site is public
       - key: PORT
         value: 10000
       - key: MONGODB_URI
@@ -41,10 +36,7 @@ services:
         sync: false
       - key: WHATSAPP_PHONE_NUMBER
         sync: false
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-      - key: GOOGLE_CLIENT_SECRET
-        sync: false
+      # Auth removed — site is public
       - key: GSTIN
         sync: false
       - key: GST_PERCENTAGE

@@ -30,7 +30,4 @@ export const api = {
   delete: (endpoint: string): Promise<any> => fetchAPI(endpoint, { method: 'DELETE' }),
 };
 
-export function setAccessToken(_token: string) {}
-export function clearAuth() {}
-
 export default API_BASE;
