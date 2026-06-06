@@ -188,8 +188,8 @@ async function main() {
 
   // Error handler
   app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('ERROR:', err.message, err.stack);
+    res.status(500).json({ message: `Error: ${err.message}` });
   });
 
   const server = app.listen(PORT, () => {
