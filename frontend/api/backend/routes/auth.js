@@ -20,6 +20,17 @@ function signTokens(user) {
   return { accessToken, refreshToken };
 }
 
+// Debug route to check User model type
+router.get('/debug-model', (req, res) => {
+  const db = require('../config/db');
+  res.json({
+    typeofUser: typeof User,
+    isMongo: db.isUsingMongo(),
+    modelName: User.modelName || null,
+    UserKeys: Object.keys(User).sort().join(','),
+  });
+});
+
 // ── Schemas ──────────────────────────────────────────────
 
 const registerSchema = z.object({
