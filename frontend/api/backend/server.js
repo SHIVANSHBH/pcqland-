@@ -119,15 +119,6 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const { auth } = require('./middleware/auth');
-app.use('/invoices', auth, express.static(path.join(__dirname, 'invoices')));
-
-if (process.env.RENDER || process.env.VERCEL) {
-  const tmpInvoiceDir = '/tmp/invoices';
-  if (!require('fs').existsSync(tmpInvoiceDir)) require('fs').mkdirSync(tmpInvoiceDir, { recursive: true });
-  app.use('/invoices', auth, express.static(tmpInvoiceDir));
-}
-
 // Apply rate limiters
 app.use('/api/auth', authLimiter);
 app.use('/api/orders', orderLimiter);
@@ -159,6 +150,15 @@ const PORT = process.env.PORT || 5000;
 
 async function main() {
   await connectDB();
+
+  // Auth middleware (loaded after DB so models use correct backend)
+  const { auth } = require('./middleware/auth');
+  app.use('/invoices', auth, express.static(path.join(__dirname, 'invoices')));
+
+  if (process.env.RENDER || process.env.VERCEL) {
+    const tmpInvoiceDir = '/tmp/invoices';
+    app.use('/invoices', auth, express.static(tmpInvoiceDir));
+  }
 
   // Serve frontend static build if it exists (production mode)
   const frontendDist = path.join(__dirname, '..', '..', '..', 'frontend');
