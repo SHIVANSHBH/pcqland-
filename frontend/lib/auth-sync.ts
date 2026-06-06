@@ -47,22 +47,3 @@ export async function syncAuthAndRedirect(accessToken: string, router: any) {
   router.push('/');
   router.refresh();
 }
-  } catch (err) {
-    console.warn('NextAuth token sign-in threw, falling back', err);
-  }
-
-  try {
-    const data = await api.get('/auth/me');
-    const user = data?.data;
-    if (user?.role === 'admin') {
-      router.push('/admin');
-      router.refresh();
-      return;
-    }
-  } catch {
-    // ignore — redirect to home
-  }
-
-  router.push('/');
-  router.refresh();
-}
