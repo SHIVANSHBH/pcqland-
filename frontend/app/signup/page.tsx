@@ -1,10 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
-import { syncAuthAndRedirect } from '@/lib/auth-sync';
 import toast from 'react-hot-toast';
 import { UserPlus, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap } from 'lucide-react';
 
@@ -12,7 +10,6 @@ type Tab = 'password' | 'phone-otp';
 
 export default function SignupPage() {
   const router = useRouter();
-  const supabase = createClient();
   const [tab, setTab] = useState<Tab>('password');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -20,13 +17,6 @@ export default function SignupPage() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
 
   const [phoneReg, setPhoneReg] = useState({ phone: '', otp: '' });
-  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
-  const [phoneOtpTimer, setPhoneOtpTimer] = useState(0);
-  const phoneOtpRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    return () => { if (phoneOtpRef.current) clearInterval(phoneOtpRef.current); };
-  }, []);
 
   const features = [
     { icon: Shield, title: 'Secure Login', desc: 'Your account is fully encrypted & protected' },
@@ -45,98 +35,17 @@ export default function SignupPage() {
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    try {
-      if (!passwordMatch) { toast.error('Passwords do not match'); setLoading(false); return; }
-      if (form.password.length < 6) { toast.error('Password must be at least 6 characters'); setLoading(false); return; }
-
-      const { data, error } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          data: {
-            name: form.name,
-            phone: form.phone.replace(/\D/g, '') || null,
-          },
-        },
-      });
-
-      if (error) {
-        if (error.message.includes('already registered')) {
-          toast.error('An account with this email already exists. Please login.');
-        } else {
-          toast.error(error.message);
-        }
-        return;
-      }
-
-      if (data?.user?.identities?.length === 0) {
-        toast.error('An account with this email already exists. Please login.');
-        return;
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        await syncAuthAndRedirect(session.access_token, router);
-      } else {
-        toast.success('Registration successful! Please check your email to verify your account.');
-        router.push('/login');
-        router.refresh();
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'Registration failed');
-    } finally {
-      setLoading(false);
-    }
+    console.log('Auth disabled — signup bypassed');
+    toast.success('Registration disabled — site is public');
+    router.push('/');
+    router.refresh();
   }
 
-  async function sendPhoneOtp() {
-    const clean = phoneReg.phone.replace(/\D/g, '');
-    if (clean.length < 10) { toast.error('Enter a valid 10-digit mobile number'); return; }
-    setLoading(true);
-    try {
-      const res = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: `+91${clean}` }),
-      });
-      const data = await res.json();
-      if (!data.success) { toast.error(data.message); return; }
-      setPhoneOtpSent(true);
-      toast.success('OTP sent to phone');
-      setPhoneOtpTimer(60);
-      if (phoneOtpRef.current) clearInterval(phoneOtpRef.current);
-      phoneOtpRef.current = setInterval(() => setPhoneOtpTimer(p => { if (p <= 1) { if (phoneOtpRef.current) clearInterval(phoneOtpRef.current); return 0; } return p - 1; }), 1000);
-    } catch (error: any) { toast.error(error.message); }
-    finally { setLoading(false); }
-  }
-
-  async function verifyPhoneOtp() {
-    if (!phoneReg.otp) { toast.error('Enter OTP'); return; }
-    setLoading(true);
-    try {
-      const clean = phoneReg.phone.replace(/\D/g, '');
-      const res = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: `+91${clean}`, otp: phoneReg.otp }),
-      });
-      const data = await res.json();
-      if (!data.success) { toast.error(data.message); return; }
-      const sessionRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/otp-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: `+91${clean}` }),
-        credentials: 'include',
-      });
-      const sessionData = await sessionRes.json();
-      if (!sessionData.success) { toast.error(sessionData.message || 'Login failed'); return; }
-      if (sessionData.data?.accessToken) {
-        await syncAuthAndRedirect(sessionData.data.accessToken, router);
-      }
-      toast.success('Registration & login successful!');
-    } catch (error: any) { toast.error(error.message); }
-    finally { setLoading(false); }
+  async function handlePhoneSignup() {
+    console.log('Auth disabled — phone signup bypassed');
+    toast.success('Registration disabled — site is public');
+    router.push('/');
+    router.refresh();
   }
 
   return (
@@ -267,27 +176,13 @@ export default function SignupPage() {
                       </div>
                       <input type="tel" value={phoneReg.phone} onChange={e => setPhoneReg({ ...phoneReg, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                         className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
-                        placeholder="9876543210" disabled={phoneOtpSent} maxLength={10} />
-                      <button onClick={sendPhoneOtp} disabled={loading || phoneOtpTimer > 0 || phoneReg.phone.replace(/\D/g, '').length < 10}
+                        placeholder="9876543210" maxLength={10} />
+                      <button onClick={handlePhoneSignup} disabled={loading}
                         className="px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 transition-all whitespace-nowrap shadow-lg shadow-blue-200">
-                        {phoneOtpTimer > 0 ? `${phoneOtpTimer}s` : phoneOtpSent ? 'Resend' : 'Send OTP'}
+                        Register (Public)
                       </button>
                     </div>
                   </div>
-                  {phoneOtpSent && (
-                    <>
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Enter OTP <span className="text-red-500">*</span></label>
-                        <input type="text" value={phoneReg.otp} onChange={e => setPhoneReg({ ...phoneReg, otp: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-center tracking-[0.5em] font-bold"
-                          placeholder="· · · · · ·" maxLength={6} />
-                      </div>
-                      <button onClick={verifyPhoneOtp} disabled={loading || phoneReg.otp.length < 6}
-                        className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 transition-all shadow-lg shadow-blue-200">
-                        {loading ? 'Verifying...' : 'Register & Login'}
-                      </button>
-                    </>
-                  )}
                 </div>
               )}
 

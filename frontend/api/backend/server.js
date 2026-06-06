@@ -9,7 +9,6 @@ const morgan = require('morgan');
 const path = require('path');
 const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
-const passport = require('passport');
 const connectDB = require('./config/db');
 
 process.on('unhandledRejection', (reason) => {
@@ -27,15 +26,6 @@ const app = express();
 app.use(compression());
 
 // Rate limiting
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  skip: (req) => req.method === 'GET' || req.method === 'HEAD',
-  message: { success: false, message: 'Too many attempts, please wait 15 minutes before trying again' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -48,14 +38,6 @@ const orderLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: { success: false, message: 'Too many orders, please try again later' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-const otpLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000,
-  max: 3,
-  message: { success: false, message: 'Too many OTP requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -86,7 +68,7 @@ app.use(cookieParser());
 app.use((req, res, next) => {
   if (req.headers.authorization?.startsWith('Bearer ')) return next();
 
-  const csrfExempt = ['/api/seed', '/api/auth', '/api/admin/upload', '/api/admin/inventory/upload'];
+  const csrfExempt = ['/api/seed', '/api/admin/upload', '/api/admin/inventory/upload'];
   if (csrfExempt.some(p => req.path.startsWith(p))) return next();
 
   if (!req.cookies.csrf_token) {
@@ -110,9 +92,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Passport
-app.use(passport.initialize());
-
 // Body parsing
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
@@ -120,12 +99,8 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Apply rate limiters
-app.use('/api/auth', authLimiter);
 app.use('/api/orders', orderLimiter);
 app.use('/api/wallet', orderLimiter);
-app.use('/api/auth/send-otp', otpLimiter);
-app.use('/api/auth/verify-otp', otpLimiter);
-app.use('/api/auth/reset-password', otpLimiter);
 app.use('/api', apiLimiter);
 
 // Health check
@@ -151,13 +126,11 @@ const PORT = process.env.PORT || 5000;
 async function main() {
   await connectDB();
 
-  // Auth middleware (loaded after DB so models use correct backend)
-  const { auth } = require('./middleware/auth');
-  app.use('/invoices', auth, express.static(path.join(__dirname, 'invoices')));
+  app.use('/invoices', express.static(path.join(__dirname, 'invoices')));
 
   if (process.env.RENDER || process.env.VERCEL) {
     const tmpInvoiceDir = '/tmp/invoices';
-    app.use('/invoices', auth, express.static(tmpInvoiceDir));
+    app.use('/invoices', express.static(tmpInvoiceDir));
   }
 
   // Serve frontend static build if it exists (production mode)
@@ -175,8 +148,7 @@ async function main() {
     });
   }
 
-  // Routes (loaded after DB connection so models know which backend to use)
-  app.use('/api/auth', require('./routes/auth'));
+  // Routes
   app.use('/api/categories', require('./routes/categories'));
   app.use('/api/products', require('./routes/products'));
   app.use('/api/orders', require('./routes/orders'));

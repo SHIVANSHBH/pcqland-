@@ -3,10 +3,6 @@
     { "src": "package.json", "use": "@vercel/next" }
   ],
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://pcdeals-backend.onrender.com/api",
-    "NEXT_PUBLIC_SUPABASE_URL": "https://achytxkblnwisxdftays.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_kZB0sFKt4QsBXQKryQQYZA_I8u_rcdD",
-    "NEXTAUTH_SECRET": "7d30d91f1408373440c23789490077701d50ecc42bfca690e3a62959418198fd",
-    "NEXTAUTH_URL": "https://pcqland.vercel.app"
+    "NEXT_PUBLIC_API_URL": "https://pcdeals-backend.onrender.com/api"
   }
 }

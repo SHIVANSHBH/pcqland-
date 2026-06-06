@@ -1,9 +1,8 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const csv = require('csv-parse/sync');
-const { adminAuth } = require('../middleware/auth');
+
+const adminAuth = (req, res, next) => { req.user = { _id: 'admin', role: 'admin', name: 'Admin', email: 'admin@localhost' }; next(); };
 
 const User = require('../models/User');
 const Product = require('../models/Product');
@@ -41,32 +40,10 @@ const upload = multer({
   },
 });
 
-// Auth
+// Auth (disabled)
 router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password are required' });
-    let userQuery = User.findOne({ email: email.toLowerCase(), role: 'admin' });
-    if (require('../config/db').isUsingMongo()) {
-      userQuery = userQuery.select('+password');
-    }
-    const user = await userQuery;
-    if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid credentials' });
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '7d' });
-    const { sanitize, generateRefreshToken } = require('../middleware/auth');
-    const Token = require('../models/Token');
-    const refreshToken = generateRefreshToken();
-    await Token.create({ token: refreshToken, type: 'refresh', userId: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() });
-    const tokenMaxAge = 7 * 24 * 60 * 60 * 1000;
-    const cookieOptions = { httpOnly: true, secure: true, sameSite: 'none', maxAge: tokenMaxAge, path: '/' };
-    res.cookie('token', accessToken, cookieOptions);
-    res.cookie('refreshToken', refreshToken, {
-      ...cookieOptions,
-      maxAge: tokenMaxAge,
-      path: '/api/auth/refresh-token',
-    });
+  res.json({ success: true, data: { user: { _id: 'admin', name: 'Admin', email: 'admin@localhost', role: 'admin' }, accessToken: 'mock-token' } });
+});
     res.json({ success: true, message: 'Login successful', data: { accessToken, refreshToken, user: sanitize(user) } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

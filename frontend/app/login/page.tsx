@@ -1,10 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
-import { syncAuthAndRedirect } from '@/lib/auth-sync';
 import toast from 'react-hot-toast';
 import { Lock, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap } from 'lucide-react';
 
@@ -12,29 +10,15 @@ type Tab = 'password' | 'phone-otp' | 'email-otp';
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClient();
   const [tab, setTab] = useState<Tab>('password');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const emailOtpRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const phoneOtpRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (emailOtpRef.current) clearInterval(emailOtpRef.current);
-      if (phoneOtpRef.current) clearInterval(phoneOtpRef.current);
-    };
-  }, []);
 
   const [emailPass, setEmailPass] = useState({ email: '', password: '' });
 
   const [emailOtp, setEmailOtp] = useState({ email: '', otp: '' });
-  const [emailOtpSent, setEmailOtpSent] = useState(false);
-  const [emailOtpTimer, setEmailOtpTimer] = useState(0);
 
   const [phoneOtp, setPhoneOtp] = useState({ phone: '', otp: '' });
-  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
-  const [phoneOtpTimer, setPhoneOtpTimer] = useState(0);
 
   const features = [
     { icon: Shield, title: 'Secure Login', desc: 'Your account is fully encrypted & protected' },
@@ -51,132 +35,17 @@ export default function LoginPage() {
 
   async function handlePasswordLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (!emailPass.email || !emailPass.password) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailPass.email, password: emailPass.password }),
-        credentials: 'include',
-      });
-      const data = await res.json();
-      if (!data.success) {
-        toast.error(data.message || 'Invalid email or password');
-        return;
-      }
-      if (data.data?.accessToken) {
-        await syncAuthAndRedirect(data.data.accessToken, router);
-      } else {
-        router.push('/');
-        router.refresh();
-      }
-      toast.success('Login successful!');
-    } catch (err: any) {
-      toast.error(err.message || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
+    console.log('Auth disabled - login bypassed');
+    toast.success('Login disabled — site is public');
+    router.push('/');
+    router.refresh();
   }
 
-  async function sendEmailOtp() {
-    if (!emailOtp.email) { toast.error('Enter email'); return; }
-    setLoading(true);
-    try {
-      const res = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailOtp.email }),
-      });
-      const data = await res.json();
-      if (!data.success) { toast.error(data.message); return; }
-      setEmailOtpSent(true);
-      toast.success('OTP sent to email');
-      setEmailOtpTimer(60);
-      if (emailOtpRef.current) clearInterval(emailOtpRef.current);
-      emailOtpRef.current = setInterval(() => setEmailOtpTimer(p => { if (p <= 1) { if (emailOtpRef.current) clearInterval(emailOtpRef.current); return 0; } return p - 1; }), 1000);
-    } catch (error: any) { toast.error(error.message); }
-    finally { setLoading(false); }
-  }
-
-  async function verifyEmailOtp() {
-    if (!emailOtp.otp) { toast.error('Enter OTP'); return; }
-    setLoading(true);
-    try {
-      const res = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailOtp.email, otp: emailOtp.otp }),
-      });
-      const data = await res.json();
-      if (!data.success) { toast.error(data.message); return; }
-      const sessionRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/otp-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailOtp.email }),
-        credentials: 'include',
-      });
-      const sessionData = await sessionRes.json();
-      if (!sessionData.success) { toast.error(sessionData.message || 'Login failed'); return; }
-      const session = sessionData.data;
-      if (session?.accessToken) {
-        await syncAuthAndRedirect(session.accessToken, router);
-      }
-      toast.success('Login successful!');
-    } catch (error: any) { toast.error(error.message); }
-    finally { setLoading(false); }
-  }
-
-  async function sendPhoneOtp() {
-    const clean = phoneOtp.phone.replace(/\D/g, '');
-    if (clean.length < 10) { toast.error('Enter a valid 10-digit mobile number'); return; }
-    setLoading(true);
-    try {
-      const res = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: `+91${clean}` }),
-      });
-      const data = await res.json();
-      if (!data.success) { toast.error(data.message); return; }
-      setPhoneOtpSent(true);
-      toast.success('OTP sent to phone');
-      setPhoneOtpTimer(60);
-      if (phoneOtpRef.current) clearInterval(phoneOtpRef.current);
-      phoneOtpRef.current = setInterval(() => setPhoneOtpTimer(p => { if (p <= 1) { if (phoneOtpRef.current) clearInterval(phoneOtpRef.current); return 0; } return p - 1; }), 1000);
-    } catch (error: any) { toast.error(error.message); }
-    finally { setLoading(false); }
-  }
-
-  async function verifyPhoneOtp() {
-    if (!phoneOtp.otp) { toast.error('Enter OTP'); return; }
-    setLoading(true);
-    try {
-      const clean = phoneOtp.phone.replace(/\D/g, '');
-      const res = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: `+91${clean}`, otp: phoneOtp.otp }),
-      });
-      const data = await res.json();
-      if (!data.success) { toast.error(data.message); return; }
-      const sessionRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/otp-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: `+91${clean}` }),
-        credentials: 'include',
-      });
-      const sessionData = await sessionRes.json();
-      if (!sessionData.success) { toast.error(sessionData.message || 'Login failed'); return; }
-      if (sessionData.data?.accessToken) {
-        await syncAuthAndRedirect(sessionData.data.accessToken, router);
-      }
-      toast.success('Login successful!');
-    } catch (error: any) { toast.error(error.message); }
-    finally { setLoading(false); }
+  async function handleOtpLogin() {
+    console.log('Auth disabled — OTP login bypassed');
+    toast.success('Login disabled — site is public');
+    router.push('/');
+    router.refresh();
   }
 
   return (
@@ -293,27 +162,13 @@ export default function LoginPage() {
                       </div>
                       <input type="tel" value={phoneOtp.phone} onChange={e => setPhoneOtp({ ...phoneOtp, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                         className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
-                        placeholder="9876543210" disabled={phoneOtpSent} maxLength={10} />
-                      <button onClick={sendPhoneOtp} disabled={loading || phoneOtpTimer > 0 || phoneOtp.phone.replace(/\D/g, '').length < 10}
+                        placeholder="9876543210" maxLength={10} />
+                      <button onClick={handleOtpLogin} disabled={loading}
                         className="px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 transition-all whitespace-nowrap shadow-lg shadow-blue-200">
-                        {phoneOtpTimer > 0 ? `${phoneOtpTimer}s` : phoneOtpSent ? 'Resend' : 'Send OTP'}
+                        Login (Public)
                       </button>
                     </div>
                   </div>
-                  {phoneOtpSent && (
-                    <>
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Enter OTP <span className="text-red-500">*</span></label>
-                        <input type="text" value={phoneOtp.otp} onChange={e => setPhoneOtp({ ...phoneOtp, otp: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-center tracking-[0.5em] font-bold"
-                          placeholder="· · · · · ·" maxLength={6} />
-                      </div>
-                      <button onClick={verifyPhoneOtp} disabled={loading || phoneOtp.otp.length < 6}
-                        className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 transition-all shadow-lg shadow-blue-200">
-                        {loading ? 'Verifying...' : 'Verify & Login'}
-                      </button>
-                    </>
-                  )}
                 </div>
               )}
 
@@ -324,27 +179,13 @@ export default function LoginPage() {
                     <div className="flex gap-2">
                       <input type="email" value={emailOtp.email} onChange={e => setEmailOtp({ ...emailOtp, email: e.target.value })}
                         className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
-                        placeholder="Enter your email address" disabled={emailOtpSent} />
-                      <button onClick={sendEmailOtp} disabled={loading || emailOtpTimer > 0}
+                        placeholder="Enter your email address" />
+                      <button onClick={handleOtpLogin} disabled={loading}
                         className="px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 transition-all whitespace-nowrap shadow-lg shadow-blue-200">
-                        {emailOtpTimer > 0 ? `${emailOtpTimer}s` : emailOtpSent ? 'Resend' : 'Send OTP'}
+                        Login (Public)
                       </button>
                     </div>
                   </div>
-                  {emailOtpSent && (
-                    <>
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Enter OTP <span className="text-red-500">*</span></label>
-                        <input type="text" value={emailOtp.otp} onChange={e => setEmailOtp({ ...emailOtp, otp: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-center tracking-[0.5em] font-bold"
-                          placeholder="· · · · · ·" maxLength={6} />
-                      </div>
-                      <button onClick={verifyEmailOtp} disabled={loading || emailOtp.otp.length < 6}
-                        className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 transition-all shadow-lg shadow-blue-200">
-                        {loading ? 'Verifying...' : 'Verify & Login'}
-                      </button>
-                    </>
-                  )}
                 </div>
               )}
 

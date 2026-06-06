@@ -1,8 +1,7 @@
 const express = require('express');
-const { adminAuth } = require('../middleware/auth');
 const router = express.Router();
 
-router.post('/', adminAuth, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     if (process.env.NODE_ENV === 'production') {
       return res.status(403).json({ success: false, message: 'Seed endpoint disabled in production' });
@@ -12,17 +11,14 @@ router.post('/', adminAuth, async (req, res) => {
       return res.status(400).json({ success: false, message: 'MongoDB not connected. Nothing to seed.' });
     }
 
-    const User = require('../models/User');
     const Category = require('../models/Category');
     const Product = require('../models/Product');
     const Order = require('../models/Order');
-    const Token = require('../models/Token');
     const Banner = require('../models/Banner');
     const FAQ = require('../models/FAQ');
     const Testimonial = require('../models/Testimonial');
     const Setting = require('../models/Setting');
 
-    const bcrypt = require('bcryptjs');
     const path = require('path');
     const fs = require('fs');
 
@@ -38,11 +34,11 @@ router.post('/', adminAuth, async (req, res) => {
 
       let model;
       switch (name) {
-        case 'User': model = User; break;
+        case 'User': continue;
+        case 'Token': continue;
         case 'Category': model = Category; break;
         case 'Product': model = Product; break;
         case 'Order': model = Order; break;
-        case 'Token': model = Token; break;
         case 'Banner': model = Banner; break;
         case 'FAQ': model = FAQ; break;
         case 'Testimonial': model = Testimonial; break;
@@ -53,7 +49,6 @@ router.post('/', adminAuth, async (req, res) => {
 
       for (const doc of docs) {
         const { _id, createdAt, updatedAt, ...data } = doc;
-        if (data.password) data.password = data.password;
         try {
           await model.findByIdAndUpdate(_id, { $set: data }, { upsert: true, new: true });
         } catch (e) {
