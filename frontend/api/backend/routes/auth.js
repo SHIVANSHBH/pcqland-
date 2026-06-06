@@ -13,37 +13,9 @@ const { verificationEmail, passwordResetEmail } = require('../utils/templates');
 
 const router = express.Router();
 
-// ── Helpers ──────────────────────────────────────────────
-
-function signTokens(user) {
-  const accessToken = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '10d' });
-  const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-  return { accessToken, refreshToken };
-}
-
-async function selectPassword(query) {
-  if (require('../config/db').isUsingMongo()) {
-    return query.select('+password');
-  }
-  return query;
-}
-
-const verifyEmailTemplate = (name, token) => ({
-  subject: 'Verify your email - PC Deals India',
-  html: `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #2563eb;">PC Deals India</h2>
-      <p>Dear ${name},</p>
-      <p>Click the button below to verify your email:</p>
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/verify/${encodeURIComponent(token)}"
-           style="display: inline-block; padding: 14px 32px; background: #2563eb; color: #fff; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;">
-          Verify Email
-        </a>
-      </div>
-      <p style="color: #94a3b8; font-size: 12px;">This link expires in 10 minutes.</p>
-    </div>
-  `,
+// Debug: echo request body to diagnose JSON parse error
+router.post('/echo', express.json(), (req, res) => {
+  res.json({ body: req.body, type: typeof req.body, keys: req.body ? Object.keys(req.body) : null });
 });
 
 // ── Schemas ──────────────────────────────────────────────
