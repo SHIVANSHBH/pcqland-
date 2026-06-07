@@ -94,13 +94,27 @@ export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [faqSearch, setFaqSearch] = useState('');
   const reviewTrackRef = useRef<HTMLDivElement>(null);
+  const reviewCardsRef = useRef<HTMLDivElement>(null);
   const [reviewIndex, setReviewIndex] = useState(0);
+  const [cardWidth, setCardWidth] = useState(304);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 5000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    function measure() {
+      if (reviewCardsRef.current) {
+        const first = reviewCardsRef.current.querySelector<HTMLElement>('.review-card');
+        if (first) setCardWidth(first.offsetWidth + 16);
+      }
+    }
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
   }, []);
 
   const filteredFaqs = faqs.filter(f =>
@@ -121,7 +135,7 @@ export default function HomePage() {
       {/* Hero Slider */}
       <section className="px-4 py-4">
         <div className="max-w-7xl mx-auto">
-          <div className="relative overflow-hidden rounded-2xl bg-gray-200 h-48 sm:h-72 md:h-96 lg:h-[400px]">
+          <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gray-200 h-36 sm:h-72 md:h-96 lg:h-[400px]">
             {heroSlides.map((slide, i) => (
               <div
                 key={i}
@@ -129,22 +143,22 @@ export default function HomePage() {
               >
                 <Image src={slide.image} alt={slide.alt} fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end">
-                  <div className="p-8 text-white">
-                    <h2 className="text-2xl md:text-4xl font-extrabold mb-2 drop-shadow-lg">
+                  <div className="p-3 sm:p-8 text-white">
+                    <h2 className="text-sm sm:text-2xl md:text-4xl font-extrabold mb-1 sm:mb-2 drop-shadow-lg">
                       {i === 0 ? 'Smart Way to Buy Software Keys' : i === 1 ? 'Get Cashback on Every Order' : 'PC Deals India'}
                     </h2>
-                    <Link href="/category/windows-keys" className="inline-flex items-center gap-2 bg-white text-blue-600 px-6 py-2.5 rounded-xl font-bold hover:bg-blue-50 transition-colors text-sm">
+                    <Link href="/category/windows-keys" className="inline-flex items-center gap-2 bg-white text-blue-600 px-4 sm:px-6 py-1.5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold hover:bg-blue-50 transition-colors text-xs sm:text-sm">
                       Shop Now
                     </Link>
                   </div>
                 </div>
               </div>
             ))}
-            <button onClick={() => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)} className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/80 flex items-center justify-center text-gray-800 hover:bg-white transition-all shadow-lg">
-              <ChevronLeft className="w-5 h-5" />
+            <button onClick={() => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)} className="absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/80 flex items-center justify-center text-gray-800 hover:bg-white transition-all shadow-lg">
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-            <button onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)} className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/80 flex items-center justify-center text-gray-800 hover:bg-white transition-all shadow-lg">
-              <ChevronRight className="w-5 h-5" />
+            <button onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)} className="absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/80 flex items-center justify-center text-gray-800 hover:bg-white transition-all shadow-lg">
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
             <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
               {heroSlides.map((_, i) => (
@@ -178,7 +192,7 @@ export default function HomePage() {
       </section>
 
       {/* USP Features */}
-      <section className="px-4">
+      <section>
         <div className="max-w-7xl mx-auto">
           <div className="info-card-grid">
             {usps.map((usp, i) => {
@@ -208,7 +222,7 @@ export default function HomePage() {
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="reviews-viewport">
-              <div className="reviews-track" style={{ transform: `translateX(-${reviewIndex * 304}px)` }}>
+              <div className="reviews-track" ref={reviewCardsRef} style={{ transform: `translateX(-${reviewIndex * cardWidth}px)` }}>
                 {testimonials.map((t, i) => (
                   <article key={i} className="review-card">
                     <div className="review-top">

@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="home-footer-grid">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <Image src="/assets/1565303531.shree hira computer Logo for WebSite.png" alt="PC Deals India" width={180} height={48} className="h-12 w-auto" />
+            <Image src="/assets/1565303531.shree hira computer Logo for WebSite.png" alt="PC Deals India" width={180} height={48} className="h-10 sm:h-12 w-auto" />
             <div>
               <h5 className="text-white font-extrabold text-base m-0">PC Deals India</h5>
               <p className="text-xs text-gray-400">Genuine Software Keys</p>
