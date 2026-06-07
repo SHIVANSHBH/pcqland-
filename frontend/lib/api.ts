@@ -11,6 +11,7 @@ async function fetchAPI(endpoint: string, options: FetchOptions = {}): Promise<a
     const res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers: { 'Content-Type': 'application/json', ...options.headers },
+      credentials: 'include',
       signal: controller.signal,
     });
     if (!res.ok) {

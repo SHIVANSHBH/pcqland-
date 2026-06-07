@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LayoutDashboard, Package, LayoutGrid, Box, ShoppingCart, Users, FileText, Settings, LogOut, Menu, X } from 'lucide-react';
 
@@ -17,6 +18,17 @@ const sidebarItems = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => { if (!d.success || d.data?.role !== 'admin') { router.push('/login'); } else { setChecking(false); } })
+      .catch(() => router.push('/login'));
+  }, [router]);
+
+  if (checking) return <div className="min-h-screen flex items-center justify-center text-gray-500 text-sm">Checking access...</div>;
 
   return (
     <div className="min-h-screen bg-gray-100">
