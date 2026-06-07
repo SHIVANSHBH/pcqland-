@@ -48,7 +48,7 @@ export default function Header() {
   const pathname = usePathname();
   const [mobileMenu, setMobileMenu] = useState(false);
   const [cartCount, setCartCount] = useState(0);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string; role?: string } | null>(null);
   const [logo, setLogo] = useState('');
   const [searchCat, setSearchCat] = useState('all');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -168,6 +168,11 @@ export default function Header() {
             <div className="relative group">
               {user ? (
                 <div className="flex items-center gap-1 sm:gap-2">
+                  {user.role === 'admin' && (
+                    <Link href="/admin" className="hidden lg:inline text-xs text-green-600 hover:text-green-800 font-medium px-2 py-1">
+                      Admin
+                    </Link>
+                  )}
                   <Link href="/account" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 text-sm font-medium text-pcd-text hover:text-primary transition-colors">
                     <User className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
                     <span className="hidden lg:inline">{user.name || 'Account'}</span>
@@ -252,6 +257,9 @@ export default function Header() {
                     <Link href="/account/orders" className="block py-1.5 text-sm text-pcd-text hover:text-primary">My Orders</Link>
                     <Link href="/account/wallet" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Wallet</Link>
                     <Link href="/account/saved-keys" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Saved Keys</Link>
+                    {user.role === 'admin' && (
+                      <Link href="/admin" className="block py-1.5 text-sm text-green-600 hover:text-green-700 font-medium">Admin Panel</Link>
+                    )}
                     <button onClick={handleLogout} className="block py-1.5 text-sm text-red-500 hover:text-red-700 font-medium">Logout</button>
                   </div>
                 ) : (
