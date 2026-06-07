@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { Lock, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap } from 'lucide-react';
+import { Lock, Eye, EyeOff, Mail, Smartphone, Shield, History, Wallet, Headphones, Zap, LogOut } from 'lucide-react';
 
 type Tab = 'password' | 'phone-otp' | 'email-otp';
 
@@ -13,6 +13,18 @@ export default function LoginPage() {
   const [tab, setTab] = useState<Tab>('password');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loggedInUser, setLoggedInUser] = useState<{ name: string; email: string } | null>(null);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, { credentials: 'include' })
+      .then(r => r.json()).then(d => { if (d.success) setLoggedInUser(d.data); }).catch(() => {});
+  }, []);
+
+  async function handleLogoutFirst() {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
+    setLoggedInUser(null);
+    router.refresh();
+  }
 
   const [emailPass, setEmailPass] = useState({ email: '', password: '' });
 
@@ -157,6 +169,16 @@ export default function LoginPage() {
                 <p className="text-sm text-gray-500 mt-1">Sign in to PC Deals India & manage your business</p>
               </div>
 
+              {loggedInUser && (
+                <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+                  <div className="text-xs text-amber-800">
+                    Logged in as <strong>{loggedInUser.name}</strong>
+                  </div>
+                  <button onClick={handleLogoutFirst} className="flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-800">
+                    <LogOut className="w-3 h-3" /> Logout
+                  </button>
+                </div>
+              )}
               <div className="flex gap-1.5 mb-6 bg-gray-100 p-1 rounded-xl">
                 <button onClick={() => setTab('password')}
                   className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-3 text-xs font-semibold rounded-lg transition-all min-w-0 ${tab === 'password' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>

@@ -98,8 +98,9 @@ router.post('/logout', auth, loadUser, async (req, res) => {
       req.user.token = null;
       await req.user.save();
     }
-    res.clearCookie('token', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/api/auth/refresh-token' });
+    const cookieOpts = { path: '/', secure: true, sameSite: 'none' };
+    res.clearCookie('token', cookieOpts);
+    res.clearCookie('refreshToken', { path: '/api/auth/refresh-token', secure: true, sameSite: 'none' });
     success(res, null, 'Logged out successfully');
   } catch (err) {
     console.error('Logout error:', err.message);
