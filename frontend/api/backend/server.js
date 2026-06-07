@@ -125,6 +125,12 @@ const PORT = process.env.PORT || 5000;
 
 async function main() {
   await connectDB();
+  const mongoose = require('mongoose');
+  if (mongoose.connection.readyState !== 1) {
+    console.error('MongoDB not connected. Exiting.');
+    process.exit(1);
+  }
+  mongoose.set('bufferCommands', false);
 
   app.use('/invoices', express.static(path.join(__dirname, 'invoices')));
 
