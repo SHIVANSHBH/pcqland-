@@ -127,8 +127,7 @@ async function main() {
   await connectDB();
   const mongoose = require('mongoose');
   if (mongoose.connection.readyState !== 1) {
-    console.error('MongoDB not connected. Exiting.');
-    process.exit(1);
+    console.warn('⚠️  MongoDB not connected — auth & user features will be unavailable');
   }
   mongoose.set('bufferCommands', false);
 

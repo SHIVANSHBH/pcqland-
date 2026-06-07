@@ -25,10 +25,12 @@ function ensureDbName(uri) {
 const connectDB = async () => {
   const rawUri = process.env.MONGODB_URI;
   if (!rawUri) {
-    throw new Error('MONGODB_URI not set — add it to Render environment variables');
+    console.warn('MONGODB_URI not set — auth features will be unavailable');
+    return;
   }
   if (!mongoose) {
-    throw new Error('Mongoose not available');
+    console.warn('Mongoose not available');
+    return;
   }
 
   const uri = ensureDbName(rawUri);
@@ -67,7 +69,7 @@ const connectDB = async () => {
       console.error('👉 https://cloud.mongodb.com → Network Access → Add IP 0.0.0.0/0');
     }
     if (!isMongoConnected) {
-      throw new Error(`MongoDB connection failed: ${msg}`);
+      console.warn('Falling back to NeDB for non-auth models');
     }
   }
 };
