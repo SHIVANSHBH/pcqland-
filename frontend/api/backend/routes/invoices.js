@@ -1,12 +1,12 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const auth = (req, res, next) => { req.user = { _id: 'guest', role: 'customer', name: 'Guest', email: 'guest@localhost' }; next(); };
+const { auth, loadUser } = require('../middleware/auth');
 const Order = require('../models/Order');
 
 const router = express.Router();
 
-router.get('/:filename', auth, async (req, res) => {
+router.get('/:filename', auth, loadUser, async (req, res) => {
   try {
     const filename = path.basename(req.params.filename);
     if (!/^[\w\-. ]+$/.test(filename) || filename.includes('..')) {

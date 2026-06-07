@@ -35,15 +35,47 @@ export default function SignupPage() {
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
-    console.log('Auth disabled — signup bypassed');
-    toast.success('Registration disabled — site is public');
-    router.push('/');
-    router.refresh();
+    if (!form.name || !form.email || !form.password) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    if (form.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    if (!passwordMatch) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, password: form.password }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!data.success) {
+        toast.error(data.message || 'Registration failed');
+        return;
+      }
+      toast.success('Registration successful!');
+      router.push('/');
+      router.refresh();
+    } catch (err: any) {
+      toast.error(err.message || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handlePhoneSignup() {
-    console.log('Auth disabled — phone signup bypassed');
-    toast.success('Registration disabled — site is public');
+    if (!phoneReg.phone || !phoneReg.otp) {
+      toast.error('Enter phone and OTP');
+      return;
+    }
+    toast.success('Registration successful!');
     router.push('/');
     router.refresh();
   }

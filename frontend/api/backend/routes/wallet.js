@@ -1,15 +1,11 @@
 const express = require('express');
 const User = require('../models/User');
 const Order = require('../models/Order');
+const { auth, loadUser } = require('../middleware/auth');
 
 const router = express.Router();
 
-const auth = (req, res, next) => {
-  req.user = { _id: 'guest', role: 'customer' };
-  next();
-};
-
-router.get('/balance', auth, async (req, res) => {
+router.get('/balance', auth, loadUser, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     res.json({ balance: user.walletBalance, totalEarned: user.totalCashbackEarned });

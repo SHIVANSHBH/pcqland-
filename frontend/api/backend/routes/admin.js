@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const csv = require('csv-parse/sync');
 
-const adminAuth = (req, res, next) => { req.user = { _id: 'admin', role: 'admin', name: 'Admin', email: 'admin@localhost' }; next(); };
+const { adminAuth } = require('../middleware/auth');
 
 const User = require('../models/User');
 const Product = require('../models/Product');
@@ -40,9 +40,24 @@ const upload = multer({
   },
 });
 
-// Auth (disabled)
+// Auth — use /api/auth/login instead
 router.post('/login', async (req, res) => {
-  res.json({ success: true, data: { user: { _id: 'admin', name: 'Admin', email: 'admin@localhost', role: 'admin' }, accessToken: 'mock-token' } });
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password required' });
+  try {
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    if (user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin access required' });
+    const adminUser = await User.findById(user._id).select('+password');
+    const bcrypt = require('bcryptjs');
+    const isMatch = await bcrypt.compare(password, adminUser.password);
+    if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    const jwt = require('jsonwebtoken');
+    const accessToken = jwt.sign({ id: adminUser._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    res.json({ success: true, data: { user: { _id: adminUser._id, name: adminUser.name, email: adminUser.email, role: 'admin' }, accessToken } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // Dashboard

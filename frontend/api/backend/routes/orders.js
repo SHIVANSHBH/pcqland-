@@ -1,13 +1,13 @@
 const express = require('express');
 const Order = require('../models/Order');
 const User = require('../models/User');
-const auth = (req, res, next) => { req.user = { _id: 'guest', role: 'customer', name: 'Guest', email: 'guest@localhost' }; next(); };
+const { auth, loadUser } = require('../middleware/auth');
 const { createOrder, verifyPayment } = require('../utils/razorpay');
 const { processOrderDelivery } = require('../utils/delivery');
 
 const router = express.Router();
 
-router.post('/create', auth, async (req, res) => {
+router.post('/create', auth, loadUser, async (req, res) => {
   try {
     const { items, customerInfo, paymentMethod } = req.body;
     const Product = require('../models/Product');

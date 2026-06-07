@@ -35,17 +35,75 @@ export default function LoginPage() {
 
   async function handlePasswordLogin(e: React.FormEvent) {
     e.preventDefault();
-    console.log('Auth disabled - login bypassed');
-    toast.success('Login disabled — site is public');
-    router.push('/');
-    router.refresh();
+    if (!emailPass.email || !emailPass.password) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailPass.email, password: emailPass.password }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!data.success) {
+        toast.error(data.message || 'Invalid email or password');
+        return;
+      }
+      toast.success('Login successful!');
+      router.push('/');
+      router.refresh();
+    } catch (err: any) {
+      toast.error(err.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
   }
 
-  async function handleOtpLogin() {
-    console.log('Auth disabled — OTP login bypassed');
-    toast.success('Login disabled — site is public');
-    router.push('/');
-    router.refresh();
+  async function handleOtpLogin(type: 'email' | 'phone') {
+    const otpData = type === 'email' ? emailOtp : phoneOtp;
+    if (!otpData.otp) { toast.error('Enter OTP'); return; }
+    setLoading(true);
+    try {
+      const identifier = type === 'email' ? { email: otpData.email } : { phone: `+91${otpData.phone.replace(/\D/g, '')}` };
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...identifier, otp: otpData.otp }),
+      });
+      const data = await res.json();
+      if (!data.success) { toast.error(data.message); return; }
+      toast.success('Login successful!');
+      router.push('/');
+      router.refresh();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function sendOtp(type: 'email' | 'phone') {
+    if (type === 'email' && !emailOtp.email) { toast.error('Enter email'); return; }
+    if (type === 'phone' && !phoneOtp.phone) { toast.error('Enter phone'); return; }
+    setLoading(true);
+    try {
+      const body = type === 'email' ? { email: emailOtp.email } : { phone: `+91${phoneOtp.phone.replace(/\D/g, '')}` };
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!data.success) { toast.error(data.message); return; }
+      toast.success('OTP sent');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -163,12 +221,22 @@ export default function LoginPage() {
                       <input type="tel" value={phoneOtp.phone} onChange={e => setPhoneOtp({ ...phoneOtp, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                         className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
                         placeholder="9876543210" maxLength={10} />
-                      <button onClick={handleOtpLogin} disabled={loading}
+                      <button onClick={() => sendOtp('phone')} disabled={loading}
                         className="px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 transition-all whitespace-nowrap shadow-lg shadow-blue-200">
-                        Login (Public)
+                        Send OTP
                       </button>
                     </div>
                   </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Enter OTP <span className="text-red-500">*</span></label>
+                    <input type="text" value={phoneOtp.otp} onChange={e => setPhoneOtp({ ...phoneOtp, otp: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-center tracking-[0.5em] font-bold"
+                      placeholder="· · · · · ·" maxLength={6} />
+                  </div>
+                  <button onClick={() => handleOtpLogin('phone')} disabled={loading || phoneOtp.otp.length < 6}
+                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 transition-all shadow-lg shadow-blue-200">
+                    {loading ? 'Verifying...' : 'Verify & Login'}
+                  </button>
                 </div>
               )}
 
@@ -180,12 +248,22 @@ export default function LoginPage() {
                       <input type="email" value={emailOtp.email} onChange={e => setEmailOtp({ ...emailOtp, email: e.target.value })}
                         className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
                         placeholder="Enter your email address" />
-                      <button onClick={handleOtpLogin} disabled={loading}
+                      <button onClick={() => sendOtp('email')} disabled={loading}
                         className="px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 transition-all whitespace-nowrap shadow-lg shadow-blue-200">
-                        Login (Public)
+                        Send OTP
                       </button>
                     </div>
                   </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Enter OTP <span className="text-red-500">*</span></label>
+                    <input type="text" value={emailOtp.otp} onChange={e => setEmailOtp({ ...emailOtp, otp: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-center tracking-[0.5em] font-bold"
+                      placeholder="· · · · · ·" maxLength={6} />
+                  </div>
+                  <button onClick={() => handleOtpLogin('email')} disabled={loading || emailOtp.otp.length < 6}
+                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 transition-all shadow-lg shadow-blue-200">
+                    {loading ? 'Verifying...' : 'Verify & Login'}
+                  </button>
                 </div>
               )}
 
