@@ -48,6 +48,7 @@ export default function Header() {
   const pathname = usePathname();
   const [mobileMenu, setMobileMenu] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [logo, setLogo] = useState('');
   const [searchCat, setSearchCat] = useState('all');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -85,8 +86,18 @@ export default function Header() {
     return () => window.removeEventListener('storage', handleCart);
   }, [pathname]);
 
-  const handleLogout = () => {
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, { credentials: 'include' })
+      .then(r => r.json()).then(d => { if (d.success) setUser(d.data); }).catch(() => {});
+  }, [pathname]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
+    } catch {}
+    setUser(null);
     router.push('/');
+    router.refresh();
   };
 
   return (
@@ -155,10 +166,22 @@ export default function Header() {
             </Link>
 
             <div className="relative group">
-              <Link href="/account" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 text-sm font-medium text-pcd-text hover:text-primary transition-colors">
-                <User className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
-                <span className="hidden lg:inline">My Account</span>
-              </Link>
+              {user ? (
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <Link href="/account" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 text-sm font-medium text-pcd-text hover:text-primary transition-colors">
+                    <User className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
+                    <span className="hidden lg:inline">{user.name || 'Account'}</span>
+                  </Link>
+                  <button onClick={handleLogout} className="hidden lg:inline text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1">
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <Link href="/login" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+                  <User className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
+                  <span className="hidden lg:inline">Login</span>
+                </Link>
+              )}
             </div>
 
             <button onClick={() => setMobileMenu(true)} className="md:hidden p-2 sm:p-2.5 text-pcd-text">
@@ -220,14 +243,25 @@ export default function Header() {
             </div>
             <div className="p-4">
               <div className="mb-4 pb-4 border-b border-pcd-border/50">
-                <div className="space-y-1">
-                  <Link href="/account" className="flex items-center gap-2 py-2.5 text-sm font-semibold text-primary">
-                    <User className="w-4 h-4" /> My Account
-                  </Link>
-                  <Link href="/account/orders" className="block py-1.5 text-sm text-pcd-text hover:text-primary">My Orders</Link>
-                  <Link href="/account/wallet" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Wallet</Link>
-                  <Link href="/account/saved-keys" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Saved Keys</Link>
-                </div>
+                {user ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 py-2.5">
+                      <User className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-semibold text-pcd-text">{user.name || 'My Account'}</span>
+                    </div>
+                    <Link href="/account/orders" className="block py-1.5 text-sm text-pcd-text hover:text-primary">My Orders</Link>
+                    <Link href="/account/wallet" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Wallet</Link>
+                    <Link href="/account/saved-keys" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Saved Keys</Link>
+                    <button onClick={handleLogout} className="block py-1.5 text-sm text-red-500 hover:text-red-700 font-medium">Logout</button>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <Link href="/login" className="flex items-center gap-2 py-2.5 text-sm font-semibold text-primary">
+                      <User className="w-4 h-4" /> Login
+                    </Link>
+                    <Link href="/signup" className="block py-1.5 text-sm text-pcd-text hover:text-primary">Create Account</Link>
+                  </div>
+                )}
               </div>
               <h6 className="text-xs font-bold text-pcd-muted uppercase tracking-wider mb-3">Browse Categories</h6>
               <Link href="/" className="flex items-center gap-3 py-2.5 text-sm font-medium text-pcd-text">

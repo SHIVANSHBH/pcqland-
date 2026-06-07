@@ -32,7 +32,7 @@ router.post('/register', async (req, res) => {
     user.isLoggedIn = true;
     user.token = accessToken;
     await user.save();
-    const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/' };
+    const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'none', path: '/' };
     res.cookie('token', accessToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
     success(res, { accessToken, refreshToken, user: sanitize(user) }, 'Registration successful', 201);
   } catch (err) {
@@ -69,7 +69,7 @@ router.post('/login', async (req, res) => {
     user.isLoggedIn = true;
     user.token = accessToken;
     await user.save();
-    const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/' };
+    const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'none', path: '/' };
     res.cookie('token', accessToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
     success(res, { accessToken, refreshToken, user: sanitize(user) }, `Welcome back ${user.name || 'User'}`);
   } catch (err) {
@@ -118,7 +118,7 @@ router.post('/refresh-token', async (req, res) => {
     if (!user) return error(res, 'User not found', 404);
     await Token.deleteOne({ _id: stored._id });
     const tokens = signTokens(user);
-    const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/' };
+    const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'none', path: '/' };
     res.cookie('token', tokens.accessToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
     success(res, tokens, 'Token refreshed');
   } catch (err) {

@@ -1,10 +1,27 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { User, Package, Wallet, Download, Key, ChevronRight } from 'lucide-react';
 
 export default function AccountPage() {
-  const user = { name: 'Guest User', email: 'guest@example.com', phone: '+91 9999999999', walletBalance: 0 };
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, { credentials: 'include' })
+      .then(r => r.json()).then(d => {
+        if (d.success) setUser(d.data);
+        else router.push('/login');
+      }).catch(() => router.push('/login'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="max-w-4xl mx-auto px-4 py-6"><p className="text-center text-gray-500 py-10">Loading...</p></div>;
+  if (!user) return null;
 
   const menuItems = [
     { icon: Package, label: 'My Orders', href: '/account/orders', desc: 'View order history & download keys' },
@@ -63,6 +80,14 @@ export default function AccountPage() {
         <ChevronRight className="w-4 h-4 rotate-180" />
         Back to Home
       </Link>
+
+      {/* Logout */}
+      <button onClick={async () => {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
+        router.push('/login');
+      }} className="mt-2 inline-flex items-center gap-2 px-4 py-2.5 text-sm text-gray-500 hover:bg-gray-50 rounded-xl transition-colors">
+        Logout
+      </button>
     </div>
   );
 }
