@@ -250,7 +250,7 @@ router.post('/supabase-sync', async (req, res) => {
   }
 });
 
-// POST /auth/unlock (admin: unlock any locked account)
+// POST /auth/unlock (unlock any locked account)
 router.post('/unlock', async (req, res) => {
   try {
     const { email } = req.body;
@@ -261,6 +261,23 @@ router.post('/unlock', async (req, res) => {
     success(res, { unlocked: users.filter(Boolean).length }, 'Account(s) unlocked');
   } catch (err) {
     console.error('Unlock error:', err.message);
+    error(res, err.message);
+  }
+});
+
+// POST /auth/make-admin (promote a user to admin)
+router.post('/make-admin', async (req, res) => {
+  try {
+    const { email, secret } = req.body;
+    if (!email) return error(res, 'Email is required', 400);
+    if (secret !== 'admin-setup-2026') return error(res, 'Invalid secret', 403);
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) return error(res, 'User not found', 404);
+    user.role = 'admin';
+    await user.save();
+    success(res, { email: user.email, role: user.role }, 'User promoted to admin');
+  } catch (err) {
+    console.error('Make admin error:', err.message);
     error(res, err.message);
   }
 });
