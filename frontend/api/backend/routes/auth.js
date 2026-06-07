@@ -250,4 +250,19 @@ router.post('/supabase-sync', async (req, res) => {
   }
 });
 
+// POST /auth/unlock (admin: unlock any locked account)
+router.post('/unlock', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const filter = email ? { email: email.toLowerCase().trim() } : { lockUntil: { $ne: null } };
+    const users = email ? [await User.findOne(filter)] : await User.find({ lockUntil: { $ne: null } });
+    if (!users || (email && !users[0])) return error(res, 'User not found', 404);
+    for (const u of users) { if (u) { u.loginAttempts = 0; u.lockUntil = null; await u.save(); } }
+    success(res, { unlocked: users.filter(Boolean).length }, 'Account(s) unlocked');
+  } catch (err) {
+    console.error('Unlock error:', err.message);
+    error(res, err.message);
+  }
+});
+
 module.exports = router;
