@@ -10,8 +10,8 @@ import { toast } from 'sonner';
 export default function VerifyOtpPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState(searchParams.get('email') || '');
-  const [phone, setPhone] = useState(searchParams.get('phone') || '');
+  const [email] = useState(searchParams.get('email') || '');
+  const [phone] = useState(searchParams.get('phone') || '');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const mode = email ? 'email' : 'phone';

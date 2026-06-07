@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
-import { User, Package, Wallet, Download, Key, ChevronRight } from 'lucide-react';
+import { Package, Wallet, Download, Key, ChevronRight } from 'lucide-react';
 
 export default function AccountPage() {
   const router = useRouter();

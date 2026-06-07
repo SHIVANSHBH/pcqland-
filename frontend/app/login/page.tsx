@@ -63,15 +63,15 @@ export default function LoginPage() {
   }
 
   async function handleOtpLogin(type: 'email' | 'phone') {
-    const otpData = type === 'email' ? emailOtp : phoneOtp;
-    if (!otpData.otp) { toast.error('Enter OTP'); return; }
+    if (type === 'email' && !emailOtp.otp) { toast.error('Enter OTP'); return; }
+    if (type === 'phone' && !phoneOtp.otp) { toast.error('Enter OTP'); return; }
     setLoading(true);
     try {
-      const identifier = type === 'email' ? { email: otpData.email } : { phone: `+91${otpData.phone.replace(/\D/g, '')}` };
+      const identifier = type === 'email' ? { email: emailOtp.email, otp: emailOtp.otp } : { phone: `+91${phoneOtp.phone.replace(/\D/g, '')}`, otp: phoneOtp.otp };
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...identifier, otp: otpData.otp }),
+        body: JSON.stringify(identifier),
       });
       const data = await res.json();
       if (!data.success) { toast.error(data.message); return; }
