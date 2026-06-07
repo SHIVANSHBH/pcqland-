@@ -116,15 +116,15 @@ export default function Header() {
       </div>
 
       {/* Main Header */}
-      <div className="main-head px-2 sm:px-4 py-2 sm:py-3">
-        <div className="flex items-center gap-2 sm:gap-4 max-w-7xl mx-auto">
+      <div className="main-head px-1 sm:px-2 md:px-4 py-2 sm:py-3">
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-4 max-w-7xl mx-auto">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <div className="flex items-center gap-1 sm:gap-2">
               {logo ? (
-                <Image src={logo} alt="PC Deals India" width={120} height={40} className="h-8 sm:h-10 w-auto sm:max-w-[180px] object-contain" unoptimized />
+                <Image src={logo} alt="PC Deals India" width={120} height={40} className="h-6 sm:h-8 md:h-10 w-auto sm:max-w-[180px] object-contain" unoptimized />
               ) : (
-                <Image src="/assets/1565303531.shree hira computer Logo for WebSite.png" alt="PC Deals India" width={120} height={40} className="h-8 sm:h-10 w-auto" />
+                <Image src="/assets/1565303531.shree hira computer Logo for WebSite.png" alt="PC Deals India" width={120} height={40} className="h-6 sm:h-8 md:h-10 w-auto" />
               )}
               <div className="hidden lg:block">
                 <h1 className="text-sm font-extrabold text-pcd-text leading-tight">PC Deals India</h1>
@@ -134,12 +134,12 @@ export default function Header() {
           </Link>
 
           {/* Search */}
-          <form onSubmit={handleSearchSubmit} className="search-wrap flex-1 max-w-2xl">
+          <form onSubmit={handleSearchSubmit} className="search-wrap flex-1 min-w-0 max-w-2xl">
             <div className="cat-picker" ref={searchRef}>
               <button type="button" className="cat-picker-toggle" onClick={() => setSearchOpen(!searchOpen)}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-                <span>{searchCat === 'all' ? 'All Categories' : categories.find(c => c.slug === searchCat)?.name || 'All Categories'}</span>
-                <ChevronDown className="w-3 h-3" />
+                <span className="cat-current">{searchCat === 'all' ? 'All Categories' : categories.find(c => c.slug === searchCat)?.name || 'All Categories'}</span>
+                <ChevronDown className="w-3 h-3 chevron" />
               </button>
               {searchOpen && (
                 <div className="cat-picker-menu" style={{ display: 'block' }}>
@@ -150,15 +150,15 @@ export default function Header() {
                 </div>
               )}
             </div>
-            <input className="search-input" type="search" name="search" placeholder="Search for products, software, keys..." />
+            <input className="search-input" type="search" name="search" placeholder="Search products, keys..." />
             <button type="submit" className="search-btn" aria-label="Search">
               <Search className="w-4 h-4" />
             </button>
           </form>
 
           {/* Actions */}
-          <div className="flex items-center gap-0.5 sm:gap-3">
-            <Link href="/cart" className="relative p-2 sm:p-2.5 text-pcd-text hover:text-primary transition-colors">
+          <div className="flex items-center gap-0.5 sm:gap-1 md:gap-3">
+            <Link href="/cart" className="relative p-1.5 sm:p-2 md:p-2.5 text-pcd-text hover:text-primary transition-colors">
               <ShoppingCart className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] sm:w-5 sm:h-5 bg-primary text-white text-[10px] sm:text-xs font-bold rounded-full flex items-center justify-center">{cartCount}</span>
@@ -173,7 +173,7 @@ export default function Header() {
                       Admin
                     </Link>
                   )}
-                  <Link href="/account" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 text-sm font-medium text-pcd-text hover:text-primary transition-colors">
+                  <Link href="/account" className="flex items-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-2 sm:py-2.5 text-sm font-medium text-pcd-text hover:text-primary transition-colors">
                     <User className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
                     <span className="hidden lg:inline">{user.name || 'Account'}</span>
                   </Link>
@@ -182,14 +182,14 @@ export default function Header() {
                   </button>
                 </div>
               ) : (
-                <Link href="/login" className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+                <Link href="/login" className="flex items-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-2 sm:py-2.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
                   <User className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
                   <span className="hidden lg:inline">Login</span>
                 </Link>
               )}
             </div>
 
-            <button onClick={() => setMobileMenu(true)} className="md:hidden p-2 sm:p-2.5 text-pcd-text">
+            <button onClick={() => setMobileMenu(true)} className="md:hidden p-1.5 sm:p-2.5 text-pcd-text">
               <Menu className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
             </button>
           </div>
